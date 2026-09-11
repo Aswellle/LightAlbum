@@ -116,9 +116,7 @@ pub async fn storage_get_info(state: State<'_, AppState>) -> Result<StorageInfo,
                     }
                 }
             }
-            let db_bytes = std::fs::metadata(&db_path)
-                .map(|m| m.len())
-                .unwrap_or(0);
+            let db_bytes = std::fs::metadata(&db_path).map(|m| m.len()).unwrap_or(0);
             (thumb_bytes, file_count, db_bytes)
         })
         .await

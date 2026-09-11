@@ -6,7 +6,11 @@ use r2d2_sqlite::SqliteConnectionManager;
 use std::sync::Arc;
 use tempfile::tempdir;
 
-fn make_repo() -> (tempfile::TempDir, SqlitePhotoRepository, Arc<r2d2::Pool<SqliteConnectionManager>>) {
+fn make_repo() -> (
+    tempfile::TempDir,
+    SqlitePhotoRepository,
+    Arc<r2d2::Pool<SqliteConnectionManager>>,
+) {
     let dir = tempdir().unwrap();
     let db = dir.path().join("test.db");
     let mgr = SqliteConnectionManager::file(&db);
@@ -136,15 +140,25 @@ fn test_purge_old_trash_only_removes_expired() {
     use light_album_lib::db::photo as photo_db;
 
     let (_dir, repo, pool) = make_repo();
-    repo.insert_batch(&[sample_photo("/photos/old.jpg"), sample_photo("/photos/recent.jpg")])
-        .unwrap();
+    repo.insert_batch(&[
+        sample_photo("/photos/old.jpg"),
+        sample_photo("/photos/recent.jpg"),
+    ])
+    .unwrap();
 
     let conn = pool.get().unwrap();
-    let old_id = photo_db::get_by_path(&conn, "/photos/old.jpg").unwrap().unwrap().id;
-    let recent_id = photo_db::get_by_path(&conn, "/photos/recent.jpg").unwrap().unwrap().id;
+    let old_id = photo_db::get_by_path(&conn, "/photos/old.jpg")
+        .unwrap()
+        .unwrap()
+        .id;
+    let recent_id = photo_db::get_by_path(&conn, "/photos/recent.jpg")
+        .unwrap()
+        .unwrap()
+        .id;
     drop(conn);
 
-    repo.soft_delete(&[old_id.clone(), recent_id.clone()]).unwrap();
+    repo.soft_delete(&[old_id.clone(), recent_id.clone()])
+        .unwrap();
 
     // Backdate one of the two deleted_at timestamps past the 30-day cutoff directly via SQL,
     // since soft_delete() always stamps "now" and there's no repository method for backdating.
@@ -177,10 +191,14 @@ fn test_purge_old_trash_skips_watcher_missing() {
     use light_album_lib::db::photo as photo_db;
 
     let (_dir, repo, pool) = make_repo();
-    repo.insert_batch(&[sample_photo("/photos/missing.jpg")]).unwrap();
+    repo.insert_batch(&[sample_photo("/photos/missing.jpg")])
+        .unwrap();
 
     let conn = pool.get().unwrap();
-    let id = photo_db::get_by_path(&conn, "/photos/missing.jpg").unwrap().unwrap().id;
+    let id = photo_db::get_by_path(&conn, "/photos/missing.jpg")
+        .unwrap()
+        .unwrap()
+        .id;
     drop(conn);
 
     // Simulate the watcher marking the file as missing: is_deleted=1, deleted_at stays NULL.
@@ -195,7 +213,10 @@ fn test_purge_old_trash_skips_watcher_missing() {
 
     // Even though the row is soft-deleted, it must NOT be auto-purged (deleted_at NULL).
     let expired = repo.purge_old_trash().unwrap();
-    assert!(expired.is_empty(), "watcher-missing rows must not be auto-purged");
+    assert!(
+        expired.is_empty(),
+        "watcher-missing rows must not be auto-purged"
+    );
 
     let conn = pool.get().unwrap();
     assert!(photo_db::get_by_id(&conn, &id).unwrap().is_some());

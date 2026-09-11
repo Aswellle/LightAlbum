@@ -395,13 +395,20 @@ impl AppState {
             let path = std::path::Path::new(file_path.as_str());
             if path.exists() {
                 if let Err(e) = std::fs::remove_file(path) {
-                    tracing::warn!("Trash auto-purge: failed to delete file {}: {}", file_path, e);
+                    tracing::warn!(
+                        "Trash auto-purge: failed to delete file {}: {}",
+                        file_path,
+                        e
+                    );
                 }
             }
             self.remove_thumbnails(photo_id, file_hash);
             removed_paths.push(file_path.clone());
         }
-        tracing::info!("Trash auto-purge: removed {} expired photo(s)", expired.len());
+        tracing::info!(
+            "Trash auto-purge: removed {} expired photo(s)",
+            expired.len()
+        );
         removed_paths
     }
 }

@@ -300,7 +300,10 @@ fn process_task(
         Err(_) => true,
     };
     if !photo_active {
-        tracing::debug!("Thumbnail: photo {} no longer active, skipping", task.photo_id);
+        tracing::debug!(
+            "Thumbnail: photo {} no longer active, skipping",
+            task.photo_id
+        );
         return Ok(());
     }
 
