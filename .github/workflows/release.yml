@@ -3,58 +3,255 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+
 jobs:
-  build-and-release:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            sidecar: win
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            sidecar: mac_arm64
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            sidecar: mac_x64
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            sidecar: linux
+  preflight:
+    name: Release preflight
+    runs-on: ubuntu-24.04
 
-    runs-on: ${{ matrix.platform.os }}
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout full history
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.9
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
           cache: pnpm
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform.target }}
+      - name: Validate tag
+        id: meta
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
 
-      - uses: Swatinem/rust-cache@v2
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag: $TAG"
+            echo "Expected format: vX.Y.Z"
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Validate application version
+        run: pnpm version:check
+
+      - name: Verify tag points to this commit
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          TAG_SHA="$(git rev-list -n 1 "$TAG")"
+
+          echo "Tag SHA:      $TAG_SHA"
+          echo "Workflow SHA: $EXPECTED_SHA"
+
+          if [[ "$TAG_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "The tag does not point to the workflow commit."
+            exit 1
+          fi
+
+      - name: Verify release state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" \
+              --json isDraft,isImmutable,databaseId,tagName; then
+
+            IS_DRAFT="$(gh release view "$TAG" --json isDraft --jq '.isDraft')"
+            IS_IMMUTABLE="$(gh release view "$TAG" --json isImmutable --jq '.isImmutable')"
+
+            echo "Existing release:"
+            echo "  draft=$IS_DRAFT"
+            echo "  immutable=$IS_IMMUTABLE"
+
+            if [[ "$IS_IMMUTABLE" == "true" ]]; then
+              echo "Release $TAG is already immutable."
+              echo "A published version must never be rebuilt."
+              exit 1
+            fi
+
+            if [[ "$IS_DRAFT" != "true" ]]; then
+              echo "Release $TAG is already published."
+              echo "A published version must never be reused."
+              exit 1
+            fi
+
+            echo "Existing draft release is safe to resume."
+
+          else
+            echo "No release exists yet. A draft will be created after CI."
+          fi
+
+
+  ci:
+    name: Full CI gate
+    needs: preflight
+
+    uses: ./.github/workflows/ci.yml
+
+
+  prepare-release:
+    name: Prepare draft release
+    needs:
+      - preflight
+      - ci
+
+    runs-on: ubuntu-24.04
+
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Create or reuse draft release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" \
+              --json databaseId,isDraft,isImmutable >/dev/null 2>&1; then
+
+            IS_DRAFT="$(gh release view "$TAG" --json isDraft --jq '.isDraft')"
+            IS_IMMUTABLE="$(gh release view "$TAG" --json isImmutable --jq '.isImmutable')"
+
+            if [[ "$IS_IMMUTABLE" == "true" ]]; then
+              echo "Immutable release already exists."
+              exit 1
+            fi
+
+            if [[ "$IS_DRAFT" != "true" ]]; then
+              echo "Existing release is not a draft."
+              exit 1
+            fi
+
+            echo "Reusing existing draft release."
+
+          else
+            echo "Creating draft release."
+
+            gh release create "$TAG" \
+              --verify-tag \
+              --draft \
+              --generate-notes \
+              --title "LightAlbum $TAG"
+          fi
+
+          RELEASE_ID="$(
+            gh release view "$TAG" \
+              --json databaseId \
+              --jq '.databaseId'
+          )"
+
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "Release ID: $RELEASE_ID"
+
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs:
+      - prepare-release
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+
+          - name: Windows x64
+            os: windows-2022
+            target: x86_64-pc-windows-msvc
+            sidecar: win
+
+          - name: macOS ARM64
+            os: macos-26
+            target: aarch64-apple-darwin
+            sidecar: mac_arm64
+
+          - name: macOS Intel
+            os: macos-26-intel
+            target: x86_64-apple-darwin
+            sidecar: mac_x64
+
+          - name: Linux x64
+            os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            sidecar: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout exact release tag
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.9
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: Install Linux system deps
-        if: matrix.platform.os == 'ubuntu-22.04'
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev \
-            librsvg2-dev patchelf libssl-dev pkg-config
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            pkg-config
 
-      - name: Install frontend deps
+      - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Install sidecar dependencies
@@ -62,16 +259,92 @@ jobs:
         working-directory: sidecar
 
       - name: Build sidecar
-        run: node scripts/bundle.js --platform ${{ matrix.platform.sidecar }}
+        run: node scripts/bundle.js --platform ${{ matrix.sidecar }}
         working-directory: sidecar
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build and upload Tauri artifacts
+        uses: tauri-apps/tauri-action@v1.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
+          releaseId: ${{ needs.prepare-release.outputs.release_id }}
           tagName: ${{ github.ref_name }}
-          releaseName: LightAlbum ${{ github.ref_name }}
-          releaseBody: See CHANGELOG for details.
           releaseDraft: true
           prerelease: false
-          args: --target ${{ matrix.platform.target }}
+          args: --target ${{ matrix.target }}
+
+
+  verify:
+    name: Verify release assets
+    needs:
+      - prepare-release
+      - build
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Verify draft and assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RELEASE_JSON="$(
+            gh release view "$TAG" \
+              --json isDraft,isImmutable,assets
+          )"
+
+          IS_DRAFT="$(jq -r '.isDraft' <<< "$RELEASE_JSON")"
+          IS_IMMUTABLE="$(jq -r '.isImmutable' <<< "$RELEASE_JSON")"
+          ASSET_COUNT="$(jq '.assets | length' <<< "$RELEASE_JSON")"
+
+          echo "Draft:      $IS_DRAFT"
+          echo "Immutable:  $IS_IMMUTABLE"
+          echo "Asset count: $ASSET_COUNT"
+
+          if [[ "$IS_DRAFT" != "true" ]]; then
+            echo "Release is unexpectedly not a draft."
+            exit 1
+          fi
+
+          if [[ "$IS_IMMUTABLE" == "true" ]]; then
+            echo "Release became immutable before verification."
+            exit 1
+          fi
+
+          if (( ASSET_COUNT < 4 )); then
+            echo "Expected artifacts from all four platform jobs."
+            exit 1
+          fi
+
+          echo
+          echo "Assets:"
+          jq -r '.assets[].name' <<< "$RELEASE_JSON"
+
+
+  publish:
+    name: Publish immutable release
+    needs:
+      - verify
+
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: release
+
+    steps:
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          gh release edit "$TAG" \
+            --draft=false \
+            --latest \
+            --verify-tag
+
+          echo "Published $TAG"

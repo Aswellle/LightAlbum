@@ -2,23 +2,36 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
   pull_request:
 
+  workflow_dispatch:
+
+  workflow_call:
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   frontend:
     name: Frontend (lint + typecheck + test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.9
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
           cache: pnpm
@@ -26,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Audit dependencies  # BP-M1
+      - name: Audit dependencies
         run: pnpm audit --audit-level=high
 
       - name: Lint
@@ -42,27 +55,31 @@ jobs:
         run: npm ci
         working-directory: sidecar
 
-      - name: Sidecar smoke test  # CD-M2
+      - name: Sidecar smoke test
         run: node test/smoke.js
         working-directory: sidecar
 
+
   rust:
     name: Rust (fmt + clippy + audit + test)
-    # Pin to Ubuntu 22.04: libwebkit2gtk-4.1-dev is unavailable on Ubuntu 24.04
-    # (ubuntu-latest switched to 24.04 in late 2024)
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
+    runs-on: ubuntu-24.04
 
-      - uses: dtolnay/rust-toolchain@stable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
         with:
+          toolchain: stable
           components: rustfmt, clippy
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: Install system deps (Ubuntu 22.04)
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -74,7 +91,7 @@ jobs:
             libssl-dev \
             pkg-config
 
-      - name: Create sidecar placeholder (CI)  # sidecar built separately; stub satisfies tauri-build resource check
+      - name: Create sidecar placeholder
         run: |
           mkdir -p src-tauri/binaries
           touch src-tauri/binaries/sharp-worker-x86_64-unknown-linux-gnu
@@ -88,42 +105,50 @@ jobs:
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
 
-      - name: Install cargo-audit  # BP-H3
+      - name: Install cargo-audit
         run: cargo install cargo-audit --locked
 
-      - name: Security audit  # BP-H3
+      - name: Security audit
         run: cargo audit
         working-directory: src-tauri
 
-      - name: Tests  # CD-M3: dynamic thread count instead of hardcoded 4
+      - name: Tests
         run: cargo test -- --test-threads=$(nproc)
         working-directory: src-tauri
 
+
   windows-compat:
     name: Windows compatibility check
-    runs-on: windows-latest
+    runs-on: windows-2022
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
         with:
-          components: clippy  # CD-H2
+          toolchain: stable
+          components: clippy
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.9
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
           cache: pnpm
 
-      - name: Install frontend deps
+      - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Create sidecar placeholder (CI)  # sidecar built separately; stub satisfies tauri-build resource check
+      - name: Create sidecar placeholder
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path src-tauri\binaries | Out-Null
@@ -133,37 +158,48 @@ jobs:
         run: cargo check
         working-directory: src-tauri
 
-      - name: Clippy  # CD-H2
+      - name: Clippy
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
 
-      - name: Frontend lint  # CD-H2
+      - name: Frontend lint
         run: pnpm lint
 
-      - name: Frontend typecheck  # CD-H2
+      - name: Frontend typecheck
         run: pnpm typecheck
 
-  e2e:  # CD-H1
+
+  e2e:
     name: E2E tests (Playwright + Tauri)
-    runs-on: ubuntu-22.04
-    needs: [frontend, rust]
+    runs-on: ubuntu-24.04
+    needs:
+      - frontend
+      - rust
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.9
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
           cache: pnpm
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: Install system deps
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -176,7 +212,7 @@ jobs:
             pkg-config \
             xvfb
 
-      - name: Create sidecar placeholder (CI)  # sidecar built separately; stub satisfies tauri-build resource check
+      - name: Create sidecar placeholder
         run: |
           mkdir -p src-tauri/binaries
           touch src-tauri/binaries/sharp-worker-x86_64-unknown-linux-gnu
@@ -189,4 +225,4 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: E2E tests
-        run: xvfb-run pnpm test:e2e --update-snapshots
+        run: xvfb-run pnpm test:e2e
