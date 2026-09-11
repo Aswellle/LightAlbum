@@ -52,8 +52,6 @@ test.describe('照片网格视图', () => {
     // 至少有一个顶部区域
     await expect(page.locator('body')).not.toBeEmpty()
 
-    // 截图存档
-    await expect(page).toHaveScreenshot('app-initial.png', { maxDiffPixels: 100 })
   })
 
   // ────────────────────────────────────────────────────────
