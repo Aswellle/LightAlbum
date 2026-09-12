@@ -7,6 +7,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Release System — 不可变发行体系正式上线
 
+### V2 Refactor Phase 1 — Entity Normalization
+
+#### Changed
+
+- **规范化 Entity Store** — 新增 `src/stores/photoEntityStore.ts`，以 `byId: Record<string, PhotoEntity>` 替代原 `photos[] + _photoIndex`，实现 O(1) 单实体查找与 patch。同一实体全局仅存一份。
+- **轻量 Collection Store** — 新增 `src/stores/collectionStore.ts`，以 `orderedIds: string[]` + `sections: SectionMeta[]`（仅保存 `start/count` 边界，不复制 Photo 对象）替代原 `groups[].photos[]`。增量追加从 O(N_total) 降至 O(pageSize + newSections)。
+- **Domain 类型下沉** — 新增 `src/domain/photo/photoTypes.ts`，定义 `PhotoEntity`、`PhotoPageResult`（轻量分页契约）、`SectionDelta`、`SectionMeta` 等 V2 基石类型。
+- **photoStore 重构为兼容 Facade** — `src/stores/photoStore.ts` 保持原 API 不变，内部委托给新的 EntityStore + CollectionStore，并通过订阅机制自动同步。所有旧组件（PhotoGrid / WaterfallGrid / PreviewToolbar 等）无需修改即可运行在新架构上。
+
 #### Added
 
 - **统一版本管理器 `scripts/version.mjs`** — 将 `package.json` / `tauri.conf.json` / `Cargo.toml` / `Cargo.lock` 四份版本号视为一个同步组；人只改 `package.json`，脚本负责同步其余三文件。支持 `check`（校验四文件版本一致）、`set X.Y.Z`（统一设定）、`bump major|minor|patch`（自动递增）三个命令。
