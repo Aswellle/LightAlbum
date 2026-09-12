@@ -3,6 +3,71 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.0] — 2026-09-12
+
+### V2 Data Flow Architecture — 全面重构
+
+#### Added
+
+22 个新文件，覆盖 `src/domain/`、`src/data/`、`src/stores/`、`src/features/library/`、`src/services/thumbnail/` 五大模块。
+
+- **规范化 Entity Store** (`src/stores/photoEntityStore.ts`) — `byId: Record<string, PhotoEntity>` 单一实体源，O(1) 查找/patch/upsertMany/removeMany。
+- **轻量 Collection Store** (`src/stores/collectionStore.ts`) — `orderedIds: string[]` + `sections: SectionMeta[]`（仅保存 `start/count` 边界，不复制 Photo 对象），增量追加 O(pageSize + newSections)。
+- **Domain 类型** (`src/domain/photo/photoTypes.ts`) — `PhotoEntity`、`PhotoPageResult`、`SectionDelta`、`SectionMeta`、`getDisplayAspectRatio`（EXIF 方向感知）。
+- **Collection Repository** (`src/data/photos/photoRepository.ts`) — 纯 IPC 仓库层，游标分页 100 条/批。
+- **Query Key 工厂** (`src/data/photos/photoQueries.ts`) — 稳定 `buildCollectionKey(filter)` 序列化。
+- **usePhotoCollection Hook** (`src/features/library/hooks/usePhotoCollection.ts`) — 替代原 `usePhotoData`，管理 `useInfiniteQuery` + 归一化写入 EntityStore + CollectionStore。
+- **usePhotoEntity Hook** (`src/features/library/hooks/usePhotoEntity.ts`) — O(1) 单实体订阅。
+- **Fixed Grid V2** (`src/features/library/layout/fixedGridLayout.ts`) — Section 前缀偏移 + 二分查找，O(log S + V) 可见行计算。
+- **VirtualPhotoGrid** (`src/features/library/grid/VirtualPhotoGrid.tsx`) — 虚拟化固定网格 + GridSkeleton/EmptyState。
+- **useVirtualCollection Hook** (`src/features/library/hooks/useVirtualCollection.ts`) — 固定网格集合管理。
+- **Waterfall V2** (`src/features/library/layout/waterfallLayout.ts`) — Float32Array/Float64Array 布局数据 + 列内二分视口查询。
+- **Spatial Index** (`src/features/library/layout/spatialIndex.ts`) — 列内二分查找可见项，O(C log(N/C) + V)。
+- **Layout Worker** (`src/features/library/layout/layout.worker.ts`) — Web Worker 离主线程布局计算。
+- **WaterfallGridV2** (`src/features/library/grid/WaterfallGridV2.tsx`) — 虚拟化瀑布流 + WaterfallSkeleton/WaterfallEmptyState。
+- **useWaterfallLayout Hook** (`src/features/library/hooks/useWaterfallLayout.ts`) — 瀑布流布局 + 视口查询。
+- **Thumbnail Scheduler V2** (`src/services/thumbnail/ThumbnailScheduler.ts`) — 任务状态机 (queued/running/fulfilled/failed/cancelled) + 优先级提升 + 代际失效 + O(1) 双端队列。
+- **Event Bus V2** (`src/data/events/`) — EventEnvelope (version/seq/revision/mutationId) + EventRouter domain handlers + LibrarySyncState revision gap 检测。
+- **Preview Pipeline V2** (`src/features/library/preview/`) — M → L/XL → original 渐进加载 + PreviewController 状态管理。
+- **Motion System** (`src/styles/tokens.css`) — `--la-motion-fast/normal/slow` + `--la-ease-standard/emphasized` + `prefers-reduced-motion` 媒体查询。
+
+#### Changed
+
+- **photoStore 重构为兼容 Facade** — `src/stores/photoStore.ts` 保持原 API 不变，内部委托给 EntityStore + CollectionStore，订阅机制仅同步活跃集合实体变更（避免无关变更触发全量派生）。
+- **瀑布流 photoId 映射修复** — `useWaterfallLayout` 中使用 `orderedIds[index]` 替代错误的 `Object.keys(byId)[index]`，确保瀑布流单元格渲染正确照片。
+- **photo:updated 事件处理器修复** — 使用 `invalidateQueries` 触发后端重新获取，替代原先的空 `patch({})` 无操作。
+- **ThumbnailScheduler.promoteExisting 修复** — 在修改 `task.priority` 之前捕获 `oldBucket`，确保优先级提升（如 low → high）正确执行。
+- **collectionStore 缓存隔离** — 每个集合使用独立的 `Map<key, cache>` 查找表，消除跨集合数据泄漏。
+- **WaterfallGridV2 作用域修复** — 使用集合作用域 `allIds` 替代全局实体存储，确保键盘导航和选择仅在当前集合内生效。
+- **EventRouter 单例修复** — `latestRevision` 移入类实例，避免 HMR/测试时状态不一致。
+- **layout.worker 方向感知** — 使用 `getDisplayAspectRatio()` 处理 EXIF 旋转方向，与主线程计算一致。
+- **useWaterfallLayout 重算触发** — `recompute` 依赖数组添加 `orderedIds`，确保布局变化后可见项正确更新。
+- **usePhotoCollection 多页缓存** — 正确处理多页缓存数据，避免 `replaceFirstPage` 丢弃已缓存页。
+- **selectPhotoById 边界检查** — 添加索引边界验证 + ID 匹配验证，防止索引漂移返回错误照片。
+
+#### Fixed
+
+- **瀑布流渲染错误** — `Object.keys(byId)[index]` 返回插入顺序而非有序索引，导致瀑布流单元格渲染错误照片或空白。
+- **实时更新丢失** — `photo:updated` 事件处理器 `patch({})` 为空操作，后端推送的收藏/元数据编辑永远不反映到 UI。
+- **缩略图优先级失效** — `promoteExisting()` 在修改 priority 后计算 bucket，导致 `oldBucket === newBucket` 永远为 true，优先级提升从未执行。
+- **跨集合数据泄漏** — 模块级 `entityLookupCache` 被所有集合共享，切换视图时实体互相覆盖。
+- **Worker 方向忽略** — layout.worker 使用原始 width/height 计算宽高比，旋转照片布局高度错误。
+- **forceUpdate 不触发重算** — `recompute` 的 `useCallback` 依赖数组为空，布局变化后 visibleItems 不更新。
+- **多页缓存竞争** — `prevPageCountRef.current === 0` 时 `replaceFirstPage` 仅同步首页，丢弃已缓存的后续页。
+
+#### Documentation
+
+- **README 架构图** — 新增完整 V2 数据流 ASCII 架构图（中英双语）。
+- **README 徽章修复** — `LightAblum` → `LightAlbum`，新增 V2 Architecture + Tests passing 徽章。
+- **README 性能章节** — 扩展为完整 V2 性能架构（8 项子特性）。
+- **Commit Policy (AGENTS.md)** — 写入禁止 AI 署名的铁律。
+- **Code Quality Review Report** — `CODE_QUALITY_REVIEW.md` 记录全部 13 项发现与修复。
+
+#### Commit Policy
+
+- **禁止 AI 署名** — 所有提交去除 `Co-Authored-By` 行，AGENTS.md 写入硬规则，确保提交作者仅为人类开发者。
+
+ ## [0.2.0] — 2026-09-11
 ## [0.2.0] — 2026-09-11
 
 ### Release System — 不可变发行体系正式上线
