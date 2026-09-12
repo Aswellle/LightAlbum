@@ -125,50 +125,8 @@
 - **CollectionStore**：`orderedIds: string[]` + `sections: SectionMeta[]`（仅保存 start/count 边界）
 - **增量追加**：O(pageSize + newSections)，不遍历已有历史
 
-
+---
 ### 下载安装
-
-前往 [Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest) 下载对应平台安装包：
-
-| 平台 | 文件 |
-|------|------|
-| Windows (x64) | `.msi` 安装包 或 `.exe` |
-| macOS (Apple Silicon) | `.dmg`（aarch64） |
-| macOS (Intel) | `.dmg`（x86_64） |
-| Linux (x64) | `.deb` 或 `.AppImage` |
-
----
-
-```bash
-# 1. 克隆仓库
-git clone https://github.com/Aswellle/LightAlbum.git
-cd LightAlbum
-
-# 2. 安装依赖
-pnpm install
-
-# 3. 构建 HEIC/RAW 处理器（sidecar 必须单独构建）
-cd sidecar && node scripts/bundle.js && cd ..
-
-# 4. 启动开发模式
-pnpm tauri dev
-```
-
-构建生产版本：
-
-```bash
-pnpm tauri build
-```
-
-数据存储位置：
-
-| 平台 | 路径 |
-|------|------|
-| Windows | `%APPDATA%\LightAlbum\` |
-| macOS | `~/Library/Application Support/LightAlbum/` |
-| Linux | `~/.local/share/LightAlbum/` |
-
----
 
 前往 [Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest) 下载对应平台安装包：
 
@@ -202,16 +160,6 @@ pnpm tauri dev
 ```bash
 pnpm tauri build
 ```
-
-数据存储位置：
-
-| 平台 | 路径 |
-|------|------|
-| Windows | `%APPDATA%\LightAlbum\` |
-| macOS | `~/Library/Application Support/LightAlbum/` |
-| Linux | `~/.local/share/LightAlbum/` |
-
----
 
 ```bash
 # 环境要求：Node.js 20+、Rust 1.75+、pnpm
