@@ -1,99 +1,61 @@
 /**
  * @file src/services/eventBus.ts
- * @description Tauri 后端事件总线
+ * @description V2 事件总线 — 统一事件信封 + 路由器分发
  *
- * 职责：
- *   订阅 Rust 后端通过 app.emit() 推送的所有实时事件，
- *   将事件 payload 分发到对应的 Zustand store 和 TanStack Query。
- *
- * 事件清单（来自 DB_API_Design §7）：
- *   scan:started       → uiStore.setIsScanning(true)
- *   scan:progress      → uiStore.setScanProgress()
- *   scan:completed     → uiStore.setIsScanning(false) + reset photos cache
- *   scan:error         → toast.warning()
- *   thumb:ready        → photoStore.updatePhoto() + invalidate thumb query
- *   thumb:batch_done   → uiStore 更新缩略图生成进度
- *   library:changed    → reset photos cache（兼容数字和路径数组两种 payload）
- *   photo:updated      → photoStore.updatePhoto()
- *   album:updated      → invalidate albums
- *
- * 使用方式：
- *   在 App 根级调用一次 useEventBus()，组件卸载时自动清理所有监听。
- *
- * 设计原则：
- *   - 所有 store 操作必须幂等（事件可能重复推送）
- *   - 事件处理不做网络请求，仅更新本地状态或令 Query 缓存失效
- *   - 捕获所有异常，避免单个事件处理失败中断其他监听
- *
- * Bugfix 说明：
- *   1. scan:completed：改用 resetQueries 替代 invalidateQueries。
- *      原因：invalidateQueries 将缓存标记为 stale 后触发 refetch，但在
- *      TanStack Query v5 + staleTime:Infinity 的组合下，refetch 的实际
- *      执行时机依赖内部调度，存在未触发的概率。resetQueries 会清除缓存
- *      并立即重新请求，行为确定且不受 staleTime 影响。
- *
- *   2. library:changed：Rust scan.rs 发送的 payload 格式为数字
- *      （added: u64，修正前为 number 类型），而 watcher 事件发送路径数组
- *      （added: string[]）。两种格式并存，前端用 Array.isArray() 做兼容。
- *      原来直接用 TypeScript 类型 `{ added, modified, removed }` 解构后
- *      调用 added.length，当 added 是数字时抛 TypeError，虽被 try-catch
- *      吞掉不崩溃，但导致后续 resetQueries 不执行，照片列表不刷新。
+ * 核心改进：
+ *   - 所有事件包装为 EventEnvelope（添加 seq）
+ *   - 通过 EventRouter 分发到 domain handler
+ *   - "小变化小刷新，大变化全刷新"
+ *   - 不再直接 resetQueries(['photos'])
  */
 
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import type { TauriEventMap } from '@/types/ipc'
+import type { TauriEventMap } from '@/types/events'
 import { useUiStore, toast } from '@/stores/uiStore'
+import { getEventRouter } from '@/data/events/eventRouter'
+import { useLibrarySyncStore } from '@/data/events/librarySync'
 
 // ─────────────────────────────────────────────────────────
 //  类型安全的 listen 封装
 // ─────────────────────────────────────────────────────────
 
-/**
- * 类型安全的 Tauri 事件监听器
- * 根据 TauriEventMap 推导 payload 类型，无需手动标注泛型
- */
 function listenTyped<K extends keyof TauriEventMap>(
   event: K,
   handler: (payload: TauriEventMap[K]) => void,
 ): Promise<UnlistenFn> {
-  return listen<TauriEventMap[K]>(event, (e) => {
-    try {
-      handler(e.payload)
-    } catch (err) {
-      console.error(`[EventBus] Error handling event '${event}':`, err)
-    }
-  })
+  return listen<TauriEventMap[K]>(
+    event,
+    (e) => handler(e.payload),
+  )
+}
+
+// ─────────────────────────────────────────────────────────
+//  事件序列号生成
+// ─────────────────────────────────────────────────────────
+
+let eventSeqCounter = 0
+
+function nextSeq(): number {
+  return ++eventSeqCounter
 }
 
 // ─────────────────────────────────────────────────────────
 //  主 Hook：在 App 根组件挂载一次
 // ─────────────────────────────────────────────────────────
 
-/**
- * 订阅所有 Tauri 后端事件
- * 必须在 QueryClientProvider 内部使用（需要 useQueryClient）
- *
- * @example
- * // App.tsx
- * function AppContent() {
- *   useEventBus()
- *   return <AppShell />
- * }
- */
 export function useEventBus(): void {
-  const queryClient     = useQueryClient()
+  const queryClient = useQueryClient()
   const setScanProgress = useUiStore((s) => s.setScanProgress)
-  const setIsScanning   = useUiStore((s) => s.setIsScanning)
+  const setIsScanning = useUiStore((s) => s.setIsScanning)
+  const router = getEventRouter()
 
-  // CQ-H2: store resolved UnlistenFn[] not Promise<UnlistenFn>[] — enables synchronous cleanup
   const unlistenRef = useRef<UnlistenFn[]>([])
 
   useEffect(() => {
     let isCancelled = false
 
-    // Set up all listeners in parallel; only store resolved fns to avoid async cleanup races
     Promise.all([
       // ── scan:started ──────────────────────────────────────
       listenTyped('scan:started', ({ folder, taskId }) => {
@@ -104,15 +66,38 @@ export function useEventBus(): void {
       // ── scan:progress ─────────────────────────────────────
       listenTyped('scan:progress', (progress) => {
         setScanProgress(progress)
+        // Progress 事件仅更新 UI，不触发 cache 操作
+        router.handleEvent({
+          version: 1,
+          type: 'scan:progress',
+          seq: nextSeq(),
+          revision: 0,
+          emittedAt: Date.now(),
+          payload: {
+            folder: progress.folder ?? '',
+            discovered: progress.discovered ?? 0,
+            indexed: progress.indexed ?? 0,
+            thumbnailing: progress.thumbnailsDone ?? 0,
+
+          },
+        })
       }),
 
       // ── scan:completed ────────────────────────────────────
       listenTyped('scan:completed', ({ folder, totalNew, totalUpdated, durationMs }) => {
         setScanProgress(null)
         setIsScanning(false)
-        queryClient.resetQueries({ queryKey: ['photos'] })
-        queryClient.resetQueries({ queryKey: ['search', 'stats'] })
-        queryClient.invalidateQueries({ queryKey: ['folders'] })
+
+        // 通过路由器处理（targeted refresh）
+        router.handleEvent({
+          version: 1,
+          type: 'scan:completed',
+          seq: nextSeq(),
+          revision: 0,
+          emittedAt: Date.now(),
+          payload: { folder, totalNew, totalUpdated, durationMs },
+        })
+
         const sec = (durationMs / 1000).toFixed(1)
         if (totalNew > 0 || totalUpdated > 0) {
           toast.success(`扫描完成：新增 ${totalNew} 张，更新 ${totalUpdated} 张（用时 ${sec}s）`)
@@ -127,16 +112,24 @@ export function useEventBus(): void {
 
       // ── thumb:ready ───────────────────────────────────────
       listenTyped('thumb:ready', ({ photoId, size }) => {
-        queryClient.invalidateQueries({ queryKey: ['thumb', photoId, size], exact: true })
+        // 通过路由器处理（仅清除缩略图缓存，不刷新 grid）
+        router.handleEvent({
+          version: 1,
+          type: 'thumb:ready',
+          seq: nextSeq(),
+          revision: 0, // thumb 不改变 revision
+          emittedAt: Date.now(),
+          payload: { photoId, size },
+        })
         thumbReadyCallbacks.forEach((cb) => cb(photoId, size))
       }),
 
       // ── thumb:batch_done ──────────────────────────────────
-      // BP-H1: resetQueries required for staleTime:Infinity — invalidateQueries won't refetch
       listenTyped('thumb:batch_done', ({ count, remaining }) => {
         console.debug(`[Thumb] Batch done: ${count} done, ${remaining} remaining`)
         if (remaining === 0) {
-          queryClient.resetQueries({ queryKey: ['photos'] })
+          // 全部完成 → 使 collection 缓存失效（targeted）
+          queryClient.invalidateQueries({ queryKey: ['photos'] })
         }
       }),
 
@@ -145,8 +138,15 @@ export function useEventBus(): void {
         console.info(
           `[Library] Changed — added:${added.length} modified:${modified.length} removed:${removed.length}`,
         )
-        queryClient.resetQueries({ queryKey: ['photos'] })
-        queryClient.invalidateQueries({ queryKey: ['stats'] })
+        // 通过路由器处理（targeted patch）
+        router.handleEvent({
+          version: 1,
+          type: 'library:changed',
+          seq: nextSeq(),
+          revision: useLibrarySyncStore.getState().latestRevision,
+          emittedAt: Date.now(),
+          payload: { added, modified, removed },
+        })
         if (removed.length > 0) {
           console.warn(`[Library] ${removed.length} files removed from disk`)
         }
@@ -154,67 +154,67 @@ export function useEventBus(): void {
 
       // ── photo:updated ─────────────────────────────────────
       listenTyped('photo:updated', ({ photoId, fields }) => {
-        console.debug(`[Photo] Updated: ${photoId} fields=[${fields.join(',')}]`)
-        queryClient.invalidateQueries({ queryKey: ['photo', photoId], exact: true })
+        console.debug(`[Photo] Updated: ${photoId} fields=[${fields.join(', ')}]`)
+        // 通过路由器处理（entity patch + detail patch）
+        router.handleEvent({
+          version: 1,
+          type: 'photo:updated',
+          seq: nextSeq(),
+          revision: useLibrarySyncStore.getState().latestRevision,
+          emittedAt: Date.now(),
+          payload: { photoId, fields },
+        })
       }),
 
       // ── album:updated ─────────────────────────────────────
       listenTyped('album:updated', ({ albumId, action }) => {
         console.debug(`[Album] Updated: ${albumId} action=${action}`)
-        queryClient.resetQueries({ queryKey: ['albums'] })
-        queryClient.resetQueries({ queryKey: ['album', albumId] })
+        // 通过路由器处理（album query invalidate）
+        router.handleEvent({
+          version: 1,
+          type: 'album:updated',
+          seq: nextSeq(),
+          revision: 0,
+          emittedAt: Date.now(),
+          payload: { albumId, action },
+        })
       }),
     ])
       .then((fns) => {
         if (isCancelled) {
-          fns.forEach((fn) => fn()) // unmounted before resolution — clean up immediately
+          fns.forEach((fn) => fn())
           return
         }
         unlistenRef.current = fns
       })
       .catch((err) => console.error('[EventBus] Failed to register event listeners:', err))
 
-    // CQ-H2: synchronous cleanup — no async race condition
     return () => {
       isCancelled = true
       unlistenRef.current.forEach((fn) => fn())
       unlistenRef.current = []
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // 仅在挂载/卸载时执行，store 方法通过 getState() 获取最新值
+  }, [])
 }
 
 // ─────────────────────────────────────────────────────────
 //  thumb:ready 外部订阅接口
-//  供 thumbnailLoader.ts 注册回调，当缩略图就绪时取消挂起请求
 // ─────────────────────────────────────────────────────────
 
 type ThumbReadyCallback = (photoId: string, size: string) => void
 
 const thumbReadyCallbacks = new Set<ThumbReadyCallback>()
 
-/**
- * 注册缩略图就绪回调（由 thumbnailLoader 使用）
- * @returns 取消注册函数
- */
 export function onThumbReady(cb: ThumbReadyCallback): () => void {
   thumbReadyCallbacks.add(cb)
   return () => thumbReadyCallbacks.delete(cb)
 }
 
-// ─────────────────────────────────────────────────────────
-//  单次调用工具（在 Hook 外部发送 Tauri 事件，测试/开发用）
+//  单次调用工具
 // ─────────────────────────────────────────────────────────
 
-/**
- * 在 Hook 外部（如 Zustand action 中）订阅单个 Tauri 事件
- * 返回 unlisten 函数，调用方负责在适当时机清理
- *
- * @example
- * const unlisten = await subscribeEvent('scan:progress', (p) => console.log(p))
- * // 稍后...
- * unlisten()
- */
+
 export async function subscribeEvent<K extends keyof TauriEventMap>(
   event: K,
   handler: (payload: TauriEventMap[K]) => void,
