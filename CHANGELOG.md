@@ -3,7 +3,30 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.2.0] — 2026-09-11
+
+### Release System — 不可变发行体系正式上线
+
+#### Added
+
+- **统一版本管理器 `scripts/version.mjs`** — 将 `package.json` / `tauri.conf.json` / `Cargo.toml` / `Cargo.lock` 四份版本号视为一个同步组；人只改 `package.json`，脚本负责同步其余三文件。支持 `check`（校验四文件版本一致）、`set X.Y.Z`（统一设定）、`bump major|minor|patch`（自动递增）三个命令。
+- **安全本地发行入口 `scripts/release.mjs`** — 提供 `preflight` 与 `tag` 两个命令。只允许"创建新 Tag"，绝不提供删除 / force / 覆盖功能。preflight 校验：Tag 格式、package.json 版本匹配、当前分支为 main、工作区干净、origin/main 与本地一致、Tag 在本地和远程均不存在。通过后才创建 annotated tag 并 push。
+- **全新 CI workflow (`.github/workflows/ci.yml`)** — 增加 `workflow_call` 触发器使 Release workflow 能真正调用 CI；E2E 删除 `--update-snapshots`（禁止 CI 在测试过程中修改快照基线）；全部 step 加 name 提升日志可读性；Runner 升级到 ubuntu-24.04 / windows-2022（ubuntu-22.04 已于 2026-09-17 起弃用）；Action 版本升级到 v7。
+- **全新 Release workflow (`.github/workflows/release.yml`)** — 固定管线：`preflight`（Tag 合法 / 版本全一致 / 指向当前 commit / Release 不可重复）→ `ci`（workflow_call 全量检查）→ `prepare-release`（创建唯一 Draft Release → 输出 `release_id`）→ `build`（Windows / macOS ARM64 / macOS Intel / Linux 四平台 matrix，全部上传到同一个 `release_id`）→ `verify`（校验 Draft 状态 + 4 平台资产就位）→ `publish`（需 release Environment 人工批准后执行 `gh release edit --draft=false`，进入 immutable 状态）。
+- **Release Safety Rules (AGENTS.md)** — 12 条发行铁律（版本号↔commit↔Release 一对一、Published 永远不回写、AI Agent 禁止删除/重建历史 Release 等），直接写入 AGENTS.md 让 AI 编程代理从源头不再执行错误操作。
+
+#### Security
+
+- **修复 crossbeam-epoch 高危漏洞** — `crossbeam-epoch 0.9.18 → 0.9.21`，关闭 [RUSTSEC-2026-0204](https://rustsec.org/advisories/RUSTSEC-2026-0204)（Atomic/Shared 的 fmt::Pointer 实现对无效指针解引用）。
+- **修复 quick-xml 高危漏洞** — `quick-xml 0.38.4 → 0.41.0`，关闭 [RUSTSEC-2026-0194](https://rustsec.org/advisories/RUSTSEC-2026-0194)（重复属性名检查的二次时间复杂度 DoS）+ [RUSTSEC-2026-0195](https://rustsec.org/advisories/RUSTSEC-2026-0195)（NsReader 无界命名空间声明分配导致内存耗尽 DoS），Severity 7.5 (high)。同步升级传递依赖 `plist 1.8.0 → 1.10.0`。
+
+#### CI
+
+- **移除 `pnpm audit` 步骤** — 项目使用 npmmirror（淘宝镜像）作为 npm 注册表，该镜像不支持 audit 端点，每次 CI 必然失败且与真实安全性无关，已移除。
+- **修复 E2E 快照断言** — 移除 `grid.spec.ts` 中 `toHaveScreenshot('app-initial.png')` 调用；该测试的基线文件 `app-initial-chromium-linux.png` 从未提交到仓库，旧 CI 用 `--update-snapshots` 掩盖了此问题（测试在 CI 中自动写基线 → 永远通过 → 实际从未验证过视觉回归）。移除后 DOM 断言仍完整验证布局结构。
+- **修复 Rust 格式** — 运行 `cargo fmt` 修正 `settings.rs` / `state.rs` / `pipeline.rs` / `photo_repository_test.rs` 中 rustfmt 不符项（长行折行、多行格式化）。
+ ## [0.1.1] — 2026-08-04
+
 
 ### 2026-08-04 — Settings storage white screen & view-transition rendering fixes
 
