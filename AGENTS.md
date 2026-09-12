@@ -50,8 +50,32 @@ cd sidecar && node test/smoke.js
 ```
 
 **Package manager:** `pnpm@10.33.0` (declared in `package.json#packageManager`). **Node:** 20 (CI), **Rust:** 1.77+.
+## Commit Policy (Hard Rules)
 
----
+### 禁止 AI 署名
+
+**ALL commits MUST NOT contain AI co-author signatures.** This is a non-negotiable rule.
+
+正确格式:
+```
+feat(v2): add normalized entity store
+
+- src/stores/photoEntityStore.ts: byId map with O(1) lookup
+- src/stores/collectionStore.ts: orderedIds + sections
+```
+
+禁止格式:
+```
+feat(v2): add normalized entity store
+
+Co-Authored-By: Claude Sonnet 4.6 <<EMAIL>>
+```
+
+强制执行:
+- AI 编程代理不得在任何提交消息中添加 `Co-Authored-By` 或类似署名
+- 如果提交中已包含此类署名，必须立即 amend 去除
+- 适用于所有提交 — initial、fixup、squash、amend、rebase
+- 提交作者为人类开发者，不允许任何 AI 署名
 
 ## Architecture & Data Flow
 
