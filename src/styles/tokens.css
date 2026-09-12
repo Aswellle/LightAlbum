@@ -185,8 +185,15 @@
   --la-scrollbar-w:   6px;
   --la-scrollbar-thumb: rgba(255,255,255,0.2);
   --la-scrollbar-thumb-hover: rgba(255,255,255,0.35);
+  --la-motion-fast:    var(--la-dur-fast);
+  --la-motion-normal:  var(--la-dur-normal);
+  --la-motion-slow:    var(--la-dur-slow);
+  --la-ease-standard:  var(--la-ease-smooth);
+  --la-ease-emphasized: var(--la-ease-apple);
+  --la-control-sm-h:  28px;
+  --la-control-md-h:  34px;
+  --la-control-lg-h:  40px;
 }
-
 /* ═══════════════════════════════════════════════════════════
    浅色模式（.light）
    ═══════════════════════════════════════════════════════════ */
@@ -239,6 +246,14 @@
   /* 滚动条 */
   --la-scrollbar-thumb: rgba(0,0,0,0.15);
   --la-scrollbar-thumb-hover: rgba(0,0,0,0.28);
+  --la-motion-fast:    var(--la-dur-fast);
+  --la-motion-normal:  var(--la-dur-normal);
+  --la-motion-slow:    var(--la-dur-slow);
+  --la-ease-standard:  var(--la-ease-smooth);
+  --la-ease-emphasized: var(--la-ease-apple);
+  --la-control-sm-h:  28px;
+  --la-control-md-h:  34px;
+  --la-control-lg-h:  40px;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -261,4 +276,15 @@
   /* 字体 */
   --font-sans: var(--la-font-sans);
   --font-mono: var(--la-font-mono);
+}
+/* V2 Reduced Motion — 减少动画而非删除反馈 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
