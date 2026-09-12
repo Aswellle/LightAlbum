@@ -126,6 +126,7 @@
 - **增量追加**：O(pageSize + newSections)，不遍历已有历史
 
 ---
+
 ### 下载安装
 
 前往 [Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest) 下载对应平台安装包：
@@ -137,6 +138,7 @@
 | macOS (Intel) | `.dmg`（x86_64） |
 | Linux (x64) | `.deb` 或 `.AppImage` |
 
+---
 
 ### 快速开始
 
@@ -161,6 +163,17 @@ pnpm tauri dev
 pnpm tauri build
 ```
 
+数据存储位置：
+
+| 平台 | 路径 |
+|------|------|
+| Windows | `%APPDATA%\LightAlbum\` |
+| macOS | `~/Library/Application Support/LightAlbum/` |
+| Linux | `~/.local/share/LightAlbum\` |
+
+---
+
+### 本地构建
 ```bash
 # 环境要求：Node.js 20+、Rust 1.75+、pnpm
 
@@ -175,13 +188,9 @@ pnpm tauri build
 pnpm tauri dev
 ```
 
-数据存储位置：
+---
 
-| 平台 | 路径 |
-|------|------|
-| Windows | `%APPDATA%\LightAlbum\` |
-| macOS | `~/Library/Application Support/LightAlbum/` |
-| Linux | `~/.local/share/LightAlbum/` |
+如果这个项目对你有帮助，欢迎 ⭐ Star 支持！
 
 ---
 
@@ -300,6 +309,8 @@ The project has completed a V2 data flow architecture refactoring using a "new a
 - **CollectionStore**: `orderedIds: string[]` + `sections: SectionMeta[]` (boundary-only, start/count)
 - **Incremental append**: O(pageSize + newSections), no history traversal
 
+---
+
 ### Download
 
 Visit the [Releases page](https://github.com/Aswellle/LightAlbum/releases/latest):
@@ -311,6 +322,7 @@ Visit the [Releases page](https://github.com/Aswellle/LightAlbum/releases/latest
 | macOS (Intel) | `.dmg` (x86_64) |
 | Linux (x64) | `.deb` or `.AppImage` |
 
+---
 
 ### Quick Start
 
@@ -338,7 +350,7 @@ pnpm tauri build
 Data directory:
 
 | Platform | Path |
-|------|------|
+|----------|------|
 | Windows | `%APPDATA%\LightAlbum\` |
 | macOS | `~/Library/Application Support/LightAlbum/` |
 | Linux | `~/.local/share/LightAlbum/` |
@@ -361,13 +373,9 @@ Dev mode:
 pnpm tauri dev
 ```
 
-Data directory:
+---
 
-| Platform | Path |
-|----------|------|
-| Windows | `%APPDATA%\LightAlbum\` |
-| macOS | `~/Library/Application Support/LightAlbum/` |
-| Linux | `~/.local/share/LightAlbum/` |
+If this project helps you, a ⭐ Star is appreciated!
 
 ---
 
