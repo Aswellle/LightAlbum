@@ -460,20 +460,6 @@ export const SearchBox = memo(function SearchBox() {
     }
   }, [setQuery])
 
-  // ── 键盘处理 ─────────────────────────────────────────
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') {
-      handleClear()
-      inputRef.current?.blur()
-    }
-    if (e.key === 'Enter' && query.trim()) {
-      saveHistory(query.trim())
-      setHistory(loadHistory())
-      setShowHistory(false)
-      setShowSuggestions(false)
-    }
-  }, [query])
-
   // ── 清除 ─────────────────────────────────────────────
   const handleClear = useCallback(() => {
     setQuery('')
@@ -483,6 +469,23 @@ export const SearchBox = memo(function SearchBox() {
     setSuggestions({ fileNames: [], cameras: [], tags: [] })
     setView({ type: 'all_photos' })
   }, [setQuery, setOpen, setView])
+
+   // ── 键盘处理 ─────────────────────────────────────────
+   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+     if (e.key === 'Escape') {
+       handleClear()
+       inputRef.current?.blur()
+     }
+     if (e.key === 'Enter' && query.trim()) {
+       saveHistory(query.trim())
+       setHistory(loadHistory())
+       setShowHistory(false)
+       setShowSuggestions(false)
+     }
+  }, [query, handleClear])
+
+  // ── 清除 (moved up) ──────────────────────────────────
+
 
   // ── 选择历史条目 ─────────────────────────────────────
   const handleHistorySelect = useCallback((item: string) => {

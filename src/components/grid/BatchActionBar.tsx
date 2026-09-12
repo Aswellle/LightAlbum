@@ -36,7 +36,8 @@
  *         （本文件此修复已通过 AppShell 修复间接解决，此处文档说明）
  */
 
-import { memo, useState, useRef, useEffect, useCallback } from 'react'
+import { memo, useState, useRef, useEffect, useCallback, useMemo } from 'react'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '@/components/common/Icon'
@@ -276,16 +277,19 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
   // v2 修复：用状态管理「新建相册并加入」对话框
   const [showCreateAlbum, setShowCreateAlbum]   = useState(false)
 
-  const selectedArr  = [...selectedIds]
+  const selectedArr = useMemo(() => [...selectedIds], [selectedIds])
   const allFavorited = selectedArr.length > 0 &&
-    selectedArr.every((id) => photos.find((p) => p.id === id)?.isFavorite === true)
+    selectedArr.every((id: string) => photos.find((p) => p.id === id)?.isFavorite === true)
+
   const isAllSelected = selectedCount === allIds.length && allIds.length > 0
+
 
   const handleFavorite = useCallback(async (value: boolean) => {
     if (selectedArr.length === 0) return
     // Phase-D：乐观更新 store（即时响应 UI）
-    const prev = selectedArr.map((id) => ({ id, isFavorite: photos.find((p) => p.id === id)?.isFavorite ?? false }))
-    selectedArr.forEach((id) => updatePhoto(id, { isFavorite: value }))
+    const prev = selectedArr.map((id: string) => ({ id, isFavorite: photos.find((p) => p.id === id)?.isFavorite ?? false }))
+    selectedArr.forEach((id: string) => updatePhoto(id, { isFavorite: value }))
+
     try {
       // Phase-D：改用 setFavoriteBatch —— 后端原子写一条 "favorite_batch" undo_log，
       // 支持 Ctrl+Z 一次性回滚整批操作（原 Promise.all 写 N 条，每次只能撤销一条）
@@ -304,8 +308,8 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
       // Fix: refresh sidebar stats after batch favorite toggle
       queryClient.invalidateQueries({ queryKey: ['stats'] })
     } catch {
-      // 回滚乐观更新
-      prev.forEach(({ id, isFavorite }) => updatePhoto(id, { isFavorite }))
+      prev.forEach(({ id, isFavorite }: { id: string; isFavorite: boolean }) => updatePhoto(id, { isFavorite }))
+
       toast.error('操作失败，请重试')
     }
   }, [selectedArr, photos, updatePhoto, queryClient])

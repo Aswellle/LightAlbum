@@ -414,15 +414,15 @@ export function AlbumView() {
   // ── 加载相册详情 ──
   const { data: album, isLoading } = useQuery({
     queryKey:  ['album', albumId],
-    queryFn:   () => api.albums.get(albumId!),
+    queryFn:   () => (albumId ? api.albums.get(albumId) : Promise.reject(new Error('No albumId'))),
+
     staleTime: Infinity,
     enabled:   Boolean(albumId),
   })
 
-  // ── 从相册移除照片 ──
   const removeFromAlbumMutation = useMutation({
     mutationFn: (photoIds: string[]) =>
-      api.albums.removePhotos(albumId!, photoIds),
+      (albumId ? api.albums.removePhotos(albumId, photoIds) : Promise.reject(new Error('No albumId'))),
     onSuccess: (_, photoIds) => {
       queryClient.invalidateQueries({ queryKey: ['photos', { albumId }] })
       queryClient.invalidateQueries({ queryKey: ['album', albumId] })
@@ -431,6 +431,7 @@ export function AlbumView() {
     },
     onError: () => toast.error('移除失败'),
   })
+
 
   const handleRemoveFromAlbum = useCallback((photoIds: string[]) => {
     removeFromAlbumMutation.mutate(photoIds)

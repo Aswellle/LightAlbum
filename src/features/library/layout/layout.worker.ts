@@ -1,12 +1,3 @@
-/**
- * @file src/features/library/layout/layout.worker.ts
- * @description V2 布局 Web Worker — 将 config rebuild 移出主线程
- *
- * 主线程与 Worker 通过 postMessage 通信：
- *   Main → Worker: { type: 'build', payload: { orderedIds, entities, config } }
- *   Worker → Main: { type: 'result', payload: { arrays, columnHeights, ... } }
- */
-
 /// <reference lib="webworker" />
 
 import {
@@ -15,10 +6,6 @@ import {
   type WaterfallLayoutState,
 } from './waterfallLayout'
 import type { PhotoEntity } from '@/domain/photo/photoTypes'
-
-// ─────────────────────────────────────────────────────────
-//  消息类型
-// ─────────────────────────────────────────────────────────
 
 export interface LayoutBuildRequest {
   type: 'build'
@@ -60,10 +47,6 @@ export interface LayoutResult {
 }
 
 export type WorkerResponse = LayoutResult
-
-// ─────────────────────────────────────────────────────────
-//  Worker 逻辑
-// ─────────────────────────────────────────────────────────
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope
 
@@ -112,31 +95,44 @@ function appendInWorker(
     state.height = newH
   }
 
+  const { columnHeights, columnItems } = state
+  const colCount = state.columnCount
+
   for (let i = 0; i < newIds.length; i++) {
-    const entity = entityLookup(newIds[i]!)
+    const id = newIds[i]
+    if (!id) continue
+    const entity = entityLookup(id)
     if (!entity) continue
 
     let minCol = 0
-    for (let c = 1; c < state.columnCount; c++) {
-      if (state.columnHeights[c]! < state.columnHeights[minCol]!) minCol = c
+    let minHeight = columnHeights[0] ?? 0
+    for (let c = 1; c < colCount; c++) {
+      const h = columnHeights[c] ?? 0
+      if (h < minHeight) {
+        minHeight = h
+        minCol = c
+      }
     }
 
     const ar = entity.width / entity.height
-    const height = Math.round(state.columnWidth / ar)
+    const itemHeight = Math.round(state.columnWidth / ar)
     const x = minCol * (state.columnWidth + state.gap) + state.gap
-    const y = state.columnHeights[minCol]!
+    const y = minHeight
 
     const idx = state.count
     state.x[idx] = x
     state.y[idx] = y
     state.width[idx] = state.columnWidth
-    state.height[idx] = height
-    state.columnItems[minCol]!.push(idx)
-    state.columnHeights[minCol]! += height + state.gap
+    state.height[idx] = itemHeight
+
+    const col = columnItems[minCol]
+    if (col) col.push(idx)
+
+    columnHeights[minCol] = minHeight + itemHeight + state.gap
     state.count++
   }
 
-  state.totalHeight = Math.max(...state.columnHeights)
+  state.totalHeight = Math.max(...Array.from(columnHeights))
   state.generation = generation
   return state
 }
@@ -158,7 +154,7 @@ function sendResult(requestId: number): void {
       y: yBuf,
       width: wBuf,
       height: hBuf,
-      columnHeights: [...state.columnHeights],
+      columnHeights: Array.from(state.columnHeights),
       totalHeight: state.totalHeight,
       count: state.count,
       generation: state.generation,

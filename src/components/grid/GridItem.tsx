@@ -138,7 +138,8 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
   const dragSelectOver  = useSelectionStore((s) => s.dragSelectOver)      // v4 新增
   const endDragSelect   = useSelectionStore((s) => s.endDragSelect)       // v4 新增
 
-  const updatePhoto = usePhotoStore((s) => s.updatePhoto)  // Fix: for immediate UI update on favorite
+  // updatePhoto removed - handled via optimistic mutations in handleFavorite
+
   const openPreview = usePreviewStore((s) => s.open)
   const openCtxMenu = useUiStore((s) => s.openContextMenu)
   const photoIds    = usePhotoStore(selectPhotos).map((p) => p.id)
@@ -210,7 +211,8 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
       dragEverStarted    = true
       beginDragSelect(photo.id)
     }
-  }, [isDragSelecting, photo.id, dragSelectOver])
+  }, [isDragSelecting, photo.id, dragSelectOver, beginDragSelect])
+
 
   // ── v4 Fix 1：Click — 选择模式下单击=选中，正常模式=预览 ──
   const handleClick = useCallback((e: React.MouseEvent) => {
@@ -420,12 +422,13 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
             ),
           },
         ]
-
     openCtxMenu(e.clientX, e.clientY, items, photo.id)
+
+
   }, [
-    photo.id, photo.isFavorite, photoIds, allIds, albumId, isPrivateAlbum,
+    photo.id, photo.isFavorite, photoIds, albumId, isPrivateAlbum,
     select, openPreview, openCtxMenu, removeFromAlbum, queryClient,
-    cancelLongPress, endDragSelect, openTagEditor, updatePhoto,
+    cancelLongPress, endDragSelect, openTagEditor,
   ])
 
   const borderRadius = size < 130 ? 0 : 4

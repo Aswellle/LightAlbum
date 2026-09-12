@@ -47,11 +47,8 @@ export function useVirtualCollection({
   // ── 构建轻量布局索引（仅 sections/config 变化时重建）──
   const gridIndex = useMemo(() => {
     if (!config || !collection || collection.sections.length === 0) return null
-    return createFixedGridIndex(
-      collection.sections,
-      config,
-    )
-  }, [collection?.sections, config])
+    return createFixedGridIndex(collection.sections, config)
+  }, [collection, config])
 
 
   // ── 总高度 ──
@@ -60,7 +57,7 @@ export function useVirtualCollection({
   // ── 全部照片 ID ──
   const allPhotoIds = useMemo(
     () => (collection?.orderedIds ? [...collection.orderedIds] : []),
-    [collection?.orderedIds],
+    [collection],
   )
 
   // ── 可见行范围 ──
@@ -80,12 +77,13 @@ export function useVirtualCollection({
       )
       return
     }
-    const startIdx = visible[0]!.rowIndex
-    const endIdx = visible[visible.length - 1]!.rowIndex
+    const first = visible[0]
+    const last = visible[visible.length - 1]
+    if (!first || !last) return
     setRange((prev) =>
-      prev.startIdx === startIdx && prev.endIdx === endIdx
+      prev.startIdx === first.rowIndex && prev.endIdx === last.rowIndex
         ? prev
-        : { startIdx, endIdx },
+        : { startIdx: first.rowIndex, endIdx: last.rowIndex },
     )
   }, [gridIndex])
 
@@ -126,7 +124,7 @@ export function useVirtualCollection({
   // ── 可见照片 ID ──
   const visiblePhotoIds = useMemo(() => {
     const ids: string[] = []
-    if (!collection) return []
+    if (!collection) return ids
     for (const row of visibleRows) {
       if (row.isHeader) continue
       for (let i = row.photoStart; i < row.photoEnd; i++) {
@@ -135,7 +133,7 @@ export function useVirtualCollection({
       }
     }
     return ids
-  }, [visibleRows, collection?.orderedIds])
+  }, [visibleRows, collection])
 
   // ── 占位高度 ──
   const offsetTop = gridIndex && range.startIdx > 0
@@ -162,7 +160,7 @@ export function useVirtualCollection({
       }
     }
     return null
-  }, [visibleRows, collection?.orderedIds])
+  }, [visibleRows, collection])
 
   return {
     containerRef,

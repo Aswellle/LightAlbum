@@ -8,7 +8,7 @@
  *   - revision 校验防止旧事件覆盖新状态
  */
 
-import { useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import { usePhotoEntityStore } from '@/stores/photoEntityStore'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { photoQueryKeys } from '@/data/photos/photoQueries'
@@ -26,8 +26,8 @@ export function getLatestRevision(): number {
 }
 
 export class EventRouter {
-  private queryClient = useQueryClient()
   private seq = 0
+  constructor(private queryClient: QueryClient) {}
 
   handleEvent(envelope: V2EventEnvelope): boolean {
     if (envelope.seq <= this.seq && envelope.type !== 'scan:progress') {
@@ -155,9 +155,9 @@ export class EventRouter {
 
 let routerInstance: EventRouter | null = null
 
-export function getEventRouter(): EventRouter {
+export function getEventRouter(queryClient: QueryClient): EventRouter {
   if (!routerInstance) {
-    routerInstance = new EventRouter()
+    routerInstance = new EventRouter(queryClient)
   }
   return routerInstance
 }

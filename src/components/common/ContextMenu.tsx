@@ -234,7 +234,8 @@ const MenuItemRow = memo(function MenuItemRow({ item, onClose, flipX }: MenuItem
         {subOpen && hasChildren && (
           <SubMenu
             key="submenu"
-            items={item.children!}
+            items={item.children ?? []}
+
             onClose={onClose}
             parentWidth={rowRef.current?.offsetWidth ?? 172}
             flipX={flipX}

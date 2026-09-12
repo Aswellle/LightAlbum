@@ -220,7 +220,8 @@ export const VirtualPhotoGrid = memo(function VirtualPhotoGrid({
                   columns={columns}
                   itemSize={itemSize}
                   gap={gap}
-                  orderedIds={collection!.orderedIds}
+                  orderedIds={collection?.orderedIds ?? []}
+
                   allIds={allPhotoIds}
                 />
               </div>

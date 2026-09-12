@@ -37,7 +37,7 @@ export interface WaterfallLayoutState {
   /** 每列包含的项的全局索引 */
   columnItems: number[][]
   /** 每列当前高度 */
-  columnHeights: number[]
+  columnHeights: Float64Array
   /** 总高度 */
   totalHeight: number
   /** 当前布局的项数 */
@@ -77,7 +77,7 @@ export function createWaterfallState(config: WaterfallConfig): WaterfallLayoutSt
     width: new Float32Array(INITIAL_CAPACITY),
     height: new Float32Array(INITIAL_CAPACITY),
     columnItems: Array.from({ length: config.columnCount }, () => []),
-    columnHeights: new Array(config.columnCount).fill(config.gap),
+    columnHeights: new Float64Array(config.columnCount).fill(config.gap),
     totalHeight: 0,
     count: 0,
     generation: 0,
@@ -111,7 +111,6 @@ function ensureCapacity(state: WaterfallLayoutState, required: number): void {
 
 /**
  * 从头构建布局（columns/config 变化时）
- * O(N × columnCount)
  */
 export function buildWaterfallLayout(
   orderedIds: string[],
@@ -126,38 +125,50 @@ export function buildWaterfallLayout(
 
   ensureCapacity(state, orderedIds.length)
 
+  const { columnHeights, columnItems } = state
+  const colCount = config.columnCount
+
   for (let i = 0; i < orderedIds.length; i++) {
-    const entity = entityLookup(orderedIds[i]!)
+    const id = orderedIds[i]
+    if (!id) continue
+    const entity = entityLookup(id)
     if (!entity) continue
 
     // 找最短列
     let minCol = 0
-    for (let c = 1; c < config.columnCount; c++) {
-      if (state.columnHeights[c]! < state.columnHeights[minCol]!) minCol = c
+    let minHeight = columnHeights[0] ?? 0
+    for (let c = 1; c < colCount; c++) {
+      const h = columnHeights[c] ?? 0
+      if (h < minHeight) {
+        minHeight = h
+        minCol = c
+      }
     }
 
     const ar = getDisplayAspectRatio(entity)
-    const height = Math.round(config.columnWidth / ar)
+    const itemHeight = Math.round(config.columnWidth / ar)
     const x = minCol * (config.columnWidth + config.gap) + config.gap
-    const y = state.columnHeights[minCol]!
+    const y = minHeight
 
     const idx = state.count
     state.x[idx] = x
     state.y[idx] = y
     state.width[idx] = config.columnWidth
-    state.height[idx] = height
-    state.columnItems[minCol]!.push(idx)
-    state.columnHeights[minCol]! += height + config.gap
+    state.height[idx] = itemHeight
+
+    const col = columnItems[minCol]
+    if (col) col.push(idx)
+
+    columnHeights[minCol] = minHeight + itemHeight + config.gap
     state.count++
   }
 
-  state.totalHeight = Math.max(...state.columnHeights)
+  state.totalHeight = Math.max(...Array.from(columnHeights))
   return state
 }
 
 /**
  * 增量追加布局（columns/config 不变时）
- * O(N_new × columnCount)，不处理已有数据
  */
 export function appendWaterfallLayout(
   state: WaterfallLayoutState,
@@ -168,31 +179,44 @@ export function appendWaterfallLayout(
 
   ensureCapacity(state, state.count + newIds.length)
 
+  const { columnHeights, columnItems } = state
+  const colCount = state.columnCount
+
   for (let i = 0; i < newIds.length; i++) {
-    const entity = entityLookup(newIds[i]!)
+    const id = newIds[i]
+    if (!id) continue
+    const entity = entityLookup(id)
     if (!entity) continue
 
     let minCol = 0
-    for (let c = 1; c < state.columnCount; c++) {
-      if (state.columnHeights[c]! < state.columnHeights[minCol]!) minCol = c
+    let minHeight = columnHeights[0] ?? 0
+    for (let c = 1; c < colCount; c++) {
+      const h = columnHeights[c] ?? 0
+      if (h < minHeight) {
+        minHeight = h
+        minCol = c
+      }
     }
 
     const ar = getDisplayAspectRatio(entity)
-    const height = Math.round(state.columnWidth / ar)
+    const itemHeight = Math.round(state.columnWidth / ar)
     const x = minCol * (state.columnWidth + state.gap) + state.gap
-    const y = state.columnHeights[minCol]!
+    const y = minHeight
 
     const idx = state.count
     state.x[idx] = x
     state.y[idx] = y
     state.width[idx] = state.columnWidth
-    state.height[idx] = height
-    state.columnItems[minCol]!.push(idx)
-    state.columnHeights[minCol]! += height + state.gap
+    state.height[idx] = itemHeight
+
+    const col = columnItems[minCol]
+    if (col) col.push(idx)
+
+    columnHeights[minCol] = minHeight + itemHeight + state.gap
     state.count++
   }
 
-  state.totalHeight = Math.max(...state.columnHeights)
+  state.totalHeight = Math.max(...Array.from(columnHeights))
   state.generation++
   return state
 }

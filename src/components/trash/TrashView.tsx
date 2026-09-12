@@ -14,7 +14,8 @@
  * 使用 Icon.tsx v2 新增图标：rotate-ccw / x-circle / check-square / square
  */
 
-import { useCallback, memo } from 'react'
+import { useCallback, memo, useMemo } from 'react'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { usePhotoStore, selectPhotos } from '@/stores/photoStore'
@@ -136,11 +137,12 @@ const TrashActionBar = memo(function TrashActionBar() {
   const confirm         = useConfirmDialog()
   const queryClient     = useQueryClient()
 
-  const selectedArr   = [...selectedIds]
+  const selectedArr = useMemo(() => [...selectedIds], [selectedIds])
   const isAllSelected = selectedCount === allIds.length && allIds.length > 0
   const totalCount    = allIds.length
   const hasPhotos     = totalCount > 0
   const hasSelection  = selectedCount > 0
+
 
   // ── 操作目标 IDs（有选择用选择，否则用全部）
   const getTargetIds = useCallback(() =>

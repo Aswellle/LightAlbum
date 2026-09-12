@@ -253,7 +253,9 @@ export function groupPhotosByMonth(photos: PhotoThumb[]): PhotoGroup[] {
     const date = new Date(photo.createdAt)
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
     if (!map.has(key)) map.set(key, [])
-    map.get(key)!.push(photo)
+    const arr = map.get(key)
+    if (arr) arr.push(photo)
+
   }
 
   return Array.from(map.entries())

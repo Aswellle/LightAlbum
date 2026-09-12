@@ -86,7 +86,9 @@ export const usePreviewStoreV2 = create<PreviewState>()((set, get) => ({
     const { orderedIds, index } = get()
     if (orderedIds.length === 0) return
     const nextIndex = (index + 1) % orderedIds.length
-    const nextId = orderedIds[nextIndex]!
+    const nextId = orderedIds[nextIndex]
+    if (!nextId) return
+
     set({
       photoId: nextId,
       index: nextIndex,
@@ -101,7 +103,10 @@ export const usePreviewStoreV2 = create<PreviewState>()((set, get) => ({
     const { orderedIds, index } = get()
     if (orderedIds.length === 0) return
     const prevIndex = (index - 1 + orderedIds.length) % orderedIds.length
-    const prevId = orderedIds[prevIndex]!
+    const prevId = orderedIds[prevIndex]
+    if (!prevId) return
+
+
     set({
       photoId: prevId,
       index: prevIndex,

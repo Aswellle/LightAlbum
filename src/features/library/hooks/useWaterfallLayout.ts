@@ -58,7 +58,11 @@ export function useWaterfallLayout({
   const [totalHeight, setTotalHeight] = useState(0)
   const [, forceUpdate] = useState(0)
 
-  const orderedIds = collection?.orderedIds ?? []
+  // Memoize orderedIds to stabilize dependencies
+  const orderedIds = useMemo(
+    () => collection?.orderedIds ?? [],
+    [collection],
+  )
 
   // ── 当 collection/config 变化时重建/增量更新布局 ──
   useEffect(() => {
@@ -106,14 +110,16 @@ export function useWaterfallLayout({
     const rawItems = queryVisibleWaterfallItems(state, el.scrollTop, el.clientHeight)
 
     // 通过 index 映射 photoId
-    const ids = collection?.orderedIds ?? []
-    const items: WaterfallItem[] = rawItems.map((raw) => ({
-      ...raw,
-      photoId: ids[raw.index] ?? '',
-    }))
+    const byId = entityStoreRef.current.byId
+    const items: WaterfallItem[] = rawItems
+      .filter((raw) => byId[raw.photoId] !== undefined || raw.index < state.count)
+      .map((raw) => ({
+        ...raw,
+        photoId: state ? (Object.keys(byId)[raw.index] ?? '') : '',
+      }))
 
     setVisibleItems(items)
-  }, [collection?.orderedIds])
+  }, [])
 
   const scheduleRecompute = useCallback(() => {
     if (rafRef.current !== null) return

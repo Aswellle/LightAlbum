@@ -49,7 +49,7 @@ export function useEventBus(): void {
   const queryClient = useQueryClient()
   const setScanProgress = useUiStore((s) => s.setScanProgress)
   const setIsScanning = useUiStore((s) => s.setIsScanning)
-  const router = getEventRouter()
+  const router = getEventRouter(queryClient)
 
   const unlistenRef = useRef<UnlistenFn[]>([])
 
@@ -66,7 +66,6 @@ export function useEventBus(): void {
       // ── scan:progress ─────────────────────────────────────
       listenTyped('scan:progress', (progress) => {
         setScanProgress(progress)
-        // Progress 事件仅更新 UI，不触发 cache 操作
         router.handleEvent({
           version: 1,
           type: 'scan:progress',
@@ -78,7 +77,6 @@ export function useEventBus(): void {
             discovered: progress.discovered ?? 0,
             indexed: progress.indexed ?? 0,
             thumbnailing: progress.thumbnailsDone ?? 0,
-
           },
         })
       }),
@@ -88,7 +86,6 @@ export function useEventBus(): void {
         setScanProgress(null)
         setIsScanning(false)
 
-        // 通过路由器处理（targeted refresh）
         router.handleEvent({
           version: 1,
           type: 'scan:completed',
@@ -112,12 +109,11 @@ export function useEventBus(): void {
 
       // ── thumb:ready ───────────────────────────────────────
       listenTyped('thumb:ready', ({ photoId, size }) => {
-        // 通过路由器处理（仅清除缩略图缓存，不刷新 grid）
         router.handleEvent({
           version: 1,
           type: 'thumb:ready',
           seq: nextSeq(),
-          revision: 0, // thumb 不改变 revision
+          revision: 0,
           emittedAt: Date.now(),
           payload: { photoId, size },
         })
@@ -128,7 +124,6 @@ export function useEventBus(): void {
       listenTyped('thumb:batch_done', ({ count, remaining }) => {
         console.debug(`[Thumb] Batch done: ${count} done, ${remaining} remaining`)
         if (remaining === 0) {
-          // 全部完成 → 使 collection 缓存失效（targeted）
           queryClient.invalidateQueries({ queryKey: ['photos'] })
         }
       }),
@@ -138,7 +133,6 @@ export function useEventBus(): void {
         console.info(
           `[Library] Changed — added:${added.length} modified:${modified.length} removed:${removed.length}`,
         )
-        // 通过路由器处理（targeted patch）
         router.handleEvent({
           version: 1,
           type: 'library:changed',
@@ -155,7 +149,6 @@ export function useEventBus(): void {
       // ── photo:updated ─────────────────────────────────────
       listenTyped('photo:updated', ({ photoId, fields }) => {
         console.debug(`[Photo] Updated: ${photoId} fields=[${fields.join(', ')}]`)
-        // 通过路由器处理（entity patch + detail patch）
         router.handleEvent({
           version: 1,
           type: 'photo:updated',
@@ -169,7 +162,6 @@ export function useEventBus(): void {
       // ── album:updated ─────────────────────────────────────
       listenTyped('album:updated', ({ albumId, action }) => {
         console.debug(`[Album] Updated: ${albumId} action=${action}`)
-        // 通过路由器处理（album query invalidate）
         router.handleEvent({
           version: 1,
           type: 'album:updated',
@@ -211,9 +203,9 @@ export function onThumbReady(cb: ThumbReadyCallback): () => void {
   return () => thumbReadyCallbacks.delete(cb)
 }
 
+// ─────────────────────────────────────────────────────────
 //  单次调用工具
 // ─────────────────────────────────────────────────────────
-
 
 export async function subscribeEvent<K extends keyof TauriEventMap>(
   event: K,

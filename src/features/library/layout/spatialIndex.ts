@@ -46,8 +46,9 @@ export function queryVisibleWaterfallItems(
 
     while (lo <= hi) {
       const mid = (lo + hi) >> 1
-      const itemIdx = colItems[mid]!
-      const itemBottom = state.y[itemIdx]! + state.height[itemIdx]!
+      const itemIdx = colItems[mid] ?? -1
+      if (itemIdx < 0) break
+      const itemBottom = (state.y[itemIdx] ?? 0) + (state.height[itemIdx] ?? 0)
 
       if (itemBottom > top) {
         startIdx = mid
@@ -59,15 +60,16 @@ export function queryVisibleWaterfallItems(
 
     // 从 startIdx 向下扫描直到 y >= bottom
     for (let i = startIdx; i < colItems.length; i++) {
-      const itemIdx = colItems[i]!
-      if (state.y[itemIdx]! >= bottom) break
+      const itemIdx = colItems[i] ?? -1
+      if (itemIdx < 0) break
+      if ((state.y[itemIdx] ?? 0) >= bottom) break
 
       items.push({
         photoId: '', // 上层通过 index 从 orderedIds 获取
-        x: state.x[itemIdx]!,
-        y: state.y[itemIdx]!,
-        width: state.width[itemIdx]!,
-        height: state.height[itemIdx]!,
+        x: state.x[itemIdx] ?? 0,
+        y: state.y[itemIdx] ?? 0,
+        width: state.width[itemIdx] ?? 0,
+        height: state.height[itemIdx] ?? 0,
         index: itemIdx,
         columnIndex: col,
       })
