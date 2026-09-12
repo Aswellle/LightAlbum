@@ -5,7 +5,10 @@ import {
   type WaterfallConfig,
   type WaterfallLayoutState,
 } from './waterfallLayout'
-import type { PhotoEntity } from '@/domain/photo/photoTypes'
+import {
+  type PhotoEntity,
+  getDisplayAspectRatio,
+} from '@/domain/photo/photoTypes'
 
 export interface LayoutBuildRequest {
   type: 'build'
@@ -113,8 +116,7 @@ function appendInWorker(
         minCol = c
       }
     }
-
-    const ar = entity.width / entity.height
+    const ar = getDisplayAspectRatio(entity)
     const itemHeight = Math.round(state.columnWidth / ar)
     const x = minCol * (state.columnWidth + state.gap) + state.gap
     const y = minHeight

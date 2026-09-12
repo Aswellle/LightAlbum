@@ -15,20 +15,23 @@ import { photoQueryKeys } from '@/data/photos/photoQueries'
 import type { V2EventEnvelope, V2EventType } from './eventTypes'
 
 let globalSeq = 0
-let latestRevision = 0
 
 export function getGlobalSeq(): number {
   return globalSeq
 }
 
-export function getLatestRevision(): number {
-  return latestRevision
-}
-
 export class EventRouter {
   private seq = 0
+  private latestRevision = 0
   constructor(private queryClient: QueryClient) {}
 
+  getLatestRevision(): number {
+    return this.latestRevision
+  }
+
+  updateLatestRevision(value: number): void {
+    this.latestRevision = Math.max(this.latestRevision, value)
+  }
   handleEvent(envelope: V2EventEnvelope): boolean {
     if (envelope.seq <= this.seq && envelope.type !== 'scan:progress') {
       return false
@@ -37,13 +40,13 @@ export class EventRouter {
     globalSeq = envelope.seq
 
     if (envelope.revision > 0) {
-      if (envelope.revision < latestRevision && this.isIdempotent(envelope.type)) {
+      if (envelope.revision < this.latestRevision && this.isIdempotent(envelope.type)) {
         return false
       }
-      if (envelope.revision > latestRevision + 1) {
-        this.handleRevisionGap(latestRevision, envelope.revision)
+      if (envelope.revision > this.latestRevision + 1) {
+        this.handleRevisionGap(this.latestRevision, envelope.revision)
       }
-      latestRevision = Math.max(latestRevision, envelope.revision)
+      this.latestRevision = Math.max(this.latestRevision, envelope.revision)
     }
 
     switch (envelope.type) {
@@ -69,14 +72,11 @@ export class EventRouter {
   }
 
   private onPhotoUpdated(payload: { photoId: string; fields: string[] }): boolean {
-    usePhotoEntityStore.getState().patch(payload.photoId, {})
-    this.queryClient.setQueryData(
-      photoQueryKeys.detail(payload.photoId),
-      (old: unknown) => {
-        if (!old || typeof old !== 'object') return old
-        return { ...old }
-      },
-    )
+    // 事件仅通知哪些字段已变更，不包含新值；使缓存失效以从后端重新获取
+    void payload.fields
+    this.queryClient.invalidateQueries({
+      queryKey: photoQueryKeys.detail(payload.photoId),
+    })
     return true
   }
 

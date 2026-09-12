@@ -190,12 +190,29 @@ function appendSections(
 //  创建 Store
 // ─────────────────────────────────────────────────────────
 
-/** 临时实体查找表（用于分组计算）*/
-let entityLookupCache: Record<string, PhotoEntity> = {}
+/**
+ * 每个集合独立的实体查找缓存（用于分组计算）
+ * Map<collectionKey, Map<entityId, entity>>
+ */
+const entityLookupCache = new Map<string, Record<string, PhotoEntity>>()
+
+/** 获取或创建集合的查找缓存 */
+function getLookupCache(key: string): Record<string, PhotoEntity> {
+  let cache = entityLookupCache.get(key)
+  if (!cache) {
+    cache = {}
+    entityLookupCache.set(key, cache)
+  }
+  return cache
+}
+
+/** 清除指定集合的查找缓存 */
+function clearLookupCache(key: string): void {
+  entityLookupCache.delete(key)
+}
 
 export const useCollectionStore = create<CollectionState>()(
   (set) => ({
-
     collections: {},
     activeKey: null,
 
@@ -222,11 +239,11 @@ export const useCollectionStore = create<CollectionState>()(
     },
 
     replaceFirstPage: (key, ids, entities, total, nextCursor) => {
-      // 更新实体查找表
+      const cache = getLookupCache(key)
       for (const e of entities) {
-        entityLookupCache[e.id] = e
+        cache[e.id] = e
       }
-      const lookup = (id: string) => entityLookupCache[id]
+      const lookup = (id: string) => cache[id]
 
       set((s) => {
         const existing = s.collections[key]
@@ -251,11 +268,11 @@ export const useCollectionStore = create<CollectionState>()(
     },
 
     appendPage: (key, ids, entities, nextCursor) => {
-      // 更新实体查找表
+      const cache = getLookupCache(key)
       for (const e of entities) {
-        entityLookupCache[e.id] = e
+        cache[e.id] = e
       }
-      const lookup = (id: string) => entityLookupCache[id]
+      const lookup = (id: string) => cache[id]
 
       set((s) => {
         const existing = s.collections[key]
@@ -286,19 +303,18 @@ export const useCollectionStore = create<CollectionState>()(
     },
 
     removeIds: (key, ids) => {
+      const cache = getLookupCache(key)
       const idSet = new Set(ids)
-      const lookup = (id: string) => entityLookupCache[id]
+      const lookup = (id: string) => cache[id]
 
       set((s) => {
         const existing = s.collections[key]
         if (!existing) return s
 
         const orderedIds = existing.orderedIds.filter((id) => !idSet.has(id))
-        // 重建分组（移除可能跨越多个分组，全量重建更简洁）
         const sections = buildSections(orderedIds, lookup)
 
-        // 清理实体缓存
-        for (const id of ids) delete entityLookupCache[id]
+        for (const id of ids) delete cache[id]
 
         return {
           collections: {
@@ -330,6 +346,7 @@ export const useCollectionStore = create<CollectionState>()(
 
     clear: (key) => {
       if (key) {
+        clearLookupCache(key)
         set((s) => {
           const collections = { ...s.collections }
           delete collections[key]
@@ -339,8 +356,8 @@ export const useCollectionStore = create<CollectionState>()(
           }
         })
       } else {
+        entityLookupCache.clear()
         set({ collections: {}, activeKey: null })
-        entityLookupCache = {}
       }
     },
 

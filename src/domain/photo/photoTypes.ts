@@ -111,11 +111,20 @@ export function buildGroupLabel(key: string): string {
   return `${y}年${parseInt(m, 10)}月`
 }
 
+/**
+ * EXIF 方向值，表示旋转 90°/270°（需交换宽高比）
+ * 5 = 顺时针旋转 90°（从右侧拍摄）
+ * 6 = 顺时针旋转 270°（从左侧拍摄）
+ * 7 = 逆时针旋转 90°（从底部拍摄）
+ * 8 = 逆时针旋转 270°（从顶部拍摄）
+ */
+const EXIF_ROTATED_MIN = 5
+const EXIF_ROTATED_MAX = 8
+
 /** 从 ISO 时间戳计算月份分组键（UTC）*/
 export function getDisplayAspectRatio(entity: PhotoEntity): number {
   const ar = entity.width / entity.height
-  // orientation 5/6/7/8 表示旋转 90°/270°，需交换宽高
-  if (entity.orientation >= 5 && entity.orientation <= 8) {
+  if (entity.orientation >= EXIF_ROTATED_MIN && entity.orientation <= EXIF_ROTATED_MAX) {
     return 1 / ar
   }
   return ar

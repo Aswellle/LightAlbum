@@ -19,7 +19,6 @@ import { useThumbnail } from '@/hooks/useThumbnail'
 import { useLayoutStore, selectGridConfig } from '@/stores/layoutStore'
 import { usePreviewStore } from '@/stores/previewStore'
 import { useSelectionStore, selectIsSelected } from '@/stores/selectionStore'
-import { usePhotoEntityStore } from '@/stores/photoEntityStore'
 import type { PhotoCollection } from '@/stores/collectionStore'
 import type { WaterfallItem } from '../layout/waterfallLayout'
 
@@ -42,8 +41,7 @@ const WaterfallCell = memo(function WaterfallCell({ item, allIds, photoId }: Wat
   const toggle = useSelectionStore((s) => s.toggle)
   const rangeSelect = useSelectionStore((s) => s.rangeSelect)
   const openPreview = usePreviewStore((s) => s.open)
-  const photoIds = usePhotoEntityStore((s) => Object.keys(s.byId))
-
+  const photoIds = allIds
   const handleClick = (e: React.MouseEvent) => {
     if (e.shiftKey) {
       rangeSelect(photoId, allIds)
@@ -119,7 +117,6 @@ export const WaterfallGridV2 = memo(function WaterfallGridV2({
   const gridConfig = useLayoutStore(selectGridConfig)
   const { onScroll } = useScrollVelocity()
 
-  // 转换 GridConfig → WaterfallConfig
   const config = useMemo(() => {
     if (!gridConfig) return null
     return {
@@ -137,6 +134,25 @@ export const WaterfallGridV2 = memo(function WaterfallGridV2({
   } = useWaterfallLayout({ collection, config })
 
   if (!config) return null
+
+  const isLoading = collection?.loading === true
+  const isEmpty = !isLoading && (collection?.orderedIds.length === 0)
+
+  if (isLoading) {
+    return (
+      <div style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <WaterfallSkeleton columns={config.columnCount} itemSize={config.columnWidth} gap={config.gap} />
+      </div>
+    )
+  }
+
+  if (isEmpty) {
+    return (
+      <div style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <WaterfallEmptyState />
+      </div>
+    )
+  }
 
   return (
     <div
@@ -163,3 +179,54 @@ export const WaterfallGridV2 = memo(function WaterfallGridV2({
     </div>
   )
 })
+
+// ─────────────────────────────────────────────────────────
+//  骨架屏
+// ─────────────────────────────────────────────────────────
+
+function WaterfallSkeleton({ columns, itemSize, gap }: { columns: number; itemSize: number; gap: number }) {
+  return (
+    <div style={{ padding: `0 ${gap}px`, display: 'flex', gap }}>
+      {Array.from({ length: columns }).map((_, colIdx) => (
+        <div key={colIdx} style={{ display: 'flex', flexDirection: 'column', gap, width: itemSize }}>
+          {Array.from({ length: 3 }).map((_, rowIdx) => (
+            <div
+              key={rowIdx}
+              style={{
+                width: itemSize,
+                height: itemSize,
+                borderRadius: 8,
+                backgroundColor: 'var(--la-bg-raised)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────
+//  空态
+// ─────────────────────────────────────────────────────────
+
+function WaterfallEmptyState() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        color: 'var(--la-text-muted)',
+        gap: 12,
+      }}
+    >
+      <div style={{ fontSize: 48 }}>📷</div>
+      <div style={{ fontSize: 16, fontWeight: 500 }}>暂无照片</div>
+      <div style={{ fontSize: 13, opacity: 0.7 }}>导入文件夹开始管理你的照片库</div>
+    </div>
+  )
+}

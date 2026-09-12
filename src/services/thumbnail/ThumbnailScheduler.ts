@@ -216,8 +216,8 @@ export class ThumbnailScheduler {
   private promoteExisting(task: ThumbTask, newPriority: ThumbPriority): void {
     if (task.state !== 'queued') return
     if (PRIORITY_ORDER[newPriority] >= PRIORITY_ORDER[task.priority]) return
-    task.priority = newPriority
     const oldBucket = this.bucketFor(task.priority)
+    task.priority = newPriority
     const newBucket = this.bucketFor(newPriority)
     if (oldBucket !== newBucket) {
       task.state = 'cancelled'

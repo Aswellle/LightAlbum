@@ -118,7 +118,6 @@ export const usePhotoStore = create<PhotoStore>()(
     // ── setPhotos：全量替换 ──
     setPhotos: (photos, total) => {
       const ids = photos.map((p) => p.id)
-      // 更新底层 stores
       usePhotoEntityStore.getState().upsertMany(photos as PhotoEntity[])
       useCollectionStore.getState().ensureCollection(ACTIVE_KEY)
       useCollectionStore.getState().replaceFirstPage(
@@ -128,7 +127,6 @@ export const usePhotoStore = create<PhotoStore>()(
         total,
         null,
       )
-      syncFromSource()
     },
 
     // ── appendPhotos：增量追加 ──
@@ -143,20 +141,17 @@ export const usePhotoStore = create<PhotoStore>()(
         newPhotos as PhotoEntity[],
         null,
       )
-      syncFromSource()
     },
 
     // ── updatePhoto：局部字段更新 ──
     updatePhoto: (id, patch) => {
       usePhotoEntityStore.getState().patch(id, patch)
-      syncFromSource()
     },
 
     // ── removePhotos：移除照片 ──
     removePhotos: (ids) => {
       usePhotoEntityStore.getState().removeMany(ids)
       useCollectionStore.getState().removeIds(ACTIVE_KEY, ids)
-      syncFromSource()
     },
 
     setIsFetchingMore: (v) => _set({ isFetchingMore: v }),
@@ -176,6 +171,9 @@ export const usePhotoStore = create<PhotoStore>()(
     },
   })),
 )
+
+// 跟踪活跃集合中的 entity ID（避免无关变更触发全量派生）
+let activeEntityIds = new Set<string>()
 
 // ─────────────────────────────────────────────────────────
 //  从底层 stores 同步到 facade
@@ -198,6 +196,9 @@ function syncFromSource() {
   const _photoIndex = new Map<string, number>()
   photos.forEach((p, i) => _photoIndex.set(p.id, i))
 
+  // 更新活跃集合 entity ID 追踪
+  activeEntityIds = new Set(collection.orderedIds)
+
   usePhotoStore.setState({
     photos,
     groups,
@@ -207,9 +208,37 @@ function syncFromSource() {
   })
 }
 
-// 订阅底层 stores 的变化，自动同步到 facade
-// 这确保了 facade 状态始终与底层 stores 一致
-usePhotoEntityStore.subscribe(() => syncFromSource())
+// 订阅底层 stores — 仅当活跃集合的实体发生变化时才同步
+usePhotoEntityStore.subscribe((state, prevState) => {
+  // 快速路径：检查活跃集合的实体是否有变更
+  let relevantChange = false
+  for (const id of activeEntityIds) {
+    if (state.byId[id] !== prevState.byId[id]) {
+      relevantChange = true
+      break
+    }
+  }
+  // 检测新增实体是否属于活跃集合
+  if (!relevantChange) {
+    for (const id of Object.keys(state.byId)) {
+      if (!prevState.byId[id] && activeEntityIds.has(id)) {
+        relevantChange = true
+        break
+      }
+    }
+  }
+  // 检测移除实体是否属于活跃集合
+  if (!relevantChange) {
+    for (const id of Object.keys(prevState.byId)) {
+      if (!state.byId[id] && activeEntityIds.has(id)) {
+        relevantChange = true
+        break
+      }
+    }
+  }
+  if (relevantChange) syncFromSource()
+})
+
 useCollectionStore.subscribe(() => {
   const state = useCollectionStore.getState()
   if (state.collections[ACTIVE_KEY]) syncFromSource()
@@ -223,7 +252,9 @@ export const selectPhotos    = (s: PhotoStore) => s.photos
 export const selectGroups    = (s: PhotoStore) => s.groups
 export const selectTotal     = (s: PhotoStore) => s.total
 export const selectPhotoById = (id: string) => (s: PhotoStore) => {
-  // 使用 _photoIndex 实现 O(1) 查找
   const idx = s._photoIndex.get(id)
-  return idx !== undefined ? s.photos[idx] : null
+  if (idx === undefined || idx < 0 || idx >= s.photos.length) return null
+  const photo = s.photos[idx]
+  // 验证 ID 匹配（防止索引漂移返回错误照片）
+  return photo?.id === id ? photo : null
 }

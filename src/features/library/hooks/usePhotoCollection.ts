@@ -108,17 +108,18 @@ export function usePhotoCollection(
     const currentPageCount = data.pages.length
     const total = data.pages[0]?.total ?? 0
 
-    if (currentPageCount === 1 || prevPageCountRef.current === 0) {
-      // 首页 / 缓存重置 → 全量替换
-      const firstPage = data.pages[0]
-      upsertMany(firstPage.items as PhotoEntity[])
-      replaceFirstPage(
-        collectionKey,
-        firstPage.items.map((p) => p.id),
-        firstPage.items as PhotoEntity[],
-        total,
-        firstPage.nextCursor,
-      )
+    if (prevPageCountRef.current === 0) {
+      // 首次加载或缓存重置 — 全量替换（无论多少页都同步全部）
+      const allIds: string[] = []
+      const allEntities: PhotoEntity[] = []
+      for (const page of data.pages) {
+        upsertMany(page.items as PhotoEntity[])
+        for (const item of page.items) {
+          allIds.push(item.id)
+          allEntities.push(item as PhotoEntity)
+        }
+      }
+      replaceFirstPage(collectionKey, allIds, allEntities, total, data.pages[data.pages.length - 1]?.nextCursor ?? null)
     } else if (currentPageCount > prevPageCountRef.current) {
       // 新页追加 → 仅同步增量
       const newPages = data.pages.slice(prevPageCountRef.current)
@@ -132,9 +133,6 @@ export function usePhotoCollection(
         )
       }
     }
-
-    prevPageCountRef.current = currentPageCount
-    setLoading(collectionKey, isFetching && !isLoading)
   }, [data, isFetching, isLoading, collectionKey, upsertMany, replaceFirstPage, appendPage, setLoading])
 
   const loadMore = useCallback(
