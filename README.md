@@ -22,41 +22,9 @@
 
 **技术亮点**：Tauri v2（Rust）+ React 19 + TypeScript，所有数据完全本地存储，无需联网。
 
-
-### 快速开始
-
-```bash
-# 1. 克隆仓库
-git clone https://github.com/Aswellle/LightAlbum.git
-cd LightAlbum
-
-# 2. 安装依赖
-pnpm install
-
-# 3. 构建 HEIC/RAW 处理器（sidecar 必须单独构建）
-cd sidecar && node scripts/bundle.js && cd ..
-
-# 4. 启动开发模式
-pnpm tauri dev
-```
-
-构建生产版本：
-
-```bash
-pnpm tauri build
-```
-
-数据存储位置：
-
-| 平台 | 路径 |
-|------|------|
-| Windows | `%APPDATA%\LightAlbum\` |
-| macOS | `~/Library/Application Support/LightAlbum/` |
-| Linux | `~/.local/share/LightAlbum/` |
-
 ### 核心功能
 
- #### 📥 导入与监控
+#### 📥 导入与监控
 - 递归扫描文件夹，支持**实时文件监控**（新增 / 修改 / 删除自动同步）
 - 支持格式覆盖消费级与专业级：`JPEG` `PNG` `WebP` `AVIF` `TIFF` `BMP` `HEIC` `HEIF` `CR2` `CR3` `NEF` `ARW` `DNG` `ORF` `RW2` `RAF`
 
@@ -157,7 +125,6 @@ pnpm tauri build
 - **CollectionStore**：`orderedIds: string[]` + `sections: SectionMeta[]`（仅保存 start/count 边界）
 - **增量追加**：O(pageSize + newSections)，不遍历已有历史
 
----
 
 ### 下载安装
 
@@ -172,7 +139,79 @@ pnpm tauri build
 
 ---
 
-### 本地构建
+```bash
+# 1. 克隆仓库
+git clone https://github.com/Aswellle/LightAlbum.git
+cd LightAlbum
+
+# 2. 安装依赖
+pnpm install
+
+# 3. 构建 HEIC/RAW 处理器（sidecar 必须单独构建）
+cd sidecar && node scripts/bundle.js && cd ..
+
+# 4. 启动开发模式
+pnpm tauri dev
+```
+
+构建生产版本：
+
+```bash
+pnpm tauri build
+```
+
+数据存储位置：
+
+| 平台 | 路径 |
+|------|------|
+| Windows | `%APPDATA%\LightAlbum\` |
+| macOS | `~/Library/Application Support/LightAlbum/` |
+| Linux | `~/.local/share/LightAlbum/` |
+
+---
+
+前往 [Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest) 下载对应平台安装包：
+
+| 平台 | 文件 |
+|------|------|
+| Windows (x64) | `.msi` 安装包 或 `.exe` |
+| macOS (Apple Silicon) | `.dmg`（aarch64） |
+| macOS (Intel) | `.dmg`（x86_64） |
+| Linux (x64) | `.deb` 或 `.AppImage` |
+
+
+### 快速开始
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/Aswellle/LightAlbum.git
+cd LightAlbum
+
+# 2. 安装依赖
+pnpm install
+
+# 3. 构建 HEIC/RAW 处理器（sidecar 必须单独构建）
+cd sidecar && node scripts/bundle.js && cd ..
+
+# 4. 启动开发模式
+pnpm tauri dev
+```
+
+构建生产版本：
+
+```bash
+pnpm tauri build
+```
+
+数据存储位置：
+
+| 平台 | 路径 |
+|------|------|
+| Windows | `%APPDATA%\LightAlbum\` |
+| macOS | `~/Library/Application Support/LightAlbum/` |
+| Linux | `~/.local/share/LightAlbum/` |
+
+---
 
 ```bash
 # 环境要求：Node.js 20+、Rust 1.75+、pnpm
@@ -210,36 +249,6 @@ This is not just a photo viewer — it's **home** for your photo library.
 
 **Technical highlights**: Tauri v2 (Rust) + React 19 + TypeScript. All data stored entirely locally.
 
-### Quick Start
-
-```bash
-# 1. Clone
-git clone https://github.com/Aswellle/LightAlbum.git
-cd LightAlbum
-
-# 2. Install dependencies
-pnpm install
-
-# 3. Build HEIC/RAW processor (sidecar must be built separately)
-cd sidecar && node scripts/bundle.js && cd ..
-
-# 4. Start development mode
-pnpm tauri dev
-```
-
-Build for production:
-
-```bash
-pnpm tauri build
-```
-
-Data directory:
-
-| Platform | Path |
-|------|------|
-| Windows | `%APPDATA%\LightAlbum\` |
-| macOS | `~/Library/Application Support/LightAlbum/` |
-| Linux | `~/.local/share/LightAlbum/` |
 ### Features
 
 #### 📥 Import & Watch
@@ -343,8 +352,6 @@ The project has completed a V2 data flow architecture refactoring using a "new a
 - **CollectionStore**: `orderedIds: string[]` + `sections: SectionMeta[]` (boundary-only, start/count)
 - **Incremental append**: O(pageSize + newSections), no history traversal
 
----
-
 ### Download
 
 Visit the [Releases page](https://github.com/Aswellle/LightAlbum/releases/latest):
@@ -355,6 +362,38 @@ Visit the [Releases page](https://github.com/Aswellle/LightAlbum/releases/latest
 | macOS (Apple Silicon) | `.dmg` (aarch64) |
 | macOS (Intel) | `.dmg` (x86_64) |
 | Linux (x64) | `.deb` or `.AppImage` |
+
+
+### Quick Start
+
+```bash
+# 1. Clone
+git clone https://github.com/Aswellle/LightAlbum.git
+cd LightAlbum
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Build HEIC/RAW processor (sidecar must be built separately)
+cd sidecar && node scripts/bundle.js && cd ..
+
+# 4. Start development mode
+pnpm tauri dev
+```
+
+Build for production:
+
+```bash
+pnpm tauri build
+```
+
+Data directory:
+
+| Platform | Path |
+|------|------|
+| Windows | `%APPDATA%\LightAlbum\` |
+| macOS | `~/Library/Application Support/LightAlbum/` |
+| Linux | `~/.local/share/LightAlbum/` |
 
 ---
 
