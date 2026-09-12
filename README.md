@@ -1,11 +1,9 @@
 # LightAlbum
 
-> 一款受 Apple Photos 启发、为本地照片而生的桌面相册管理应用
+> **受 Apple Photos 启发的本地照片管理应用 — 十万张照片滚动依旧流畅**
 
-[![CI](https://github.com/Aswellle/LightAlbum/actions/workflows/ci.yml/badge.svg)](https://github.com/Aswellle/LightAlbum/actions/workflows/ci.yml)
-[![Release](https://github.com/Aswellle/LightAlbum/actions/workflows/release.yml/badge.svg)](https://github.com/Aswellle/LightAlbum/releases/latest)
-[![Tests](https://img.shields.io/badge/tests-12%20passing-brightgreen)]()
-[![V2 Architecture](https://img.shields.io/badge/v2-architecture%20ready-blue)]()
+[![CI](https://github.com/Aswellle/LightAlbum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Aswellle/LightAlbum/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Aswellle/LightAlbum?style=flat&label=release&color=blue)](https://github.com/Aswellle/LightAlbum/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](#english) | [中文](#中文)
@@ -14,17 +12,51 @@
 
 ## 中文
 
-### 这是什么
+### 什么体验
 
-LightAlbum 是一款**完全本地运行**的跨平台桌面相片管理应用，使用 Tauri v2（Rust）+ React 19 + TypeScript 构建。所有数据存储在本地，无需联网，无需账号，没有云端上传。
+打开 LightAlbum，你的照片库以精美的瀑布流或固定网格呈现。滚动浏览数万张照片 — 每一帧都流畅如初。点击任意照片进入全屏预览：EXIF 信息、胶片条导航、键盘快捷键，一切尽在指尖。
 
-适合：摄影师管理 RAW 文件、家庭用户整理多年照片、任何希望真正拥有自己照片数据的人。
+导入文件夹，新增照片实时出现在视图中。创建相册、打上彩色标签、全文搜索 — 整理大量照片变得轻松自然。私密相册用密码保护，收藏与删除支持一键撤销。
 
----
+这不仅仅是一个照片查看器 — 它是你照片库的**家**。
+
+**技术亮点**：Tauri v2（Rust）+ React 19 + TypeScript，所有数据完全本地存储，无需联网。
+
+
+### 快速开始
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/Aswellle/LightAlbum.git
+cd LightAlbum
+
+# 2. 安装依赖
+pnpm install
+
+# 3. 构建 HEIC/RAW 处理器（sidecar 必须单独构建）
+cd sidecar && node scripts/bundle.js && cd ..
+
+# 4. 启动开发模式
+pnpm tauri dev
+```
+
+构建生产版本：
+
+```bash
+pnpm tauri build
+```
+
+数据存储位置：
+
+| 平台 | 路径 |
+|------|------|
+| Windows | `%APPDATA%\LightAlbum\` |
+| macOS | `~/Library/Application Support/LightAlbum/` |
+| Linux | `~/.local/share/LightAlbum/` |
 
 ### 核心功能
 
-#### 📥 导入与监控
+ #### 📥 导入与监控
 - 递归扫描文件夹，支持**实时文件监控**（新增 / 修改 / 删除自动同步）
 - 支持格式覆盖消费级与专业级：`JPEG` `PNG` `WebP` `AVIF` `TIFF` `BMP` `HEIC` `HEIF` `CR2` `CR3` `NEF` `ARW` `DNG` `ORF` `RW2` `RAF`
 
@@ -168,13 +200,47 @@ pnpm tauri dev
 
 ## English
 
-### What is this
+### The Experience
 
-LightAlbum is a **fully local**, cross-platform desktop photo management app built with Tauri v2 (Rust) + React 19 + TypeScript. All data stays on your machine — no internet required, no account, no cloud.
+Open LightAlbum and your photo library appears as a beautiful waterfall or fixed grid. Scroll through tens of thousands of photos — every frame stays buttery smooth. Tap any photo for full-screen preview: EXIF info, filmstrip navigation, keyboard shortcuts, all at your fingertips.
 
----
+Import folders and new photos appear in real time. Create albums, assign color-coded tags, search full-text — organizing large libraries feels natural and effortless. Private albums are password-protected; favorites and deletions support one-click undo.
 
-### Highlights
+This is not just a photo viewer — it's **home** for your photo library.
+
+**Technical highlights**: Tauri v2 (Rust) + React 19 + TypeScript. All data stored entirely locally.
+
+### Quick Start
+
+```bash
+# 1. Clone
+git clone https://github.com/Aswellle/LightAlbum.git
+cd LightAlbum
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Build HEIC/RAW processor (sidecar must be built separately)
+cd sidecar && node scripts/bundle.js && cd ..
+
+# 4. Start development mode
+pnpm tauri dev
+```
+
+Build for production:
+
+```bash
+pnpm tauri build
+```
+
+Data directory:
+
+| Platform | Path |
+|------|------|
+| Windows | `%APPDATA%\LightAlbum\` |
+| macOS | `~/Library/Application Support/LightAlbum/` |
+| Linux | `~/.local/share/LightAlbum/` |
+### Features
 
 #### 📥 Import & Watch
 - Recursive folder scanning with **live file watching** — auto-syncs on add / modify / delete
