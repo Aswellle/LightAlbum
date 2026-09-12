@@ -8,6 +8,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Release System — 不可变发行体系正式上线
 
 ### V2 Refactor Phase 1 — Entity Normalization
+### V2 Refactor Phase 2–8 — Data Flow Architecture
+
+#### Added
+
+- **V2 数据流架构** — 完整的 8 阶段重构落地，新架构通过兼容 Facade 与旧组件并行运行。
+- **Collection Repository** (`src/data/photos/`) — 纯 IPC 仓库层 + 统一 Query Key 工厂 + 稳定 `buildCollectionFilter` 序列化。
+- **Fixed Grid V2** (`src/features/library/layout/fixedGridLayout.ts`) — Section 前缀偏移 + 二分查找，O(log S + V) 可见行计算，不再创建全量 row 对象。
+- **Waterfall V2** (`src/features/library/layout/waterfallLayout.ts`) — Float32Array/Float64Array 布局数据 + 列内二分视口查询 + Web Worker 支持。
+- **Thumbnail Scheduler V2** (`src/services/thumbnail/ThumbnailScheduler.ts`) — 任务状态机 (queued/running/fulfilled/failed/cancelled) + 优先级提升 + 代际失效 + O(1) 双端队列。
+- **Event Bus V2** (`src/data/events/`) — EventEnvelope (version/seq/revision/mutationId) + EventRouter domain handlers + LibrarySyncState revision gap 检测，替代 `resetQueries(['photos'])` 全量刷新。
+- **Preview Pipeline V2** (`src/features/library/preview/`) — M → L/XL → original 渐进加载 + PreviewController 状态管理。
+- **Motion System** (`src/styles/tokens.css`) — `--la-motion-fast/normal/slow` + `--la-ease-standard/emphasized` + reduced motion 媒体查询。
 
 #### Changed
 
