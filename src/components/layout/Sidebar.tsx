@@ -71,39 +71,34 @@ const NavItem = memo(function NavItem({
       style={{
         display:         'flex',
         alignItems:      'center',
-        gap:             '8px',
+        gap:             '9px',
         padding:         collapsed ? '8px 0' : '7px 10px',
         justifyContent:  collapsed ? 'center' : 'flex-start',
         borderRadius:    'var(--la-radius-md)',
         margin:          '1px 4px',
         width:           'calc(100% - 8px)',
         cursor:          'default',
-        transition:      'all 120ms ease',
+        transition:      'background-color 120ms ease',
         backgroundColor: active ? 'var(--la-bg-active)' : 'transparent',
+        // 静止态即达到 ≥7:1 对比度（--la-text-secondary），不再做「由浅入深」的文字弱化
         color:           active ? 'var(--la-text-primary)' : 'var(--la-text-secondary)',
         border:          'none',
         outline:         'none',
       }}
       onMouseEnter={(e) => {
-        if (!active) {
-          e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
-          e.currentTarget.style.color = 'var(--la-text-primary)'
-        }
+        if (!active) e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
       }}
       onMouseLeave={(e) => {
-        if (!active) {
-          e.currentTarget.style.backgroundColor = 'transparent'
-          e.currentTarget.style.color = 'var(--la-text-secondary)'
-        }
+        if (!active) e.currentTarget.style.backgroundColor = 'transparent'
       }}
     >
-      <Icon name={iconName} size={16} color={active ? 'var(--la-accent)' : 'currentColor'} />
+      <Icon name={iconName} size={17} strokeWidth={1.6} color={active ? 'var(--la-accent-text)' : 'currentColor'} />
 
       {!collapsed && (
         <>
           <span style={{
             fontSize:     'var(--la-text-sm)',
-            fontWeight:   active ? 'var(--la-weight-medium)' : 'var(--la-weight-regular)',
+            fontWeight:   active ? 'var(--la-weight-semibold)' : 'var(--la-weight-medium)',
             flex:         1,
             textAlign:    'left',
             overflow:     'hidden',
@@ -114,12 +109,13 @@ const NavItem = memo(function NavItem({
           </span>
           {count !== undefined && count > 0 && (
             <span style={{
-              fontSize:           '11px',
-              color:              'var(--la-text-tertiary)',
+              fontSize:           'var(--la-text-xs)',
+              fontWeight:         'var(--la-weight-medium)',
+              color:              'var(--la-text-secondary)',
               backgroundColor:    'var(--la-bg-overlay)',
               borderRadius:       '10px',
-              padding:            '1px 6px',
-              minWidth:           '20px',
+              padding:            '1px 7px',
+              minWidth:           '22px',
               textAlign:          'center',
               fontVariantNumeric: 'tabular-nums',
             }}>
@@ -153,10 +149,10 @@ function SectionHeader({
 }: SectionHeaderProps) {
   if (collapsed) return null
   return (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '4px 14px 2px', gap: '4px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', padding: '6px 8px 3px 14px', gap: '6px' }}>
       <span style={{
-        fontSize: 'var(--la-text-xs)', fontWeight: 'var(--la-weight-semibold)',
-        color: 'var(--la-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1,
+        fontSize: 'var(--la-text-xs)', fontWeight: 'var(--la-weight-bold)',
+        color: 'var(--la-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1,
       }}>
         {label}
       </span>
@@ -170,15 +166,18 @@ function SectionHeader({
   )
 }
 
+/** 分组标题内的动作按钮：24×24 热区 + 15px 图标，静止态即可辨识 */
 function HeaderBtn({ onClick, title, icon }: { onClick: () => void; title?: string; icon: IconName }) {
   return (
     <button
-      onClick={onClick} title={title} aria-label={title}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: 'var(--la-radius-sm)', backgroundColor: 'transparent', border: 'none', color: 'var(--la-text-tertiary)', cursor: 'default', transition: 'all 100ms ease' }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'; e.currentTarget.style.color = 'var(--la-text-secondary)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--la-text-tertiary)' }}
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      className="la-icon-button"
+      style={{ ['--la-icon-button-size' as string]: '24px' }}
     >
-      <Icon name={icon} size={12} strokeWidth={2} />
+      <Icon name={icon} size={15} strokeWidth={1.75} />
     </button>
   )
 }
@@ -235,27 +234,27 @@ const AlbumItem = memo(function AlbumItem({
       style={{
         display:         'flex',
         alignItems:      'center',
-        gap:             '7px',
+        gap:             '8px',
         padding:         '6px 10px 6px 12px',
         margin:          '1px 4px',
         borderRadius:    'var(--la-radius-md)',
         cursor:          'default',
-        transition:      'all 100ms ease',
+        transition:      'background-color 100ms ease',
         backgroundColor: active ? 'var(--la-bg-active)' : 'transparent',
         color:           active ? 'var(--la-text-primary)' : 'var(--la-text-secondary)',
       }}
       onMouseEnter={(e) => {
-        if (!active) { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'; e.currentTarget.style.color = 'var(--la-text-primary)' }
+        if (!active) e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
       }}
       onMouseLeave={(e) => {
-        if (!active) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--la-text-secondary)' }
+        if (!active) e.currentTarget.style.backgroundColor = 'transparent'
       }}
     >
       {/* v3：私密相册显示锁图标，普通相册显示 book */}
       {album.isPrivate ? (
-        <Icon name="lock" size={13} color={active ? 'var(--la-accent)' : 'var(--la-text-tertiary)'} style={{ flexShrink: 0 }} />
+        <Icon name="lock" size={14} strokeWidth={1.75} color={active ? 'var(--la-accent-text)' : 'var(--la-text-secondary)'} style={{ flexShrink: 0 }} />
       ) : (
-        <Icon name="book" size={14} color={active ? 'var(--la-accent)' : 'currentColor'} style={{ flexShrink: 0 }} />
+        <Icon name="book" size={15} strokeWidth={1.6} color={active ? 'var(--la-accent-text)' : 'currentColor'} style={{ flexShrink: 0 }} />
       )}
 
       {isRenaming ? (
@@ -267,18 +266,18 @@ const AlbumItem = memo(function AlbumItem({
           onBlur={commitRename}
           onClick={(e) => e.stopPropagation()}
           maxLength={64}
-          style={{ flex: 1, fontSize: 'var(--la-text-sm)', color: 'var(--la-text-primary)', backgroundColor: 'var(--la-bg-overlay)', border: '1px solid var(--la-accent)', borderRadius: '4px', padding: '1px 5px', outline: 'none', userSelect: 'text', minWidth: 0 }}
+          style={{ flex: 1, fontSize: 'var(--la-text-sm)', color: 'var(--la-text-primary)', backgroundColor: 'var(--la-bg-overlay)', border: '1px solid var(--la-accent)', borderRadius: 'var(--la-radius-sm)', padding: '3px 6px', outline: 'none', userSelect: 'text', minWidth: 0 }}
           autoFocus
         />
       ) : (
-        <span style={{ flex: 1, fontSize: 'var(--la-text-sm)', fontWeight: active ? 'var(--la-weight-medium)' : 'var(--la-weight-regular)', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0 }}>
+        <span style={{ flex: 1, fontSize: 'var(--la-text-sm)', fontWeight: active ? 'var(--la-weight-semibold)' : 'var(--la-weight-medium)', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0 }}>
           {album.name}
         </span>
       )}
 
       {/* Fix: hide count for private albums */}
       {!isRenaming && !album.isPrivate && album.photoCount > 0 && (
-        <span style={{ fontSize: '11px', color: 'var(--la-text-tertiary)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 'var(--la-text-xs)', fontWeight: 'var(--la-weight-medium)', color: 'var(--la-text-secondary)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
           {album.photoCount > 999 ? '999+' : album.photoCount}
         </span>
       )}
@@ -308,25 +307,25 @@ const FolderItem = memo(function FolderItem({
       onClick={onClick}
       title={folder.path}
       style={{
-        display: 'flex', alignItems: 'center', gap: '7px',
+        display: 'flex', alignItems: 'center', gap: '8px',
         padding: '6px 10px 6px 12px', margin: '1px 4px', borderRadius: 'var(--la-radius-md)',
-        cursor: 'default', transition: 'all 100ms ease',
+        cursor: 'default', transition: 'background-color 100ms ease',
         backgroundColor: active ? 'var(--la-bg-active)' : 'transparent',
         color: active ? 'var(--la-text-primary)' : 'var(--la-text-secondary)',
       }}
       onMouseEnter={(e) => {
-        if (!active) { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'; e.currentTarget.style.color = 'var(--la-text-primary)' }
+        if (!active) e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
       }}
       onMouseLeave={(e) => {
-        if (!active) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--la-text-secondary)' }
+        if (!active) e.currentTarget.style.backgroundColor = 'transparent'
       }}
     >
-      <Icon name="folder" size={14} color={active ? 'var(--la-accent)' : 'currentColor'} style={{ flexShrink: 0 }} />
-      <span style={{ flex: 1, fontSize: 'var(--la-text-sm)', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0 }}>
+      <Icon name="folder" size={15} strokeWidth={1.6} color={active ? 'var(--la-accent-text)' : 'currentColor'} style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1, fontSize: 'var(--la-text-sm)', fontWeight: active ? 'var(--la-weight-semibold)' : 'var(--la-weight-medium)', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0 }}>
         {displayName}
       </span>
       {folder.photoCount > 0 && (
-        <span style={{ fontSize: '11px', color: 'var(--la-text-tertiary)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 'var(--la-text-xs)', fontWeight: 'var(--la-weight-medium)', color: 'var(--la-text-secondary)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
           {folder.photoCount > 999 ? '999+' : folder.photoCount}
         </span>
       )}
@@ -456,11 +455,10 @@ export function Sidebar() {
             onClick={toggleSidebar}
             title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
             aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: 'var(--la-radius-md)', backgroundColor: 'transparent', border: 'none', color: 'var(--la-text-tertiary)', cursor: 'default', transition: 'all 100ms ease' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'; e.currentTarget.style.color = 'var(--la-text-secondary)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--la-text-tertiary)' }}
+            className="la-icon-button"
+            style={{ ['--la-icon-button-size' as string]: '28px' }}
           >
-            <Icon name={isCollapsed ? 'chevron-right' : 'chevron-left'} size={14} strokeWidth={2} />
+            <Icon name={isCollapsed ? 'chevron-right' : 'chevron-left'} size={16} strokeWidth={1.75} />
           </button>
         </div>
 
@@ -501,15 +499,15 @@ export function Sidebar() {
                 label="相册"
                 collapsed={false}
                 onAction={() => setShowCreateAlbum(true)}
-                actionIcon="plus"
+                actionIcon="book-plus"
                 actionLabel="新建相册"
                 onSecondaryAction={() => setShowCreatePrivateAlbum(true)}
-                secondaryIcon="lock"
+                secondaryIcon="lock-plus"
                 secondaryLabel="新建私密相册"
               />
 
               {regularAlbums.length === 0 && privateAlbums.length === 0 ? (
-                <p style={{ padding: '6px 14px', fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)', fontStyle: 'italic' }}>
+                <p style={{ padding: '4px 14px 6px', fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
                   暂无相册
                 </p>
               ) : (
@@ -548,22 +546,22 @@ export function Sidebar() {
 
               {/* ─── 文件夹分组 ─── */}
               <Divider />
-              <SectionHeader label="文件夹" collapsed={false} onAction={handleAddFolder} actionIcon="import" actionLabel="添加文件夹" />
+              <SectionHeader label="文件夹" collapsed={false} onAction={handleAddFolder} actionIcon="folder-plus" actionLabel="添加文件夹" />
 
               {folders.length === 0 ? (
                 <button
                   onClick={handleAddFolder}
                   style={{
                     margin: '2px 4px', padding: '7px 10px', borderRadius: 'var(--la-radius-md)',
-                    backgroundColor: 'transparent', border: '1px dashed var(--la-border)',
-                    color: 'var(--la-text-tertiary)', fontSize: 'var(--la-text-xs)', cursor: 'default',
+                    backgroundColor: 'transparent', border: '1px dashed var(--la-border-strong)',
+                    color: 'var(--la-text-secondary)', fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)', cursor: 'default',
                     width: 'calc(100% - 8px)', transition: 'all 100ms ease',
-                    display: 'flex', alignItems: 'center', gap: '6px',
+                    display: 'flex', alignItems: 'center', gap: '8px',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--la-accent)'; e.currentTarget.style.color = 'var(--la-accent)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--la-border)'; e.currentTarget.style.color = 'var(--la-text-tertiary)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--la-accent)'; e.currentTarget.style.color = 'var(--la-accent-text)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--la-border-strong)'; e.currentTarget.style.color = 'var(--la-text-secondary)' }}
                 >
-                  <Icon name="plus" size={13} strokeWidth={2} />
+                  <Icon name="folder-plus" size={15} strokeWidth={1.75} />
                   <span>添加照片文件夹</span>
                 </button>
               ) : (

@@ -16,6 +16,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/services/tauriIpc'
 import { useUiStore, selectCurrentView } from '@/stores/uiStore'
 import { TagBadge } from '@/components/common/TagBadge'
+import { Icon } from '@/components/common/Icon'
 import type { Tag } from '@/types/ipc'
 import type { ViewState } from '@/types/layout'
 
@@ -62,12 +63,12 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
   // 折叠侧边栏时仅显示图标占位
   if (collapsed) {
     return (
-      <div style={{ padding: '4px 0', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ padding: '6px 0', display: 'flex', justifyContent: 'center' }}>
         <span
-          style={{ fontSize: '16px', opacity: tags.length > 0 ? 0.8 : 0.4 }}
+          style={{ display: 'flex', color: tags.length > 0 ? 'var(--la-text-secondary)' : 'var(--la-text-tertiary)' }}
           title={tags.length > 0 ? `标签（${tags.length}）` : '标签'}
         >
-          🏷
+          <Icon name="tag" size={16} strokeWidth={1.6} />
         </span>
       </div>
     )
@@ -78,30 +79,33 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
   const hasMore  = tags.length > MAX_VISIBLE
 
   return (
-    <div style={{ padding: '4px 8px 6px' }}>
-      {/* ── 分组标题行 ── */}
+    <div>
+      {/* ── 分组标题行（与相册/文件夹分组标题统一字重与颜色）── */}
       <div style={{
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'space-between',
-        padding:        '4px 2px 5px',
+        gap:            '6px',
+        padding:        '6px 8px 3px 14px',
       }}>
         <span style={{
-          fontSize:      '11px',
-          fontWeight:    600,
-          color:         'var(--la-text-tertiary)',
-          letterSpacing: '0.05em',
+          fontSize:      'var(--la-text-xs)',
+          fontWeight:    'var(--la-weight-bold)',
+          color:         'var(--la-text-secondary)',
+          letterSpacing: '0.06em',
           textTransform: 'uppercase' as const,
           userSelect:    'none' as const,
+          flex:          1,
         }}>
           标签
         </span>
         {tags.length > 0 && (
           <span style={{
-            fontSize:   '10px',
-            color:      'var(--la-text-tertiary)',
-            opacity:    0.7,
-            userSelect: 'none' as const,
+            fontSize:           'var(--la-text-xs)',
+            fontWeight:         'var(--la-weight-medium)',
+            color:              'var(--la-text-secondary)',
+            fontVariantNumeric: 'tabular-nums',
+            userSelect:         'none' as const,
           }}>
             {tags.length}
           </span>
@@ -112,18 +116,18 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
       {tags.length === 0 ? (
         <p style={{
           margin:     0,
-          padding:    '2px 2px 4px',
-          fontSize:   '11px',
-          color:      'var(--la-text-tertiary)',
+          padding:    '2px 14px 6px',
+          fontSize:   'var(--la-text-sm)',
+          color:      'var(--la-text-secondary)',
           lineHeight: 1.5,
           userSelect: 'none' as const,
         }}>
-          暂无标签。右键照片<br />选择「管理标签」创建
+          暂无标签，右键照片选择「管理标签」创建
         </p>
       ) : (
         <>
           {/* ── 标签徽章列表 ── */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', padding: '2px 12px 2px' }}>
             {visible.map((tag) => {
               const isActive = tag.name.toLowerCase() === activeTagName.toLowerCase()
               return (
@@ -143,14 +147,15 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
             <button
               onClick={() => setExpanded((v) => !v)}
               style={{
-                marginTop:  '5px',
-                background: 'transparent',
-                border:     'none',
-                color:      'var(--la-text-tertiary)',
-                fontSize:   '11px',
-                cursor:     'pointer',
-                padding:    '2px 0',
-                userSelect: 'none' as const,
+                margin:      '4px 12px 0',
+                background:  'transparent',
+                border:      'none',
+                color:       'var(--la-text-secondary)',
+                fontSize:    'var(--la-text-xs)',
+                fontWeight:  'var(--la-weight-medium)',
+                cursor:      'default',
+                padding:     '2px 0',
+                userSelect:  'none' as const,
               }}
             >
               {expanded ? '收起' : `还有 ${tags.length - MAX_VISIBLE} 个…`}
