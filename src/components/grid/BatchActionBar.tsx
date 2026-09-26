@@ -141,9 +141,9 @@ const AlbumPickerPopover = memo(function AlbumPickerPopover({
           autoFocus value={filterText} onChange={(e) => setFilterText(e.target.value)}
           placeholder="搜索相册…"
           style={{
-            width: '100%', height: '28px', padding: '0 8px',
+            width: '100%', height: '30px', padding: '0 8px',
             fontSize: 'var(--la-text-sm)', backgroundColor: 'var(--la-bg-overlay)',
-            border: '1px solid var(--la-border)', borderRadius: 'var(--la-radius-sm)',
+            border: '1px solid var(--la-border-strong)', borderRadius: 'var(--la-radius-sm)',
             color: 'var(--la-text-primary)', outline: 'none',
           }}
         />
@@ -151,9 +151,9 @@ const AlbumPickerPopover = memo(function AlbumPickerPopover({
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
         {loading ? (
-          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--la-text-tertiary)', fontSize: 'var(--la-text-xs)' }}>加载中…</div>
+          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--la-text-secondary)', fontWeight: 'var(--la-weight-medium)', fontSize: 'var(--la-text-sm)' }}>加载中…</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--la-text-tertiary)', fontSize: 'var(--la-text-xs)' }}>
+          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--la-text-secondary)', fontWeight: 'var(--la-weight-medium)', fontSize: 'var(--la-text-sm)' }}>
             {filterText ? '无匹配相册' : '暂无相册，请点击下方新建'}
           </div>
         ) : (
@@ -174,16 +174,16 @@ const AlbumPickerPopover = memo(function AlbumPickerPopover({
                   <img src={toAssetUrl(album.coverThumbnail)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon name={album.isPrivate ? 'lock' : 'book'} size={14} color="var(--la-text-tertiary)" />
+                    <Icon name={album.isPrivate ? 'lock' : 'book'} size={15} color="var(--la-text-secondary)" />
                   </div>
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {album.isPrivate && <Icon name="lock" size={10} color="var(--la-text-tertiary)" strokeWidth={2} />}
+                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'var(--la-weight-medium)' }}>
+                  {album.isPrivate && <Icon name="lock" size={13} color="var(--la-text-secondary)" strokeWidth={1.75} />}
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.name}</span>
                 </div>
-                <div style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)', marginTop: 2 }}>{album.photoCount} 张</div>
+                <div style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-secondary)', marginTop: 2 }}>{album.photoCount} 张</div>
               </div>
             </button>
           ))
@@ -195,16 +195,17 @@ const AlbumPickerPopover = memo(function AlbumPickerPopover({
         <button
           onClick={() => { onClose(); onCreateNew() }}
           style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
+            display: 'flex', alignItems: 'center', gap: '7px',
             width: '100%', padding: '7px 12px', backgroundColor: 'transparent',
-            border: 'none', color: 'var(--la-accent)', fontSize: 'var(--la-text-sm)',
+            border: 'none', color: 'var(--la-accent-text)', fontSize: 'var(--la-text-sm)',
+            fontWeight: 'var(--la-weight-medium)',
             cursor: 'default', borderRadius: 'var(--la-radius-sm)',
             transition: 'background-color 80ms ease',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)' }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
         >
-          <Icon name="plus" size={14} color="var(--la-accent)" />
+          <Icon name="book-plus" size={15} color="var(--la-accent-text)" />
           新建相册并加入
         </button>
       </div>
@@ -224,23 +225,28 @@ interface BatchActionButtonProps {
 const BatchActionButton = memo(function BatchActionButton({
   onClick, label, icon, danger, disabled, btnRef, active,
 }: BatchActionButtonProps) {
-  const baseColor = danger ? 'var(--la-danger)' : active ? 'var(--la-accent)' : 'rgba(255,255,255,0.9)'
+  // 选择模式工具条铺在 --la-accent-fill 上：标签必须为纯白（≥5.4:1），
+  // 危险操作用白色标签 + 悬浮时切换为红色填充表达语义
+  const baseColor = 'var(--la-text-on-accent)'
+  const baseBg = active ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.16)'
+  const hoverBg = danger ? 'var(--la-danger-fill)' : active ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.28)'
   return (
     <button
       ref={btnRef as React.RefObject<HTMLButtonElement>}
       onClick={onClick} disabled={disabled} title={label} aria-label={label}
       style={{
-        display: 'flex', alignItems: 'center', gap: '5px',
+        display: 'flex', alignItems: 'center', gap: '6px',
         height: '30px', padding: '0 11px', borderRadius: 'var(--la-radius-md)',
-        backgroundColor: active ? 'rgba(255,255,255,0.2)' : danger ? 'rgba(255,59,48,0.15)' : 'rgba(255,255,255,0.12)',
+        backgroundColor: baseBg,
         border: 'none', color: baseColor, fontSize: 'var(--la-text-sm)',
-        cursor: disabled ? 'not-allowed' : 'default', opacity: disabled ? 0.45 : 1,
-        transition: 'all 100ms ease', flexShrink: 0, whiteSpace: 'nowrap',
+        fontWeight: 'var(--la-weight-medium)',
+        cursor: disabled ? 'not-allowed' : 'default', opacity: disabled ? 0.6 : 1,
+        transition: 'background-color 100ms ease', flexShrink: 0, whiteSpace: 'nowrap',
       }}
-      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.backgroundColor = danger ? 'rgba(255,59,48,0.28)' : 'rgba(255,255,255,0.22)' }}
-      onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.backgroundColor = active ? 'rgba(255,255,255,0.2)' : danger ? 'rgba(255,59,48,0.15)' : 'rgba(255,255,255,0.12)' }}
+      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.backgroundColor = hoverBg }}
+      onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.backgroundColor = baseBg }}
     >
-      <Icon name={icon} size={13} color={baseColor} />
+      <Icon name={icon} size={15} color={baseColor} />
       <span>{label}</span>
     </button>
   )
@@ -370,7 +376,7 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
           active={isAllSelected}
         />
 
-        <div style={{ width: 1, height: 18, backgroundColor: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 18, backgroundColor: 'rgba(255,255,255,0.35)', flexShrink: 0 }} />
 
         {!isPrivateAlbum && (allFavorited ? (
           <BatchActionButton onClick={() => handleFavorite(false)} label="取消收藏" icon="heart" disabled={selectedCount === 0} />
@@ -402,24 +408,24 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
         />
 
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 'var(--la-text-sm)', color: 'rgba(255,255,255,0.75)', flexShrink: 0, userSelect: 'none' }}>
+        <span style={{ fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)', color: 'var(--la-text-on-accent)', flexShrink: 0, userSelect: 'none' }}>
           {selectedCount > 0 ? `已选 ${selectedCount} 张 / 共 ${totalCount} 张` : `共 ${totalCount} 张`}
         </span>
 
-        <div style={{ width: 1, height: 18, backgroundColor: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 18, backgroundColor: 'rgba(255,255,255,0.35)', flexShrink: 0 }} />
 
         <button
           onClick={exitSelectionMode} title="退出选择模式（Esc）" aria-label="退出选择模式"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 28, height: 28, borderRadius: 'var(--la-radius-md)',
-            backgroundColor: 'rgba(255,255,255,0.12)', border: 'none',
-            color: 'rgba(255,255,255,0.8)', cursor: 'default', transition: 'all 100ms ease', flexShrink: 0,
+            width: 30, height: 30, borderRadius: 'var(--la-radius-md)',
+            backgroundColor: 'rgba(255,255,255,0.16)', border: 'none',
+            color: 'var(--la-text-on-accent)', cursor: 'default', transition: 'background-color 100ms ease', flexShrink: 0,
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.22)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.28)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.16)' }}
         >
-          <Icon name="x" size={14} color="rgba(255,255,255,0.8)" />
+          <Icon name="x" size={16} color="var(--la-text-on-accent)" />
         </button>
       </motion.div>
 

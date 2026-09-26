@@ -70,6 +70,7 @@ export const DateGroup = memo(function DateGroup({
       {/* 数量徽标 */}
       <span style={{
         fontSize:   'var(--la-text-sm)',
+        fontWeight: 'var(--la-weight-medium)',
         color:      'var(--la-text-secondary)',
         lineHeight: 1,
       }}>
@@ -83,22 +84,25 @@ export const DateGroup = memo(function DateGroup({
           style={{
             marginLeft:      'auto',
             fontSize:        'var(--la-text-xs)',
-            color:           allSelected ? 'var(--la-accent)' : 'var(--la-text-tertiary)',
-            backgroundColor: 'transparent',
-            border:          `1px solid ${allSelected ? 'var(--la-accent)' : 'var(--la-border)'}`,
+            fontWeight:      'var(--la-weight-medium)',
+            color:           allSelected ? 'var(--la-accent-text)' : 'var(--la-text-secondary)',
+            backgroundColor: allSelected ? 'var(--la-accent-subtle)' : 'transparent',
+            border:          `1px solid ${allSelected ? 'var(--la-accent)' : 'var(--la-border-strong)'}`,
             borderRadius:    'var(--la-radius-sm)',
-            padding:         '2px 8px',
+            padding:         '3px 9px',
             cursor:          'default',
-            transition:      'all 100ms ease',
+            transition:      'background-color 100ms ease, color 100ms ease, border-color 100ms ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--la-accent)'
+            e.currentTarget.style.color = 'var(--la-accent-text)'
             e.currentTarget.style.borderColor = 'var(--la-accent)'
+            e.currentTarget.style.backgroundColor = 'var(--la-accent-subtle)'
           }}
           onMouseLeave={(e) => {
             if (!allSelected) {
-              e.currentTarget.style.color = 'var(--la-text-tertiary)'
-              e.currentTarget.style.borderColor = 'var(--la-border)'
+              e.currentTarget.style.color = 'var(--la-text-secondary)'
+              e.currentTarget.style.borderColor = 'var(--la-border-strong)'
+              e.currentTarget.style.backgroundColor = 'transparent'
             }
           }}
         >

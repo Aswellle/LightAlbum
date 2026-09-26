@@ -92,8 +92,8 @@ function CheckboxOverlay({ isSelected }: { isSelected: boolean }) {
         top:             6, left: 6,
         width:           22, height: 22,
         borderRadius:    '50%',
-        backgroundColor: isSelected ? 'var(--la-accent)' : 'rgba(0,0,0,0.35)',
-        border:          `2px solid ${isSelected ? 'var(--la-accent)' : 'rgba(255,255,255,0.75)'}`,
+        backgroundColor: isSelected ? 'var(--la-accent-fill)' : 'rgba(0,0,0,0.45)',
+        border:          `2px solid ${isSelected ? 'var(--la-accent)' : 'rgba(255,255,255,0.85)'}`,
         display:         'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow:       '0 1px 4px rgba(0,0,0,0.35)',
         transition:      'background-color 120ms ease, border-color 120ms ease',
@@ -101,7 +101,7 @@ function CheckboxOverlay({ isSelected }: { isSelected: boolean }) {
         pointerEvents:   'none',
       }}
     >
-      {isSelected && <Icon name="check" size={12} color="#fff" strokeWidth={3} />}
+      {isSelected && <Icon name="check" size={13} color="var(--la-text-on-accent)" strokeWidth={2.6} />}
     </motion.div>
   )
 }
@@ -500,17 +500,17 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
           transition={{ duration: 0.1, ease: [0.34, 1.56, 0.64, 1] }}
           style={{
             position: 'absolute', top: 6, left: 6,
-            width: 20, height: 20, borderRadius: '50%',
-            backgroundColor: 'var(--la-accent)',
+            width: 22, height: 22, borderRadius: '50%',
+            backgroundColor: 'var(--la-accent-fill)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
           }}
         >
-          <Icon name="check" size={11} color="#fff" strokeWidth={2.5} />
+          <Icon name="check" size={13} color="var(--la-text-on-accent)" strokeWidth={2.6} />
         </motion.div>
       )}
 
-      {/* 收藏心形 — 白色半透明圆形底板（22×22px）+ #FF2D55 红心（13px）*/}
+      {/* 收藏心形 — 白色半透明圆形底板（22×22px）+ 品牌红心（14px）*/}
       {photo.isFavorite && (
         <div style={{
           position:        'absolute',
@@ -518,15 +518,15 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
           width:           '22px',
           height:          '22px',
           borderRadius:    '50%',
-          backgroundColor: 'rgba(255,255,255,0.92)',
+          backgroundColor: 'rgba(255,255,255,0.94)',
           display:         'flex',
           alignItems:      'center',
           justifyContent:  'center',
           boxShadow:       '0 1px 3px rgba(0,0,0,0.25), 0 0 0 0.5px rgba(0,0,0,0.08)',
           flexShrink:      0,
         }}>
-          <span style={{ color: '#FF2D55', lineHeight: 0 }}>
-            <Icon name="heart-fill" size={13} color="currentColor" />
+          <span style={{ color: 'var(--la-favorite)', lineHeight: 0 }}>
+            <Icon name="heart-fill" size={14} color="currentColor" />
           </span>
         </div>
       )}
@@ -558,11 +558,11 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
           ))}
           {photoTags.length > 3 && (
             <div style={{
-              fontSize:        '9px',
-              color:           'rgba(255,255,255,0.85)',
+              fontSize:        'var(--la-text-xs)',
+              color:           'var(--la-text-on-accent)',
               lineHeight:      1,
-              textShadow:      '0 1px 2px rgba(0,0,0,0.6)',
-              fontWeight:      600,
+              textShadow:      '0 1px 3px rgba(0,0,0,0.85)',
+              fontWeight:      'var(--la-weight-semibold)',
             }}>+{photoTags.length - 3}</div>
           )}
         </div>
