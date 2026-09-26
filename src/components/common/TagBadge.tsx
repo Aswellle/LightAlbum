@@ -13,7 +13,7 @@
  *   - 点击回调可选，有则显示 hover 效果
  */
 
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import type { Tag } from '@/types/ipc'
 
 interface TagBadgeProps {
@@ -32,6 +32,7 @@ export const TagBadge = memo(function TagBadge({
   onRemove,
 }: TagBadgeProps) {
   const isSm = size === 'sm'
+  const [hovered, setHovered] = useState(false)
 
   return (
     <span
@@ -39,23 +40,27 @@ export const TagBadge = memo(function TagBadge({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
+      onMouseEnter={onClick ? () => setHovered(true) : undefined}
+      onMouseLeave={onClick ? () => setHovered(false) : undefined}
       style={{
         display:        'inline-flex',
         alignItems:     'center',
-        gap:            isSm ? '4px' : '5px',
-        padding:        isSm ? '2px 6px' : '3px 8px',
+        gap:            isSm ? '5px' : '6px',
+        padding:        isSm ? '2px 7px' : '3px 9px',
         borderRadius:   '20px',
-        fontSize:       isSm ? '11px' : '12px',
-        fontWeight:     500,
-        lineHeight:     1.4,
-        cursor:         onClick ? 'pointer' : 'default',
+        fontSize:       isSm ? 'var(--la-text-xs)' : 'var(--la-text-sm)',
+        fontWeight:     'var(--la-weight-semibold)',
+        lineHeight:     1.45,
+        cursor:         'default',
         userSelect:     'none',
-        transition:     'opacity 120ms',
-        opacity:        selected ? 1 : 0.85,
-        border:         `1.5px solid ${tag.color}`,
+        transition:     'background-color 120ms ease, border-color 120ms ease',
+        // 不再用 opacity 削弱未选中标签：改为「同色描边 + 更低底色浓度」保持层级
+        border:         `${selected ? 2 : 1.5}px solid ${tag.color}`,
         backgroundColor: selected
-          ? tag.color + '33'   // 20% opacity tint
-          : tag.color + '18',  // 9% opacity tint
+          ? tag.color + '3D'   // 24% 浓度
+          : hovered
+          ? tag.color + '2E'   // 18% 浓度（悬浮加深，而非变浅）
+          : tag.color + '1F',  // 12% 浓度
         color:          'var(--la-text-primary)',
       }}
       title={tag.name}
@@ -63,8 +68,8 @@ export const TagBadge = memo(function TagBadge({
       {/* 色点 */}
       <span
         style={{
-          width:        isSm ? '6px' : '8px',
-          height:       isSm ? '6px' : '8px',
+          width:        isSm ? '7px' : '8px',
+          height:       isSm ? '7px' : '8px',
           borderRadius: '50%',
           backgroundColor: tag.color,
           flexShrink:   0,
@@ -92,10 +97,10 @@ export const TagBadge = memo(function TagBadge({
           onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onRemove(); } }}
           style={{
             marginLeft:  '2px',
-            fontSize:    isSm ? '10px' : '11px',
+            fontSize:    isSm ? '11px' : '12px',
             lineHeight:  1,
-            opacity:     0.6,
-            cursor:      'pointer',
+            color:       'var(--la-text-secondary)',
+            cursor:      'default',
             padding:     '0 1px',
             borderRadius: '50%',
           }}

@@ -91,27 +91,27 @@ interface DialogVariantConfig {
 const DIALOG_VARIANTS: Record<ConfirmVariant, DialogVariantConfig> = {
   default: {
     iconName:     'info',
-    iconColor:    'var(--la-accent)',
+    iconColor:    'var(--la-accent-text)',
     iconBg:       'var(--la-accent-subtle)',
-    confirmBg:    'var(--la-accent)',
-    confirmHover: 'var(--la-accent-hover)',
-    confirmColor: '#fff',
+    confirmBg:    'var(--la-accent-fill)',
+    confirmHover: 'var(--la-accent-fill-hover)',
+    confirmColor: 'var(--la-text-on-accent)',
   },
   danger: {
     iconName:     'trash',
-    iconColor:    'var(--la-danger)',
+    iconColor:    'var(--la-danger-text)',
     iconBg:       'var(--la-danger-subtle)',
-    confirmBg:    'var(--la-danger)',
-    confirmHover: '#E03030',
-    confirmColor: '#fff',
+    confirmBg:    'var(--la-danger-fill)',
+    confirmHover: 'var(--la-danger-fill-hover)',
+    confirmColor: 'var(--la-text-on-accent)',
   },
   warning: {
     iconName:     'info',
-    iconColor:    '#FF9500',
-    iconBg:       'rgba(255,149,0,0.12)',
-    confirmBg:    '#FF9500',
-    confirmHover: '#E08500',
-    confirmColor: '#fff',
+    iconColor:    'var(--la-warning)',
+    iconBg:       'var(--la-warning-subtle)',
+    confirmBg:    'var(--la-warning)',
+    confirmHover: 'var(--la-warning-hover)',
+    confirmColor: 'var(--la-text-on-warning)',
   },
 }
 
@@ -251,7 +251,7 @@ export function ConfirmDialog({
                     <p style={{
                       marginTop:   '6px',
                       fontSize:    'var(--la-text-xs)',
-                      color:       'var(--la-text-tertiary)',
+                      color:       'var(--la-text-secondary)',
                       lineHeight:  'var(--la-leading-relaxed)',
                       margin:      '6px 0 0',
                     }}>
@@ -286,12 +286,11 @@ export function ConfirmDialog({
                   borderRadius:    'var(--la-radius-md)',
                   fontSize:        'var(--la-text-sm)',
                   fontWeight:      'var(--la-weight-medium)' as unknown as number,
-                  color:           'var(--la-text-secondary)',
+                  color:           loading ? 'var(--la-text-disabled)' : 'var(--la-text-secondary)',
                   backgroundColor: 'transparent',
                   border:          '1px solid var(--la-border)',
                   cursor:          'default',
                   transition:      'all 100ms ease',
-                  opacity:         loading ? 0.5 : 1,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
@@ -320,7 +319,6 @@ export function ConfirmDialog({
                   border:          'none',
                   cursor:          loading ? 'wait' : 'default',
                   transition:      'background-color 100ms ease',
-                  opacity:         loading ? 0.75 : 1,
                   minWidth:        '72px',
                 }}
                 onMouseEnter={(e) => {

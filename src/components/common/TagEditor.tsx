@@ -206,8 +206,8 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
         {/* 标题 */}
         <div style={{
           padding:      '14px 16px 10px',
-          fontWeight:   600,
-          fontSize:     '14px',
+          fontWeight:   'var(--la-weight-semibold)',
+          fontSize:     'var(--la-text-base)',
           color:        'var(--la-text-primary)',
           borderBottom: '1px solid var(--la-border)',
           flexShrink:   0,
@@ -226,7 +226,7 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
           alignContent: 'flex-start',
         }}>
           {allTags.length === 0 && !creating && (
-            <p style={{ fontSize: '12px', color: 'var(--la-text-tertiary)', margin: 0 }}>
+            <p style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)', margin: 0 }}>
               暂无标签，点击下方「新建」创建第一个
             </p>
           )}
@@ -264,11 +264,11 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
               maxLength={50}
               style={{
                 padding:       '6px 10px',
-                borderRadius:  '6px',
-                border:        '1px solid var(--la-border)',
+                borderRadius:  'var(--la-radius-sm)',
+                border:        '1px solid var(--la-border-strong)',
                 background:    'var(--la-bg-overlay)',
                 color:         'var(--la-text-primary)',
-                fontSize:      '13px',
+                fontSize:      'var(--la-text-sm)',
                 outline:       'none',
                 width:         '100%',
                 boxSizing:     'border-box',
@@ -284,14 +284,15 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
                   aria-checked={newColor === c}
                   aria-label={c}
                   style={{
-                    width:        '20px',
-                    height:       '20px',
+                    width:        '22px',
+                    height:       '22px',
                     borderRadius: '50%',
                     backgroundColor: c,
-                    cursor:       'pointer',
-                    border:       newColor === c ? '2px solid white' : '2px solid transparent',
-                    boxShadow:    newColor === c ? `0 0 0 2px ${c}` : 'none',
-                    transition:   'box-shadow 100ms',
+                    cursor:       'default',
+                    // 选中环使用主题前景色，避免浅色主题下白环不可见
+                    border:       newColor === c ? '2px solid var(--la-text-primary)' : '2px solid transparent',
+                    boxShadow:    newColor === c ? `0 0 0 2px var(--la-bg-raised) inset` : 'none',
+                    transition:   'border-color 100ms',
                   }}
                 />
               ))}
@@ -303,13 +304,14 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
                 style={{
                   flex:          1,
                   padding:       '6px',
-                  borderRadius:  '6px',
+                  borderRadius:  'var(--la-radius-sm)',
                   border:        'none',
-                  background:    'var(--la-accent)',
-                  color:         'white',
-                  fontSize:      '12px',
-                  cursor:        newName.trim() ? 'pointer' : 'not-allowed',
-                  opacity:       newName.trim() ? 1 : 0.5,
+                  background:    'var(--la-accent-fill)',
+                  color:         'var(--la-text-on-accent)',
+                  fontSize:      'var(--la-text-sm)',
+                  fontWeight:    'var(--la-weight-medium)',
+                  cursor:        newName.trim() ? 'default' : 'not-allowed',
+                  opacity:       newName.trim() ? 1 : 0.55,
                 }}
               >
                 {createMutation.isPending ? '创建中…' : '确认创建'}
@@ -318,12 +320,13 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
                 onClick={() => setCreating(false)}
                 style={{
                   padding:      '6px 12px',
-                  borderRadius: '6px',
-                  border:       '1px solid var(--la-border)',
+                  borderRadius: 'var(--la-radius-sm)',
+                  border:       '1px solid var(--la-border-strong)',
                   background:   'transparent',
                   color:        'var(--la-text-secondary)',
-                  fontSize:     '12px',
-                  cursor:       'pointer',
+                  fontSize:     'var(--la-text-sm)',
+                  fontWeight:   'var(--la-weight-medium)',
+                  cursor:       'default',
                 }}
               >
                 取消
@@ -341,9 +344,10 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
               style={{
                 background:   'transparent',
                 border:       'none',
-                color:        'var(--la-accent)',
-                fontSize:     '12px',
-                cursor:       'pointer',
+                color:        'var(--la-accent-text)',
+                fontSize:     'var(--la-text-sm)',
+                fontWeight:   'var(--la-weight-medium)',
+                cursor:       'default',
                 padding:      '2px 0',
               }}
             >
@@ -365,13 +369,14 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
           <button
             onClick={onClose}
             style={{
-              padding:      '6px 14px',
-              borderRadius: '6px',
-              border:       '1px solid var(--la-border)',
+              padding:      '7px 14px',
+              borderRadius: 'var(--la-radius-sm)',
+              border:       '1px solid var(--la-border-strong)',
               background:   'transparent',
               color:        'var(--la-text-secondary)',
-              fontSize:     '13px',
-              cursor:       'pointer',
+              fontSize:     'var(--la-text-sm)',
+              fontWeight:   'var(--la-weight-medium)',
+              cursor:       'default',
             }}
           >
             取消
@@ -380,13 +385,14 @@ function TagEditorDialog({ photoId, onClose }: TagEditorDialogProps) {
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
             style={{
-              padding:      '6px 14px',
-              borderRadius: '6px',
+              padding:      '7px 14px',
+              borderRadius: 'var(--la-radius-sm)',
               border:       'none',
-              background:   'var(--la-accent)',
-              color:        'white',
-              fontSize:     '13px',
-              cursor:       'pointer',
+              background:   'var(--la-accent-fill)',
+              color:        'var(--la-text-on-accent)',
+              fontSize:     'var(--la-text-sm)',
+              fontWeight:   'var(--la-weight-medium)',
+              cursor:       'default',
             }}
           >
             {saveMutation.isPending ? '保存中…' : '完成'}

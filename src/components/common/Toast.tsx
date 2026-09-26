@@ -51,7 +51,7 @@ interface VariantConfig {
 const VARIANT_CONFIG: Record<ToastVariant, VariantConfig> = {
   info: {
     iconName:    'info',
-    iconColor:   'var(--la-accent)',
+    iconColor:   'var(--la-accent-text)',
     borderColor: 'var(--la-accent)',
     bgColor:     'var(--la-accent-subtle)',
   },
@@ -63,13 +63,13 @@ const VARIANT_CONFIG: Record<ToastVariant, VariantConfig> = {
   },
   warning: {
     iconName:    'info',
-    iconColor:   '#FF9500',
-    borderColor: '#FF9500',
-    bgColor:     'rgba(255,149,0,0.12)',
+    iconColor:   'var(--la-warning)',
+    borderColor: 'var(--la-warning)',
+    bgColor:     'var(--la-warning-subtle)',
   },
   error: {
     iconName:    'x',
-    iconColor:   'var(--la-danger)',
+    iconColor:   'var(--la-danger-text)',
     borderColor: 'var(--la-danger)',
     bgColor:     'var(--la-danger-subtle)',
   },
@@ -146,7 +146,7 @@ const ToastCard = memo(function ToastCard({ toast, onClose }: ToastCardProps) {
         backgroundColor: cfg.bgColor,
         marginLeft:      '4px',   // 补偿左侧色条
       }}>
-        <Icon name={cfg.iconName} size={13} color={cfg.iconColor} strokeWidth={2} />
+        <Icon name={cfg.iconName} size={14} color={cfg.iconColor} strokeWidth={2} />
       </div>
 
       {/* 文字区 */}
@@ -176,10 +176,10 @@ const ToastCard = memo(function ToastCard({ toast, onClose }: ToastCardProps) {
               cursor:          'default',
               textDecoration:  'underline',
               textUnderlineOffset: '2px',
-              transition:      'opacity 100ms ease',
+              transition:      'color 100ms ease',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.75' }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'    }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--la-text-primary)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = cfg.iconColor }}
           >
             {toast.action.label}
           </button>
@@ -200,21 +200,21 @@ const ToastCard = memo(function ToastCard({ toast, onClose }: ToastCardProps) {
           borderRadius:    'var(--la-radius-sm)',
           backgroundColor: 'transparent',
           border:          'none',
-          color:           'var(--la-text-tertiary)',
+          color:           'var(--la-text-secondary)',
           cursor:          'default',
           transition:      'all 100ms ease',
           marginTop:       '1px',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = 'var(--la-bg-overlay)'
-          e.currentTarget.style.color = 'var(--la-text-secondary)'
+          e.currentTarget.style.color = 'var(--la-text-primary)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = 'transparent'
-          e.currentTarget.style.color = 'var(--la-text-tertiary)'
+          e.currentTarget.style.color = 'var(--la-text-secondary)'
         }}
       >
-        <Icon name="x" size={12} strokeWidth={2} />
+        <Icon name="x" size={14} strokeWidth={2} />
       </button>
     </motion.div>
   )

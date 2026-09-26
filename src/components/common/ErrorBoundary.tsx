@@ -52,8 +52,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           color:           'var(--la-text-secondary)',
           fontSize:        'var(--la-text-sm)',
         }}>
-          <p style={{ margin: 0 }}>界面渲染出错</p>
-          <p style={{ margin: 0, fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)', maxWidth: 420, textAlign: 'center' }}>
+          <p style={{
+            margin:     0,
+            fontSize:   'var(--la-text-sm)',
+            fontWeight: 'var(--la-weight-semibold)' as unknown as number,
+            color:      'var(--la-text-primary)',
+          }}>界面渲染出错</p>
+          <p style={{
+            margin:     0,
+            fontSize:   'var(--la-text-xs)',
+            fontWeight: 'var(--la-weight-regular)' as unknown as number,
+            color:      'var(--la-text-tertiary)',
+            lineHeight: 'var(--la-leading-normal)',
+            maxWidth:   420,
+            textAlign:  'center',
+          }}>
             {this.state.message}
           </p>
           <button
@@ -61,12 +74,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             style={{
               padding:           '6px 16px',
               borderRadius:      'var(--la-radius-md)',
-              backgroundColor:   'var(--la-accent)',
-              color:             '#fff',
+              backgroundColor:   'var(--la-accent-fill)',
+              color:             'var(--la-text-on-accent)',
               border:            'none',
               cursor:            'pointer',
               fontSize:          'var(--la-text-sm)',
+              fontWeight:        'var(--la-weight-medium)' as unknown as number,
+              transition:        'background-color 100ms ease',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-accent-fill-hover)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-accent-fill)' }}
           >
             重试
           </button>

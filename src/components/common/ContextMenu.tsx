@@ -88,6 +88,7 @@ const ITEM_BASE_STYLE: React.CSSProperties = {
   width:           '100%',
   padding:         '7px 12px',
   fontSize:        'var(--la-text-sm)',
+  fontWeight:      'var(--la-weight-medium)' as unknown as number,
   backgroundColor: 'transparent',
   border:          'none',
   cursor:          'default',
@@ -174,7 +175,7 @@ const MenuItemRow = memo(function MenuItemRow({ item, onClose, flipX }: MenuItem
   }
 
   const textColor = item.danger
-    ? 'var(--la-danger)'
+    ? 'var(--la-danger-text)'
     : isDisabled
     ? 'var(--la-text-disabled)'
     : 'var(--la-text-primary)'
@@ -192,7 +193,6 @@ const MenuItemRow = memo(function MenuItemRow({ item, onClose, flipX }: MenuItem
         style={{
           ...ITEM_BASE_STYLE,
           color:   textColor,
-          opacity: isDisabled ? 0.5 : 1,
         }}
         onMouseEnter={(e) => {
           if (!isDisabled) {
@@ -210,8 +210,14 @@ const MenuItemRow = memo(function MenuItemRow({ item, onClose, flipX }: MenuItem
           {item.icon && (
             <Icon
               name={item.icon as IconName}
-              size={14}
-              color={item.danger ? 'var(--la-danger)' : 'var(--la-text-secondary)'}
+              size={15}
+              color={
+                item.danger
+                  ? 'var(--la-danger-text)'
+                  : isDisabled
+                  ? 'var(--la-text-disabled)'
+                  : 'var(--la-text-secondary)'
+              }
             />
           )}
         </span>
@@ -223,8 +229,8 @@ const MenuItemRow = memo(function MenuItemRow({ item, onClose, flipX }: MenuItem
         {hasChildren && (
           <Icon
             name={flipX ? 'chevron-left' : 'chevron-right'}
-            size={12}
-            color="var(--la-text-tertiary)"
+            size={14}
+            color="var(--la-text-secondary)"
           />
         )}
       </button>
