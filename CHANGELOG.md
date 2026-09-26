@@ -3,6 +3,40 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### P0-1 全应用可见度改造（对比度 / 字号 / 字重 / 图标）
+
+#### Added
+
+- **`docs/decisions/ADR-005-ui-visibility-baseline.md`** — 可见度基线决策记录：对比度下限、字号下限、字重角色、填充色令牌、禁用态与悬浮策略。
+- **令牌** — `--la-text-placeholder`、`--la-text-on-warning`、`--la-accent-text`、`--la-danger-text`、`--la-accent-fill` / `-fill-hover` / `-fill-pressed`、`--la-danger-fill` / `-fill-hover` / `-fill-pressed`、`--la-warning` / `--la-warning-subtle`、`--la-fill-disabled`、`--la-shadow-xl`。
+- **`src/components/grid/GridEmptyState.tsx`** — 共用空态组件（固定网格与瀑布流共用；瀑布流此前完全没有空态）。
+- **图标** — `book-plus`（新建相册）、`lock-plus`（新建私密相册）、`folder-plus`（添加文件夹），统一为「父级图形 + 加号」家族。
+- **`prefers-contrast: more`** — 系统高对比度偏好下自动提升次要/弱化文字与描边。
+
+#### Changed
+
+- **文字令牌对比度**（相对各自实际所在表面）：深色 secondary `#98989D → #A9A9B0`（7.3:1）、tertiary `#636366 → #96969E`（5.8:1）、disabled `#48484A → #83838B`；浅色 secondary `#86868B → #4A4A52`（8.8:1）、tertiary `#AEAEB2 → #68686D`（5.5:1）、disabled `#C7C7CC → #7C7C84`。
+- **字号阶梯** — `--la-text-xs` 11 → 12px，`--la-text-sm` 13 → 14px；组件内硬编码的 9/10/11/12/13px 全部改为令牌。
+- **字重角色** — 交互标签 500、标题与选中态 600、分组标题（大写）700。
+- **填充色** — `--la-accent-fill`（深 `#0A66D0` / 浅 `#0071EB`）与 `--la-danger-fill`，保证白字 ≥4.5:1；`--la-accent` 保留为图形色。
+- **图标线宽随尺寸自适应** — `Icon` 在 16px 以下按比例加粗，消除 12–14px 图标的亚像素发丝线；侧边栏动作按钮 18×18/12px → 24×24/15px。
+- **悬浮策略** — 取消文字「由浅入深」的淡化过渡，悬浮只改背景/描边（或向更强的文字档位过渡）；禁用态不再叠加 `opacity`。
+- **侧边栏** — 未选中导航项使用 medium 字重 + 提升后的 secondary 色；分组标题 tertiary → secondary + 700；相册/文件夹行与计数改令牌；标签区块标题、计数、空态文案与折叠态图标统一。
+- **状态栏** — 计数、扫描阶段、百分比、布局/密度标签全部改令牌；密度图标保留点阵图案，点径与对比度提升、热区扩大到 ≥22×22。
+- **搜索框** — 静止态改用可承载 4.5:1 的 `--la-bg-raised` + `--la-border-strong`，占位符改用专用令牌（并新增全局 `::placeholder` 规则），清除按钮与历史/建议下拉改令牌。
+- **空态** — 插画描边 1.5 → 1.75 并提升为 secondary；主文案 base/semibold/primary，辅助文案 sm/secondary。
+- **表单控件** — 全局 `input/textarea/select { font: inherit }`，消除 WebView2 默认的 Arial 13.33px；新增 `::selection` 主题化。
+- 标签系统（TagBadge / TagEditor / 侧边栏标签面板 / 照片标签角标）、批量操作条、右键菜单、Toast、确认弹窗、标题栏、设置页与大图预览面板同步按基线改造。
+
+#### Fixed
+
+- **瀑布流无空态** — 照片为空时瀑布流视图不再是一片空白。
+- **侧边栏重命名监听泄漏** — `useState` 初始化器被当作 effect 使用，导致 `album:start-rename` 监听器永不注销；改为 `useEffect` 并正确清理。
+- **未定义令牌** — `--la-shadow-xl`、`--la-warning`、`--color-muted`、`--color-accent` 的引用（前三者导致阴影/警告色静默失效）。
+- **大图预览浅色主题** — 预览界面在浅色主题下继承浅色文字令牌导致暗底暗字（2.39:1）；改为在预览根节点声明固定深色作用域。
+
 ## [0.3.0] — 2026-09-12
 
 ### V2 Data Flow Architecture — 全面重构
