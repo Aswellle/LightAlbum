@@ -14,6 +14,7 @@
 
 import {
   useState,
+  useEffect,
   useRef,
   useCallback,
   memo,
@@ -214,7 +215,7 @@ const AlbumItem = memo(function AlbumItem({
   }, [commitRename, album.name])
 
   // 监听重命名事件
-  useState(() => {
+  useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail
       if (detail.id === album.id) {
@@ -225,7 +226,7 @@ const AlbumItem = memo(function AlbumItem({
     }
     document.addEventListener('album:start-rename', handler)
     return () => document.removeEventListener('album:start-rename', handler)
-  })
+  }, [album.id, album.name])
 
   return (
     <div
