@@ -3,6 +3,37 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### P0-2 内容区闪烁消除（切换视图 / 筛选 / 启动过渡）
+
+#### Added
+
+- **`src/components/grid/GridSkeleton.tsx`** — 固定网格与瀑布流共用骨架屏，几何参数与真实网格一致（骨架 → 照片不发生跳动）；瀑布流此前加载期间完全没有占位。
+- **`src/services/themePreference.ts`** — 主题的「首帧前」持久化读取（`localStorage('la-theme')`）。
+- **`docs/decisions/ADR-006-content-transition-flicker.md`** — 内容替换时机、三态渲染、跨视图不重挂载的决策记录。
+- **`tests/e2e/flicker.spec.ts`** — 逐帧回归测试：以 `requestAnimationFrame` 采样内容区 `data-grid-state`，断言启动、切换未缓存/已缓存选项卡、标签筛选四条路径均不出现空态帧、空白内容帧；已缓存视图切换必须当帧完成。
+
+#### Changed
+
+- **内容替换时机** — `photoStore` 同步从 `useEffect`（绘制之后）改为 `useLayoutEffect`（绘制之前），并按视图键原子替换：缓存命中当帧完成；缓存未命中先清空并由骨架屏承接。`src/hooks/usePhotoData.ts`
+- **三态渲染** — `VirtualGrid` / `WaterfallGrid` 内容区改为互斥三态（内容 / 骨架屏 / 空态），空态只在「已同步 + 无照片 + 不在加载中」时出现；新增 `data-grid-state` 观测点。`src/components/grid/VirtualGrid.tsx`、`WaterfallGrid.tsx`
+- **虚拟化切片时机** — 可见范围改为渲染期从视口状态推导（原实现由 effect 回填，数据到达当帧先渲染空数组）；视口测量改为 `useLayoutEffect` + `ResizeObserver`，新增 `resetKey`：切换视图滚动回顶部。`src/hooks/useVirtualGrid.ts`、`useWaterfallGrid.ts`
+- **视图路由** — `MainContent` 移除 `AnimatePresence mode="wait"` + `key` 重挂载：网格实例跨视图保持挂载，切换选项卡当帧完成，不再有 120ms 淡出/淡入造成的空白帧。`src/components/layout/AppShell.tsx`
+- **容器宽度测量** — 改到 `useLayoutEffect`，首帧即有 `gridConfig`（原实现首帧为 `null`，两个网格都返回 `null` → 空白内容区）。`src/components/layout/AppShell.tsx`
+- **缩略图淡入** — 挂载时缩略图已缓存则不做淡入（`initial={false}`），消除滚动回收/重挂载时的整屏重复淡入。`src/components/grid/GridItem.tsx`、`WaterfallGrid.tsx`
+- **失效重取语义** — 网格不再随视图切换重挂载，事件路由因此不能再依赖 `refetchOnMount`：`scan:completed` / `photo:created` / `library:changed(added)` 改为 `refetchType: 'active'`；重取中间态保留现有画面，取数结束后整体替换（避免已加载内容先缩短再长回）。`src/data/events/eventRouter.ts`、`src/hooks/usePhotoData.ts`
+- **标签视图写入方** — 标签视图下禁用基础查询（`enabled:false`），标签结果不再被「全部照片」覆盖。`src/hooks/usePhotoQuery.ts`、`src/hooks/useTagPhotoQuery.ts`、`src/components/grid/PhotoGrid.tsx`
+- **启动主题** — 上次生效主题写入 `localStorage`，`index.html` 首帧前优先采用，`uiStore` 初始值同源，消除「显式主题与系统主题不同」时的启动跳变。`index.html`、`src/stores/uiStore.ts`
+
+#### Fixed
+
+- **切换选项卡闪空白网格** — 可见行范围不再由 post-paint effect 回填，数据到达当帧即渲染正确切片。
+- **闪「没有照片」空态** — 空态不再在加载中/内容未同步时出现。
+- **启动空白内容区** — 首帧即有 `gridConfig`，且首帧即为骨架屏而非空白。
+- **筛选闪烁** — 标签视图与基础查询不再竞争同一个 store（一个视图一个写入方）。
+- **已生效主题在启动时跳变** — 浅色用户不再先闪一帧深色。
+
 ## [0.4.0] — 2026-09-27
 
 ### P0-1 全应用可见度改造（对比度 / 字号 / 字重 / 图标）

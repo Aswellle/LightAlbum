@@ -103,17 +103,19 @@ Co-Authored-By: Claude Sonnet 4.6 <<EMAIL>>
 - **View routing** is `ViewState`-driven (no URL router). `src/app/routes.tsx` maps view state to components.
 - **Data fetching:** `usePhotoQuery` (coordination) → `usePhotoData` (`useInfiniteQuery`) → populates `photoStore`.
 - **Backend events:** Rust `app.emit()` → `useEventBus()` in `App.tsx` → Zustand store updates + QueryClient invalidation.
-- **Single sync point:** `usePhotoData` is the one bridge between TanStack Query cache and `photoStore` flat array.
+- **Single sync point:** `usePhotoData` is the one bridge between TanStack Query cache and `photoStore` flat array. Its writes happen in a **`useLayoutEffect`** keyed by `viewKey` (pre-paint, atomic per view); `useTagPhotoQuery` owns the store while a `#tag` search view is active and `usePhotoQuery` is disabled there. See ADR-006.
 
 ### Event-driven updates (critical)
 
-| Rust event | Frontend action |
+Events are routed through `src/data/events/eventRouter.ts` (cache policy per event), not handled inline in `useEventBus`.
+
+|Rust event|Frontend action|
 |---|---|
-| `scan:completed` | `queryClient.resetQueries(['photos'])` — use `resetQueries`, NOT `invalidateQueries` (bypasses `staleTime: Infinity`) |
-| `thumb:ready` | invalidate `['thumb', photoId, size]` + notify `thumbnailLoader` |
-| `library:changed` | `resetQueries(['photos'])` |
-| `photo:updated` | `photoStore.updatePhoto()` |
-| `album:updated` | invalidate `['albums']` |
+|`scan:completed`|`invalidateQueries(['photos'], { refetchType: 'active' })` — the grid stays mounted across view switches, so it can no longer rely on `refetchOnMount`; active refetch keeps the current view fresh (`usePhotoData` swaps the new data pre-paint, without a skeleton flash) |
+|`thumb:ready`|invalidate `['thumb', photoId, size]` (exact) + notify `thumbnailLoader` callbacks |
+|`library:changed`|remove `removed` ids from `photoEntityStore` + every collection; invalidate `['photo', id]` for `modified`; `added` → invalidate `['photos']` with `refetchType: 'active'` |
+|`photo:updated`|invalidate `['photo', photoId]` |
+|`album:updated`|invalidate `['albums']` + `['album', albumId]` |
 
 `library:changed` payload is always `{ added: string[], modified: string[], removed: string[] }`.
 
@@ -172,7 +174,7 @@ The frontend calls through `src/services/tauriIpc.ts` (`api.*` wrappers around `
 
 - **TanStack Query** owns server-state cache + pagination. Query keys: `['photos']`, `['albums']`, `['thumb', photoId, size]`, `['folders']`, `['stats']`.
 - **Zustand `photoStore`** owns the flat `photos[]` + `_groupMap` (indexed by `YYYY-MM`) for O(pageSize) grid updates.
-- `staleTime: Infinity` on photo queries — forces explicit `resetQueries` on data changes.
+- `staleTime: Infinity` on photo queries — nothing refetches on its own. `invalidateQueries` marks a query stale regardless of `staleTime`; pass `refetchType: 'active'` so the mounted view actually refreshes (see ADR-006).
 
 ### Rust backend patterns
 
@@ -270,7 +272,7 @@ The frontend calls through `src/services/tauriIpc.ts` (`api.*` wrappers around `
 1. **New IPC command?** Add to BOTH `IpcCommands` (`src/types/commands.ts`) AND `generate_handler!` (`src-tauri/src/lib.rs`). Wrap call in `tauriIpc.ts`.
 2. **New Rust event?** Add to `TauriEventMap` + `TAURI_EVENTS` (`src/types/events.ts`), emit in Rust, handle in `useEventBus()`.
 3. **New DB column?** Add idempotent migration in `db/schema.rs` using `column_exists()`. Bump `LATEST_VERSION`.
-4. **New query key?** Document in the event-driven updates table; use `resetQueries` not `invalidateQueries` for `staleTime: Infinity` queries.
+4. **New query key?** Document in the event-driven updates table; `staleTime: Infinity` means data only refreshes on explicit invalidation — mount-time refetch no longer covers mounted views, so invalidate with `refetchType: 'active'` (ADR-006).
 5. **New component?** Place in `src/components/{feature}/`, consume CSS custom properties for theming, co-locate types.
 
 ## Release Safety Rules (V0.2.0+)
