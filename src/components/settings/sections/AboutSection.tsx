@@ -76,7 +76,7 @@ export const AboutSection = memo(function AboutSection() {
               e.currentTarget.style.display = 'none'
             }}
           />
-          <Icon name="images" size={28} color="var(--la-accent)" style={{ display: 'none' }} />
+          <Icon name="images" size={28} color="var(--la-accent-text)" style={{ display: 'none' }} />
         </div>
 
         {/* 名称 + 版本 */}
@@ -91,16 +91,15 @@ export const AboutSection = memo(function AboutSection() {
           </h2>
           <p style={{
             fontSize: 'var(--la-text-sm)',
-            color:    'var(--la-text-tertiary)',
+            color:    'var(--la-text-secondary)',
             margin:   0,
           }}>
             版本 {version}
           </p>
           <p style={{
             fontSize:  'var(--la-text-xs)',
-            color:     'var(--la-text-tertiary)',
+            color:     'var(--la-text-secondary)',
             margin:    '4px 0 0',
-            opacity:   0.7,
           }}>
             Windows 本地照片管理器
           </p>
@@ -126,7 +125,7 @@ export const AboutSection = memo(function AboutSection() {
         <SettingRow label="数据库 Schema">
           <span style={{
             fontSize:   'var(--la-text-sm)',
-            color:      'var(--la-text-tertiary)',
+            color:      'var(--la-text-secondary)',
             fontFamily: 'var(--la-font-mono)',
           }}>
             V2
@@ -190,17 +189,16 @@ export const AboutSection = memo(function AboutSection() {
                   {name}
                 </span>
                 <span style={{
-                  fontSize:   '11px',
-                  color:      'var(--la-accent)',
+                  fontSize:   'var(--la-text-xs)',
+                  color:      'var(--la-accent-text)',
                   fontFamily: 'var(--la-font-mono)',
-                  opacity:    0.8,
                 }}>
                   {ver}
                 </span>
               </div>
               <div style={{
                 fontSize: 'var(--la-text-xs)',
-                color:    'var(--la-text-tertiary)',
+                color:    'var(--la-text-secondary)',
                 marginTop: '2px',
               }}>
                 {desc}

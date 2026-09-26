@@ -141,7 +141,7 @@ export const StorageSection = memo(function StorageSection({
         >
           <span style={{
             fontSize:        'var(--la-text-xs)',
-            color:           'var(--la-text-tertiary)',
+            color:           'var(--la-text-secondary)',
             backgroundColor: 'var(--la-bg-overlay)',
             border:          '1px solid var(--la-border)',
             borderRadius:    'var(--la-radius-sm)',
@@ -189,7 +189,7 @@ export const StorageSection = memo(function StorageSection({
           <div style={{
             padding: '16px',
             textAlign: 'center',
-            color:    'var(--la-text-tertiary)',
+            color:    'var(--la-text-secondary)',
             fontSize: 'var(--la-text-sm)',
           }}>
             加载统计信息中…
@@ -205,7 +205,7 @@ export const StorageSection = memo(function StorageSection({
           description="已生成的缩略图文件（WEBP 格式）占用的磁盘空间"
         >
           {infoLoading ? (
-            <span style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-tertiary)' }}>
+            <span style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
               统计中…
             </span>
           ) : storageInfo ? (
@@ -217,14 +217,14 @@ export const StorageSection = memo(function StorageSection({
               {formatBytes(storageInfo.thumbnailSizeBytes ?? 0)}
               <span style={{
                 fontSize: 'var(--la-text-xs)',
-                color:    'var(--la-text-tertiary)',
+                color:    'var(--la-text-secondary)',
                 marginLeft: '6px',
               }}>
                 （{(storageInfo.thumbnailCount ?? 0).toLocaleString()} 个文件）
               </span>
             </span>
           ) : (
-            <span style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-tertiary)' }}>
+            <span style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
               —
             </span>
           )}
@@ -237,7 +237,7 @@ export const StorageSection = memo(function StorageSection({
         >
           <span style={{
             fontSize:   'var(--la-text-xs)',
-            color:      'var(--la-text-tertiary)',
+            color:      'var(--la-text-secondary)',
             fontFamily: 'var(--la-font-mono)',
             maxWidth:   160,
             overflow:   'hidden',

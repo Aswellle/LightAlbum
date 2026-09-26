@@ -104,14 +104,13 @@ const SettingsNavItem = memo(function SettingsNavItem({
       <Icon
         name={config.icon}
         size={20}
-        color={active ? 'var(--la-accent)' : 'currentColor'}
+        color={active ? 'var(--la-accent-text)' : 'currentColor'}
       />
       <span style={{
-        fontSize:   '10px',
-        fontWeight: active ? 'var(--la-weight-medium)' as unknown as number : undefined,
+        fontSize:   'var(--la-text-xs)',
+        fontWeight: (active ? 'var(--la-weight-semibold)' : 'var(--la-weight-medium)') as unknown as number,
         lineHeight: 1.2,
         textAlign:  'center',
-        color:      active ? 'var(--la-text-primary)' : 'var(--la-text-tertiary)',
       }}>
         {config.label}
       </span>
@@ -202,7 +201,7 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
           display:         'flex',
           alignItems:      'center',
           justifyContent:  'center',
-          color:           'var(--la-text-tertiary)',
+          color:           'var(--la-text-secondary)',
           fontSize:        'var(--la-text-sm)',
         }}>
           加载中…
@@ -290,17 +289,17 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
               borderRadius:    'var(--la-radius-md)',
               backgroundColor: 'transparent',
               border:          'none',
-              color:           'var(--la-text-tertiary)',
+              color:           'var(--la-text-secondary)',
               cursor:          'default',
               transition:      'all 100ms ease',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--la-bg-overlay)'
-              e.currentTarget.style.color = 'var(--la-text-secondary)'
+              e.currentTarget.style.color = 'var(--la-text-primary)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = 'var(--la-text-tertiary)'
+              e.currentTarget.style.color = 'var(--la-text-secondary)'
             }}
           >
             <Icon name="x" size={14} strokeWidth={2} />

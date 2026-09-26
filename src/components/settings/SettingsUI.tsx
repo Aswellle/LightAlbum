@@ -37,7 +37,7 @@ export function SettingSection({ title, icon, children }: SettingSectionProps) {
         borderBottom:  '1px solid var(--la-divider)',
       }}>
         {icon && (
-          <Icon name={icon} size={15} color="var(--la-text-tertiary)" strokeWidth={1.5} />
+          <Icon name={icon} size={15} color="var(--la-text-secondary)" strokeWidth={1.5} />
         )}
         <h2 style={{
           fontSize:      'var(--la-text-sm)',
@@ -83,14 +83,14 @@ export function SettingRow({ label, description, children, controlWidth = 'auto'
         <div style={{
           fontSize:  'var(--la-text-sm)',
           color:     'var(--la-text-primary)',
-          fontWeight: 'var(--la-weight-regular)' as unknown as number,
+          fontWeight: 'var(--la-weight-medium)' as unknown as number,
         }}>
           {label}
         </div>
         {description && (
           <div style={{
             fontSize:   'var(--la-text-xs)',
-            color:      'var(--la-text-tertiary)',
+            color:      'var(--la-text-secondary)',
             marginTop:  '3px',
             lineHeight: 'var(--la-leading-normal)',
           }}>
@@ -207,9 +207,9 @@ export function SegmentedControl<T extends string>({
               borderRadius:    '5px',
               backgroundColor: isActive ? 'var(--la-bg-raised)' : 'transparent',
               border:          'none',
-              color:           isActive ? 'var(--la-text-primary)' : 'var(--la-text-tertiary)',
+              color:           isActive ? 'var(--la-text-primary)' : 'var(--la-text-secondary)',
               fontSize:        'var(--la-text-sm)',
-              fontWeight:      isActive ? 'var(--la-weight-medium)' as unknown as number : undefined,
+              fontWeight:      (isActive ? 'var(--la-weight-semibold)' : 'var(--la-weight-medium)') as unknown as number,
               cursor:          'default',
               boxShadow:       isActive ? 'var(--la-shadow-sm)' : 'none',
               transition:      'all 120ms ease',
@@ -217,20 +217,20 @@ export function SegmentedControl<T extends string>({
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                e.currentTarget.style.color = 'var(--la-text-secondary)'
+                e.currentTarget.style.color = 'var(--la-text-primary)'
               }
             }}
             onMouseLeave={(e) => {
               if (!isActive) {
-                e.currentTarget.style.color = 'var(--la-text-tertiary)'
+                e.currentTarget.style.color = 'var(--la-text-secondary)'
               }
             }}
           >
             {opt.icon && (
               <Icon
                 name={opt.icon}
-                size={13}
-                color={isActive ? 'var(--la-accent)' : 'currentColor'}
+                size={14}
+                color={isActive ? 'var(--la-accent-text)' : 'currentColor'}
               />
             )}
             {opt.label}
@@ -272,12 +272,12 @@ export function SettingSelect<T extends string>({
           height:          '30px',
           padding:         '0 28px 0 10px',
           fontSize:        'var(--la-text-sm)',
-          color:           'var(--la-text-primary)',
+          fontWeight:      'var(--la-weight-medium)' as unknown as number,
+          color:           disabled ? 'var(--la-text-disabled)' : 'var(--la-text-primary)',
           backgroundColor: 'var(--la-bg-overlay)',
           border:          '1px solid var(--la-border)',
           borderRadius:    'var(--la-radius-md)',
           cursor:          disabled ? 'not-allowed' : 'default',
-          opacity:         disabled ? 0.5 : 1,
           appearance:      'none',
           outline:         'none',
         }}
@@ -295,7 +295,7 @@ export function SettingSelect<T extends string>({
         transform:     'translateY(-50%)',
         pointerEvents: 'none',
       }}>
-        <Icon name="chevron-down" size={12} color="var(--la-text-tertiary)" />
+        <Icon name="chevron-down" size={14} color="var(--la-text-secondary)" />
       </div>
     </div>
   )
@@ -319,20 +319,20 @@ export function SettingNote({ children, variant = 'info' }: SettingNoteProps) {
       padding:         '8px 10px',
       borderRadius:    'var(--la-radius-md)',
       backgroundColor: variant === 'warning'
-        ? 'rgba(255,149,0,0.08)'
+        ? 'var(--la-warning-subtle)'
         : 'var(--la-bg-overlay)',
-      border:          `1px solid ${variant === 'warning' ? 'rgba(255,149,0,0.2)' : 'transparent'}`,
+      border:          '1px solid transparent',
       marginTop:       '4px',
     }}>
       <Icon
-        name={variant === 'warning' ? 'info' : 'info'}
-        size={13}
-        color={variant === 'warning' ? 'var(--la-warning, #FF9500)' : 'var(--la-text-tertiary)'}
+        name="info"
+        size={14}
+        color={variant === 'warning' ? 'var(--la-warning)' : 'var(--la-text-secondary)'}
         style={{ marginTop: '1px', flexShrink: 0 }}
       />
       <span style={{
         fontSize:   'var(--la-text-xs)',
-        color:      variant === 'warning' ? 'var(--la-warning, #FF9500)' : 'var(--la-text-tertiary)',
+        color:      variant === 'warning' ? 'var(--la-warning)' : 'var(--la-text-secondary)',
         lineHeight: 'var(--la-leading-normal)',
       }}>
         {children}
@@ -357,7 +357,13 @@ interface ActionButtonProps {
 export const ActionButton = memo(function ActionButton({
   onClick, label, icon, variant = 'default', loading, disabled,
 }: ActionButtonProps) {
-  const isDanger = variant === 'danger'
+  const isDanger  = variant === 'danger'
+  const isBlocked = !!disabled && !loading
+  const baseColor = isBlocked
+    ? 'var(--la-text-disabled)'
+    : isDanger ? 'var(--la-danger-text)' : 'var(--la-text-secondary)'
+  const baseBg     = isDanger ? 'var(--la-danger-subtle)' : 'var(--la-bg-overlay)'
+  const baseBorder = isDanger ? 'transparent' : 'var(--la-border)'
   return (
     <button
       onClick={onClick}
@@ -369,33 +375,30 @@ export const ActionButton = memo(function ActionButton({
         height:          '30px',
         padding:         '0 12px',
         borderRadius:    'var(--la-radius-md)',
-        backgroundColor: isDanger ? 'rgba(255,59,48,0.1)' : 'var(--la-bg-overlay)',
-        border:          `1px solid ${isDanger ? 'rgba(255,59,48,0.3)' : 'var(--la-border)'}`,
-        color:           isDanger ? 'var(--la-danger, #FF3B30)' : 'var(--la-text-secondary)',
+        backgroundColor: baseBg,
+        border:          `1px solid ${baseBorder}`,
+        color:           baseColor,
         fontSize:        'var(--la-text-sm)',
+        fontWeight:      'var(--la-weight-medium)' as unknown as number,
         cursor:          (disabled || loading) ? 'not-allowed' : 'default',
-        opacity:         (disabled || loading) ? 0.55 : 1,
         transition:      'all 100ms ease',
         whiteSpace:      'nowrap',
         flexShrink:      0,
       }}
       onMouseEnter={(e) => {
         if (!disabled && !loading) {
-          e.currentTarget.style.backgroundColor = isDanger
-            ? 'rgba(255,59,48,0.18)'
-            : 'var(--la-bg-hover)'
-          e.currentTarget.style.color = isDanger
-            ? 'var(--la-danger, #FF3B30)'
-            : 'var(--la-text-primary)'
+          if (isDanger) {
+            e.currentTarget.style.borderColor = 'var(--la-danger)'
+          } else {
+            e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
+            e.currentTarget.style.color = 'var(--la-text-primary)'
+          }
         }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = isDanger
-          ? 'rgba(255,59,48,0.1)'
-          : 'var(--la-bg-overlay)'
-        e.currentTarget.style.color = isDanger
-          ? 'var(--la-danger, #FF3B30)'
-          : 'var(--la-text-secondary)'
+        e.currentTarget.style.backgroundColor = baseBg
+        e.currentTarget.style.borderColor = baseBorder
+        e.currentTarget.style.color = baseColor
       }}
     >
       {loading ? (
@@ -409,7 +412,7 @@ export const ActionButton = memo(function ActionButton({
           flexShrink: 0,
         }} />
       ) : icon ? (
-        <Icon name={icon} size={13} color="currentColor" />
+        <Icon name={icon} size={14} color="currentColor" />
       ) : null}
       {label}
     </button>

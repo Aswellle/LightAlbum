@@ -39,7 +39,7 @@ export const PerformanceSection = memo(function PerformanceSection({
         >
           <span style={{
             fontSize:        'var(--la-text-sm)',
-            color:           'var(--la-text-tertiary)',
+            color:           'var(--la-text-secondary)',
             backgroundColor: 'var(--la-bg-overlay)',
             border:          '1px solid var(--la-border)',
             borderRadius:    'var(--la-radius-sm)',
@@ -55,12 +55,11 @@ export const PerformanceSection = memo(function PerformanceSection({
         >
           <span style={{
             fontSize:        'var(--la-text-sm)',
-            color:           'var(--la-accent)',
-            backgroundColor: 'var(--la-accent-subtle, rgba(0,122,255,0.08))',
+            color:           'var(--la-accent-text)',
+            backgroundColor: 'var(--la-accent-subtle)',
             border:          '1px solid var(--la-accent)',
             borderRadius:    'var(--la-radius-sm)',
             padding:         '3px 10px',
-            opacity:         0.8,
           }}>
             三优先级队列
           </span>
@@ -74,7 +73,7 @@ export const PerformanceSection = memo(function PerformanceSection({
         >
           <span style={{
             fontSize:  'var(--la-text-sm)',
-            color:     'var(--la-text-tertiary)',
+            color:     'var(--la-text-secondary)',
           }}>
             按需生成
           </span>
@@ -93,7 +92,7 @@ export const PerformanceSection = memo(function PerformanceSection({
         >
           <span style={{
             fontSize:  'var(--la-text-xs)',
-            color:     'var(--la-text-tertiary)',
+            color:     'var(--la-text-secondary)',
             fontFamily: 'var(--la-font-mono)',
             backgroundColor: 'var(--la-bg-overlay)',
             padding:   '2px 8px',

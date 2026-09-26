@@ -127,9 +127,9 @@ export const AppearanceSection = memo(function AppearanceSection({
                   key={label}
                   onClick={() => handleDensityChange(level)}
                   style={{
-                    fontSize:        '11px',
-                    color:           isActive ? 'var(--la-accent)' : 'var(--la-text-tertiary)',
-                    fontWeight:      isActive ? 'var(--la-weight-medium)' as unknown as number : undefined,
+                    fontSize:        'var(--la-text-xs)',
+                    color:           isActive ? 'var(--la-accent-text)' : 'var(--la-text-secondary)',
+                    fontWeight:      (isActive ? 'var(--la-weight-semibold)' : 'var(--la-weight-medium)') as unknown as number,
                     backgroundColor: 'transparent',
                     border:          'none',
                     cursor:          'default',
@@ -159,7 +159,7 @@ export const AppearanceSection = memo(function AppearanceSection({
         >
           <span style={{
             fontSize:   'var(--la-text-sm)',
-            color:      'var(--la-accent)',
+            color:      'var(--la-accent-text)',
             fontWeight: 'var(--la-weight-medium)' as unknown as number,
             minWidth:   36,
             textAlign:  'right',
@@ -190,8 +190,8 @@ export const AppearanceSection = memo(function AppearanceSection({
           }}>
             {['160px', '220px', '270px', '320px'].map((v) => (
               <span key={v} style={{
-                fontSize: '11px',
-                color:    'var(--la-text-tertiary)',
+                fontSize: 'var(--la-text-xs)',
+                color:    'var(--la-text-secondary)',
               }}>
                 {v}
               </span>

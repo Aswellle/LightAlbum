@@ -96,11 +96,11 @@ function RemoveFolderDialog({
         </p>
         <p style={{
           fontSize:  'var(--la-text-sm)',
-          color:     'var(--la-text-tertiary)',
+          color:     'var(--la-text-secondary)',
           margin:    '0 0 20px',
           lineHeight: '1.5',
         }}>
-          已导入的 <strong style={{ color: 'var(--la-text-secondary)' }}>{folder.photoCount} 张</strong>照片数据默认保留在库中。
+          已导入的 <strong style={{ color: 'var(--la-text-primary)' }}>{folder.photoCount} 张</strong>照片数据默认保留在库中。
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -115,6 +115,7 @@ function RemoveFolderDialog({
               border:          '1px solid var(--la-border)',
               color:           'var(--la-text-primary)',
               fontSize:        'var(--la-text-sm)',
+              fontWeight:      'var(--la-weight-medium)' as unknown as number,
               cursor:          'default',
               transition:      'all 100ms ease',
             }}
@@ -133,6 +134,7 @@ function RemoveFolderDialog({
               border:          '1px solid var(--la-border)',
               color:           'var(--la-text-primary)',
               fontSize:        'var(--la-text-sm)',
+              fontWeight:      'var(--la-weight-medium)' as unknown as number,
               cursor:          'default',
               transition:      'all 100ms ease',
               display:         'flex',
@@ -154,10 +156,11 @@ function RemoveFolderDialog({
             style={{
               height:          '36px',
               borderRadius:    'var(--la-radius-md)',
-              backgroundColor: 'rgba(255,59,48,0.08)',
-              border:          '1px solid rgba(255,59,48,0.2)',
-              color:           'var(--la-danger, #FF3B30)',
+              backgroundColor: 'var(--la-danger-subtle)',
+              border:          '1px solid transparent',
+              color:           'var(--la-danger-text)',
               fontSize:        'var(--la-text-sm)',
+              fontWeight:      'var(--la-weight-medium)' as unknown as number,
               cursor:          'default',
               transition:      'all 100ms ease',
               display:         'flex',
@@ -165,8 +168,8 @@ function RemoveFolderDialog({
               justifyContent:  'center',
               gap:             '6px',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,59,48,0.16)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,59,48,0.08)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--la-danger)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'transparent' }}
           >
             <Icon name="trash" size={14} color="currentColor" />
             移除监听并删除 {folder.photoCount} 张照片数据（不可撤销）
@@ -215,7 +218,7 @@ const FolderRow = memo(function FolderRow({
       marginBottom:    '6px',
     }}>
       {/* 文件夹图标 */}
-      <Icon name="folder" size={18} color="var(--la-accent)" style={{ flexShrink: 0 }} />
+      <Icon name="folder" size={18} color="var(--la-accent-text)" style={{ flexShrink: 0 }} />
 
       {/* 路径信息 */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -231,7 +234,7 @@ const FolderRow = memo(function FolderRow({
         </div>
         <div style={{
           fontSize:  'var(--la-text-xs)',
-          color:     'var(--la-text-tertiary)',
+          color:     'var(--la-text-secondary)',
           marginTop: '2px',
           display:   'flex',
           gap:       '10px',
@@ -241,12 +244,11 @@ const FolderRow = memo(function FolderRow({
         </div>
         <div style={{
           fontSize:    'var(--la-text-xs)',
-          color:       'var(--la-text-tertiary)',
+          color:       'var(--la-text-secondary)',
           marginTop:   '2px',
           overflow:    'hidden',
           whiteSpace:  'nowrap',
           textOverflow: 'ellipsis',
-          opacity:     0.7,
         }} title={folder.path}>
           {folder.path}
         </div>
@@ -376,11 +378,11 @@ export const ImportSection = memo(function ImportSection({
             border:          '1px dashed var(--la-border)',
             marginBottom:    '8px',
           }}>
-            <Icon name="folder" size={28} color="var(--la-text-tertiary)" style={{ marginBottom: '8px' }} />
-            <p style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-tertiary)', margin: 0 }}>
+            <Icon name="folder" size={28} color="var(--la-text-secondary)" style={{ marginBottom: '8px' }} />
+            <p style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-primary)', margin: 0 }}>
               暂无监听文件夹
             </p>
-            <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)', margin: '4px 0 0', opacity: 0.7 }}>
+            <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-secondary)', margin: '4px 0 0' }}>
               添加文件夹后，LightAlbum 将自动索引其中的照片
             </p>
           </div>
@@ -410,8 +412,9 @@ export const ImportSection = memo(function ImportSection({
             borderRadius:    'var(--la-radius-md)',
             backgroundColor: 'transparent',
             border:          '1px dashed var(--la-border)',
-            color:           addingFolder ? 'var(--la-text-tertiary)' : 'var(--la-accent)',
+            color:           addingFolder ? 'var(--la-text-secondary)' : 'var(--la-accent-text)',
             fontSize:        'var(--la-text-sm)',
+            fontWeight:      'var(--la-weight-medium)' as unknown as number,
             cursor:          addingFolder ? 'wait' : 'default',
             transition:      'all 100ms ease',
             marginTop:       '4px',
@@ -419,7 +422,7 @@ export const ImportSection = memo(function ImportSection({
           onMouseEnter={(e) => {
             if (!addingFolder) {
               e.currentTarget.style.borderColor = 'var(--la-accent)'
-              e.currentTarget.style.backgroundColor = 'var(--la-accent-subtle, rgba(0,122,255,0.06))'
+              e.currentTarget.style.backgroundColor = 'var(--la-accent-subtle)'
             }
           }}
           onMouseLeave={(e) => {
