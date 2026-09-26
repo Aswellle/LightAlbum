@@ -17,6 +17,7 @@ import { usePhotoStore, selectPhotos } from '@/stores/photoStore'
 import { usePreviewStore } from '@/stores/previewStore'
 import { useSelectionStore, selectIsSelected } from '@/stores/selectionStore'
 import { Icon } from '@/components/common/Icon'
+import { GridEmptyState } from './GridEmptyState'
 import type { WaterfallLayoutItem } from '@/hooks/useWaterfallGrid'
 
 // ─────────────────────────────────────────────────────────
@@ -113,7 +114,7 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
 //  WaterfallGrid — 主组件
 // ─────────────────────────────────────────────────────────
 
-export const WaterfallGrid = memo(function WaterfallGrid() {
+export const WaterfallGrid = memo(function WaterfallGrid({ isLoading = false }: { isLoading?: boolean }) {
   const config  = useLayoutStore(selectGridConfig)
   const photos  = usePhotoStore(selectPhotos)
   const allIds  = photos.map((p) => p.id)
@@ -126,6 +127,11 @@ export const WaterfallGrid = memo(function WaterfallGrid() {
   } = useWaterfallGrid({ photos, config })
 
   if (!config) return null
+
+  // 空态：瀑布流此前没有任何空态提示（与固定网格保持一致）
+  if (!isLoading && photos.length === 0) {
+    return <GridEmptyState />
+  }
 
   return (
     <div

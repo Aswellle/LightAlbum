@@ -27,6 +27,7 @@ import { useLayoutStore, selectGridConfig } from '@/stores/layoutStore'
 import { usePhotoStore, selectGroups } from '@/stores/photoStore'
 import { DateGroup } from './DateGroup'
 import { GridItem } from './GridItem'
+import { GridEmptyState } from './GridEmptyState'
 
 // ─────────────────────────────────────────────────────────
 //  加载态骨架屏
@@ -61,37 +62,9 @@ function GridSkeleton({ columns, itemSize, gap }: { columns: number; itemSize: n
 }
 
 // ─────────────────────────────────────────────────────────
-//  空态
+//  空态（共用组件：图案保留，可见度提升）
 // ─────────────────────────────────────────────────────────
 
-function EmptyState() {
-  return (
-    <div style={{
-      height:         '100%',
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      gap:            '12px',
-      color:          'var(--la-text-tertiary)',
-      userSelect:     'none',
-    }}>
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"
-        stroke="var(--la-text-tertiary)" strokeWidth="1.5" strokeLinecap="round">
-        <rect x="4"  y="10" width="28" height="24" rx="3" />
-        <rect x="12" y="4"  width="32" height="28" rx="3" />
-        <circle cx="22" cy="19" r="4" />
-        <path d="M12 32l6-6 4 4 6-8 4 10" strokeLinejoin="round" />
-      </svg>
-      <p style={{ fontSize: 'var(--la-text-sm)' }}>
-        没有照片
-      </p>
-      <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)' }}>
-        点击「导入」按钮添加照片文件夹
-      </p>
-    </div>
-  )
-}
 
 // ─────────────────────────────────────────────────────────
 //  RowRenderer — 渲染单行（分组标题 or 照片行）
@@ -214,7 +187,7 @@ export const VirtualGrid = memo(function VirtualGrid({
       {isLoading && <GridSkeleton columns={columns} itemSize={itemSize} gap={gap} />}
 
       {/* 空态 */}
-      {isEmpty && <EmptyState />}
+      {isEmpty && <GridEmptyState />}
 
       {/* 虚拟化内容区 */}
       {!isLoading && !isEmpty && (

@@ -108,7 +108,7 @@ export function PhotoGrid() {
 
   // ── 布局路由 ──
   if (mode === 'waterfall') {
-    return <WaterfallGrid />
+    return <WaterfallGrid isLoading={isLoading} />
   }
 
   return (
