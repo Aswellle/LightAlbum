@@ -3,7 +3,7 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.4.0] — 2026-09-27
 
 ### P0-1 全应用可见度改造（对比度 / 字号 / 字重 / 图标）
 
