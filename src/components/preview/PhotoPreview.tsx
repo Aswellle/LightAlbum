@@ -77,7 +77,22 @@ export function PhotoPreview() {
         display:          'flex',
         flexDirection:    'column',
         overflow:         'hidden',
-      }}
+        // ── 预览暗色作用域（深色阶梯，两种主题一致）──────────────────
+        // 预览层背景恒为深色玻璃（rgba(0,0,0,0.92)）；若沿用主题令牌，
+        // 浅色主题下 --la-text-* 解析为深色文字，叠在黑色遮罩上不可见。
+        // 故在预览子树内固定为深色主题的令牌阶梯（与 tokens.css 深色档一致），
+        // 由 Toolbar / Filmstrip / PreviewImage / ExifPanel 统一继承消费。
+        '--la-text-primary':   '#F5F5F7',
+        '--la-text-secondary': '#C6C6CD',
+        '--la-text-tertiary':  '#A9A9B0',
+        '--la-text-disabled':  '#83838B',
+        '--la-bg-hover':       'rgba(255,255,255,0.10)',
+        '--la-bg-active':      'rgba(255,255,255,0.16)',
+        '--la-bg-overlay':     'rgba(255,255,255,0.10)',
+        '--la-border':         'rgba(255,255,255,0.22)',
+        '--la-border-strong':  'rgba(255,255,255,0.34)',
+        '--la-divider':        'rgba(255,255,255,0.18)',
+      } as React.CSSProperties}
       onClick={(e) => { if (e.target === e.currentTarget) close() }}
     >
       {/* 工具栏：绝对定位，不占 flex 空间 */}

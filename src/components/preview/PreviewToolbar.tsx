@@ -42,11 +42,13 @@ interface ToolbarBtnProps {
 const ToolbarBtn = memo(function ToolbarBtn({
   iconName, label, onClick, active, danger, shortcut,
 }: ToolbarBtnProps) {
+  // 工具栏位于深色预览玻璃上（两种主题一致）：默认「次要文字」≥12:1，
+  // hover 升到「主要文字」（只变强不变弱）；激活/危险态使用其语义文字色。
   const color = danger
-    ? 'var(--la-danger)'
+    ? 'var(--la-danger-text)'
     : active
-    ? 'var(--la-accent)'
-    : 'rgba(255,255,255,0.75)'
+    ? 'var(--la-accent-text)'
+    : 'var(--la-text-secondary)'
 
   return (
     <button
@@ -70,16 +72,29 @@ const ToolbarBtn = memo(function ToolbarBtn({
         transition:      'background-color 100ms ease, color 100ms ease',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
-        if (!active && !danger) e.currentTarget.style.color = '#fff'
+        e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
+        if (!active && !danger) e.currentTarget.style.color = 'var(--la-text-primary)'
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = 'transparent'
         e.currentTarget.style.color = color
       }}
     >
-      <Icon name={iconName} size={18} color="currentColor" />
-      <span style={{ fontSize: '9px', letterSpacing: '0.02em', lineHeight: 1 }}>
+      <Icon
+        name={iconName}
+        size={18}
+        color="currentColor"
+        style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
+      />
+      <span style={{
+        fontSize:      'var(--la-text-xs)',
+        fontWeight:    'var(--la-weight-medium)' as unknown as number,
+        letterSpacing: '0.02em',
+        lineHeight:    'var(--la-leading-tight)',
+        // 工具栏遮罩自上而下淡出：标签位于最透明处，叠加照片内容时需要
+        // 与 GridItem 一致的投影保证可读性（同仓库既有做法）。
+        textShadow:    '0 1px 3px rgba(0,0,0,0.85)',
+      }}>
         {label}
       </span>
     </button>
@@ -288,22 +303,23 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
                   width:           '36px',
                   height:          '36px',
                   borderRadius:    'var(--la-radius-md)',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  backgroundColor: 'var(--la-bg-hover)',
                   border:          'none',
-                  color:           'rgba(255,255,255,0.85)',
+                  color:           'var(--la-text-primary)',
                   cursor:          'default',
                   transition:      'background-color 100ms ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-active)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)' }}
               >
-                <Icon name="x" size={16} strokeWidth={2} />
+                <Icon name="x" size={16} strokeWidth={2} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
               </button>
 
               {/* 计数 */}
               <span style={{
                 fontSize:   'var(--la-text-sm)',
-                color:      'rgba(255,255,255,0.55)',
+                color:      'var(--la-text-secondary)',
+                textShadow: '0 1px 3px rgba(0,0,0,0.85)',
                 fontVariantNumeric: 'tabular-nums',
               }}>
                 {currentIndex + 1} / {totalCount}
@@ -313,8 +329,9 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
               {currentPhoto && (
                 <span style={{
                   fontSize:     'var(--la-text-sm)',
-                  color:        'rgba(255,255,255,0.75)',
-                  fontWeight:   'var(--la-weight-medium)' as unknown as number,
+                  color:        'var(--la-text-primary)',
+                  fontWeight:   'var(--la-weight-semibold)' as unknown as number,
+                  textShadow:   '0 1px 3px rgba(0,0,0,0.85)',
                   maxWidth:     '300px',
                   overflow:     'hidden',
                   whiteSpace:   'nowrap',
@@ -346,7 +363,7 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
                 label="复制"
                 onClick={handleShare}
               />
-              <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)', margin: '0 4px' }} />
+              <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--la-divider)', margin: '0 4px' }} />
               <ToolbarBtn
                 iconName="trash"
                 label="删除"

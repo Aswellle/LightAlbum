@@ -49,7 +49,8 @@ const InfoRow = memo(function InfoRow({ label, value, mono }: InfoRowProps) {
     <div style={{ marginBottom: '10px' }}>
       <dt style={{
         fontSize:      'var(--la-text-xs)',
-        color:         'var(--la-text-tertiary)',
+        fontWeight:    'var(--la-weight-medium)' as unknown as number,
+        color:         'var(--la-text-secondary)',
         marginBottom:  '2px',
         letterSpacing: '0.03em',
       }}>
@@ -78,7 +79,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <h3 style={{
       fontSize:      'var(--la-text-xs)',
       fontWeight:    'var(--la-weight-semibold)' as unknown as number,
-      color:         'var(--la-text-tertiary)',
+      color:         'var(--la-text-secondary)',
       textTransform: 'uppercase',
       letterSpacing: '0.06em',
       margin:        '16px 0 8px',
@@ -172,22 +173,15 @@ export const ExifPanel = memo(function ExifPanel({ photoId }: ExifPanelProps) {
             backgroundColor: 'rgba(28,28,30,0.92)',
             backdropFilter:  'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderLeft:      '1px solid rgba(255,255,255,0.1)',
+            borderLeft:      '1px solid var(--la-divider)',
             display:         'flex',
             flexDirection:   'column',
             overflow:        'hidden',
-            // 修复：面板背景始终为深色，强制子树使用深色模式文字颜色
-            // 在浅色主题下 --la-text-primary = #1D1D1F（深色），
-            // 与深色面板背景叠加导致文字不可见。
-            // CSS 自定义属性可在任意元素上内联覆盖，作用域限于子树。
-            '--la-text-primary':    '#F5F5F7',
-            '--la-text-secondary':  '#98989D',
-            '--la-text-tertiary':   '#636366',
-            '--la-text-disabled':   '#48484A',
-            '--la-divider':         'rgba(255,255,255,0.1)',
-            '--la-bg-overlay':      'rgba(255,255,255,0.06)',
-            '--la-bg-hover':        'rgba(255,255,255,0.1)',
-          } as React.CSSProperties}
+            // 面板背景始终为深色（两种主题一致）。文字/表面令牌的深色阶梯
+            // 由预览根容器（PhotoPreview）统一下发，ExifPanel 只作为继承者，
+            // 不再本地重复覆盖（此前本地的 secondary/tertiary 取值偏弱，
+            // 在深色面板上低于 --la-text-secondary 的可读下限）。
+          }}
         >
           {/* 面板标题栏 */}
           <div style={{
@@ -218,17 +212,17 @@ export const ExifPanel = memo(function ExifPanel({ photoId }: ExifPanelProps) {
                 borderRadius:    'var(--la-radius-sm)',
                 backgroundColor: 'transparent',
                 border:          'none',
-                color:           'var(--la-text-tertiary)',
+                color:           'var(--la-text-secondary)',
                 cursor:          'default',
                 transition:      'all 100ms ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--la-bg-overlay)'
-                e.currentTarget.style.color = 'var(--la-text-secondary)'
+                e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
+                e.currentTarget.style.color = 'var(--la-text-primary)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.color = 'var(--la-text-tertiary)'
+                e.currentTarget.style.color = 'var(--la-text-secondary)'
               }}
             >
               <Icon name="x" size={14} strokeWidth={2} />
@@ -266,13 +260,13 @@ export const ExifPanel = memo(function ExifPanel({ photoId }: ExifPanelProps) {
               <div style={{
                 paddingTop:  '24px',
                 textAlign:   'center',
-                color:       'var(--la-text-tertiary)',
+                color:       'var(--la-text-secondary)',
                 fontSize:    'var(--la-text-sm)',
-                lineHeight:  '1.5',
+                lineHeight:  'var(--la-leading-relaxed)',
               }}>
-                <Icon name="x" size={20} color="var(--la-text-tertiary)" style={{ marginBottom: '8px' }} />
+                <Icon name="x" size={20} color="var(--la-text-secondary)" style={{ marginBottom: '8px' }} />
                 <p style={{ margin: 0 }}>照片信息加载失败</p>
-                <p style={{ margin: '4px 0 0', fontSize: 'var(--la-text-xs)', opacity: 0.7 }}>
+                <p style={{ margin: '4px 0 0', fontSize: 'var(--la-text-xs)' }}>
                   请重新打开预览
                 </p>
               </div>
@@ -290,11 +284,16 @@ export const ExifPanel = memo(function ExifPanel({ photoId }: ExifPanelProps) {
                     marginBottom:    '4px',
                     padding:         '4px 10px',
                     borderRadius:    'var(--la-radius-full)',
-                    backgroundColor: 'rgba(255,255,255,0.07)',
+                    backgroundColor: 'var(--la-bg-overlay)',
                     border:          '1px solid var(--la-border)',
                   }}>
-                    <Icon name="info" size={11} color="var(--la-text-tertiary)" />
-                    <span style={{ fontSize: '11px', color: 'var(--la-text-tertiary)', letterSpacing: '0.02em' }}>
+                    <Icon name="info" size={14} color="var(--la-text-secondary)" />
+                    <span style={{
+                      fontSize:      'var(--la-text-xs)',
+                      fontWeight:    'var(--la-weight-medium)' as unknown as number,
+                      color:         'var(--la-text-secondary)',
+                      letterSpacing: '0.02em',
+                    }}>
                       截图 / 保存图片（无拍摄信息）
                     </span>
                   </div>

@@ -64,17 +64,18 @@ const FilmThumb = memo(function FilmThumb({ photoId, active, onClick }: FilmThum
         border:          active
           ? '2px solid var(--la-accent)'
           : '2px solid transparent',
-        opacity:         active ? 1 : 0.5,
+        // P0-1 可见度改造：缩略图是可选内容，不使用 opacity 弱化；
+        // 选中态由强调色描边表达，hover 由描边变亮反馈。
         cursor:          'default',
-        transition:      'opacity 120ms ease, border-color 120ms ease',
+        transition:      'border-color 120ms ease',
         backgroundColor: 'var(--la-bg-overlay)',
         padding:         0,
       }}
       onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.opacity = '0.8'
+        if (!active) e.currentTarget.style.borderColor = 'var(--la-border-strong)'
       }}
       onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.opacity = '0.5'
+        if (!active) e.currentTarget.style.borderColor = 'transparent'
       }}
     >
       {url ? (

@@ -95,7 +95,7 @@ const NavArrow = memo(function NavArrow({ direction, visible, onClick }: NavArro
             zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: '44px', height: '44px', borderRadius: '50%',
             backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.9)',
+            border: '1px solid var(--la-border)', color: 'var(--la-text-primary)',
             cursor: 'default', transition: 'background-color 120ms ease',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.65)' }}
@@ -120,7 +120,7 @@ function ScaleHud({ scale }: { scale: number }) {
       style={{
         position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
         backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
-        color: 'rgba(255,255,255,0.9)', fontSize: 'var(--la-text-sm)',
+        color: 'var(--la-text-primary)', fontSize: 'var(--la-text-sm)',
         fontWeight: 'var(--la-weight-medium)' as unknown as number,
         borderRadius: 'var(--la-radius-full)', padding: '4px 14px',
         pointerEvents: 'none', zIndex: 20, fontVariantNumeric: 'tabular-nums',
