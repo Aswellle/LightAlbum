@@ -58,23 +58,23 @@ function TitleBar() {
       data-tauri-drag-region
       style={{ height: 'var(--la-titlebar-h)', backgroundColor: 'var(--la-bg-sidebar)', borderBottom: '1px solid var(--la-border)', WebkitAppRegion: 'drag' }}
     >
-      <div className="flex items-center px-3" style={{ gap: '6px', WebkitAppRegion: 'no-drag' }} data-tauri-no-drag>
+      <div className="flex items-center px-3" style={{ gap: '7px', WebkitAppRegion: 'no-drag' }} data-tauri-no-drag>
         <img src="/icon.png" alt="LightAlbum" draggable={false}
-          style={{ width: '16px', height: '16px', objectFit: 'contain', flexShrink: 0, userSelect: 'none' }}
+          style={{ width: '18px', height: '18px', objectFit: 'contain', flexShrink: 0, userSelect: 'none' }}
         />
-        <span style={{ fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-semibold)', color: 'var(--la-text-secondary)', letterSpacing: '0.02em', userSelect: 'none' }}>
+        <span style={{ fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-semibold)', color: 'var(--la-text-primary)', letterSpacing: '0.02em', userSelect: 'none' }}>
           LightAlbum
         </span>
       </div>
       <div className="flex items-center h-full" data-tauri-no-drag style={{ WebkitAppRegion: 'no-drag' }}>
         <TitleBarButton onClick={handleMinimize} label="最小化">
-          <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor"><rect width="10" height="1" /></svg>
+          <svg width="10" height="1.5" viewBox="0 0 10 1.5" fill="currentColor"><rect width="10" height="1.5" /></svg>
         </TitleBarButton>
         <TitleBarButton onClick={handleMaximize} label="最大化/还原">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1"><rect x="0.5" y="0.5" width="9" height="9" /></svg>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="0.65" y="0.65" width="8.7" height="8.7" /></svg>
         </TitleBarButton>
         <TitleBarButton onClick={handleClose} label="关闭" danger>
-          <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" strokeWidth="1.2">
+          <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" strokeWidth="1.4">
             <line x1="0" y1="0" x2="10" y2="10" /><line x1="10" y1="0" x2="0" y2="10" />
           </svg>
         </TitleBarButton>
@@ -90,7 +90,7 @@ function TitleBarButton({ onClick, label, danger, children }: TitleBarButtonProp
     <button onClick={onClick} aria-label={label} title={label}
       className="group flex items-center justify-center transition-colors"
       style={{ width: '46px', height: 'var(--la-titlebar-h)', color: 'var(--la-text-secondary)', backgroundColor: 'transparent', border: 'none', outline: 'none', cursor: 'default' }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = danger ? 'var(--la-danger)' : 'var(--la-bg-hover)'; e.currentTarget.style.color = danger ? '#fff' : 'var(--la-text-primary)' }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = danger ? 'var(--la-danger-fill)' : 'var(--la-bg-hover)'; e.currentTarget.style.color = danger ? 'var(--la-text-on-accent)' : 'var(--la-text-primary)' }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--la-text-secondary)' }}
     >
       {children}
@@ -207,7 +207,7 @@ function renderView(view: ViewState): React.ReactNode {
     default:
       return (
         <div className="h-full flex items-center justify-center"
-          style={{ color: 'var(--la-text-tertiary)', fontSize: 'var(--la-text-sm)' }}>
+          style={{ color: 'var(--la-text-secondary)', fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)' }}>
           未知视图
         </div>
       )
