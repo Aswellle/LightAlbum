@@ -28,19 +28,27 @@
   --la-bg-statusbar:    #1C1C1E;    /* 状态栏 */
   --la-bg-raised:       #2C2C2E;    /* 悬浮卡片、下拉菜单 */
   --la-bg-overlay:      #3A3A3C;    /* 输入框、弹层内容区 */
-  --la-bg-hover:        rgba(255,255,255,0.06);
-  --la-bg-active:       rgba(255,255,255,0.10);
-  --la-bg-selected:     rgba(10,132,255,0.20);
+  --la-bg-hover:        rgba(255,255,255,0.08);
+  --la-bg-active:       rgba(255,255,255,0.13);
+  --la-bg-selected:     rgba(10,132,255,0.26);
 
   /* 毛玻璃遮罩（大图预览背景） */
   --la-bg-glass:        rgba(0,0,0,0.85);
   --la-bg-glass-blur:   20px;
 
-  /* 文字 */
+  /* 文字
+     对比度基线（WCAG 2.1，相对侧边栏 #1C1C1E / 抬升面 #2C2C2E / 输入面 #3A3A3C）：
+       primary   15.6 / 12.8 / 10.4
+       secondary  7.3 /  6.0 /  4.9   ← 未选中导航、状态栏正文
+       tertiary   5.8 /  4.8 /  3.9   ← 分组标题、元数据、计数
+       disabled   3.0 /  2.5 /  2.0
+     全部 ≥ WCAG AA(4.5:1) 或明确的可辨识下限，禁止再下调。 */
   --la-text-primary:    #F5F5F7;    /* 主文字 */
-  --la-text-secondary:  #98989D;    /* 次要文字（分组标题、元数据） */
-  --la-text-tertiary:   #636366;    /* 弱提示文字 */
-  --la-text-disabled:   #48484A;    /* 禁用态 */
+  --la-text-secondary:  #A9A9B0;    /* 次要文字（导航未选中态、分组标题、元数据） */
+  --la-text-tertiary:   #96969E;    /* 弱提示文字（仍保持 ≥4.5:1 于抬升面） */
+  --la-text-placeholder: #9C9CA4;   /* 输入框占位符 */
+  --la-text-disabled:   #83838B;    /* 禁用态（3.7:1 于抬升面：仍可读，但明显弱于次要文字） */
+  --la-fill-disabled:   #3A3A3C;    /* 禁用按钮填充面 */
   --la-text-on-accent:  #FFFFFF;    /* 强调色背景上的文字 */
 
   /* 强调色（Apple Blue） */
@@ -48,27 +56,43 @@
   --la-accent-hover:    #409CFF;
   --la-accent-pressed:  #0060DD;
   --la-accent-subtle:   rgba(10,132,255,0.15);
+  --la-accent-text:     #3D9BFF;    /* 用作「文字/图标」的强调色（5.9:1 on 侧边栏） */
+  /* 强调色填充面（按钮/徽标背景）— 保证白色文字 ≥4.5:1（AA） */
+  --la-accent-fill:         #0A66D0;
+  --la-accent-fill-hover:   #0B6FD8;
+  --la-accent-fill-pressed: #0058C8;
 
   /* 危险色 */
   --la-danger:          #FF453A;
+  --la-danger-text:     #FF453A;    /* 危险文字（4.9:1 on 侧边栏） */
   --la-danger-subtle:   rgba(255,69,58,0.15);
+  --la-danger-fill:         #D32B21;
+  --la-danger-fill-hover:   #C62F26;
+  --la-danger-fill-pressed: #B3251C;
 
   /* 成功色 */
   --la-success:         #30D158;
   --la-success-subtle:  rgba(48,209,88,0.15);
 
+  /* 警告色 */
+  --la-warning:         #FFD60A;
+  --la-warning-hover:   #E8C209;
+  --la-warning-subtle:  rgba(255,214,10,0.15);
+  --la-text-on-warning: #1D1D1F;    /* 警告填充面上的文字（11.9:1）*/
+
   /* 收藏心形 */
   --la-favorite:        #FF375F;
 
   /* 边框与分隔线 */
-  --la-border:          rgba(255,255,255,0.08);
-  --la-border-strong:   rgba(255,255,255,0.16);
-  --la-divider:         rgba(255,255,255,0.06);
+  --la-border:          rgba(255,255,255,0.12);
+  --la-border-strong:   rgba(255,255,255,0.24);
+  --la-divider:         rgba(255,255,255,0.10);
 
   /* 阴影 */
   --la-shadow-sm:       0 1px 3px rgba(0,0,0,0.5);
   --la-shadow-md:       0 4px 12px rgba(0,0,0,0.6);
   --la-shadow-lg:       0 8px 32px rgba(0,0,0,0.7);
+  --la-shadow-xl:       0 24px 64px rgba(0,0,0,0.8);
   --la-shadow-overlay:  0 16px 48px rgba(0,0,0,0.8);
 
   /* ── 排版 ── */
@@ -87,16 +111,16 @@
     'SF Mono',
     monospace;
 
-  /* 字号阶梯（Apple HIG 参考） */
-  --la-text-xs:    11px;
-  --la-text-sm:    13px;
+  /* 字号阶梯（Apple HIG 参考 + Windows 桌面端可读下限，最小 12px） */
+  --la-text-xs:    12px;
+  --la-text-sm:    14px;
   --la-text-base:  15px;
   --la-text-md:    17px;
   --la-text-lg:    20px;
   --la-text-xl:    24px;
   --la-text-2xl:   28px;
 
-  /* 字重 */
+  /* 字重（桌面端层级：正文 400 / 标签与按钮 500 / 标题与选中态 600 / 强调 700） */
   --la-weight-regular:    400;
   --la-weight-medium:     500;
   --la-weight-semibold:   600;
@@ -183,8 +207,8 @@
 
   /* ── 滚动条 ── */
   --la-scrollbar-w:   6px;
-  --la-scrollbar-thumb: rgba(255,255,255,0.2);
-  --la-scrollbar-thumb-hover: rgba(255,255,255,0.35);
+  --la-scrollbar-thumb: rgba(255,255,255,0.28);
+  --la-scrollbar-thumb-hover: rgba(255,255,255,0.45);
   --la-motion-fast:    var(--la-dur-fast);
   --la-motion-normal:  var(--la-dur-normal);
   --la-motion-slow:    var(--la-dur-slow);
@@ -206,46 +230,70 @@
   --la-bg-statusbar:    #F0F0F2;
   --la-bg-raised:       #FFFFFF;
   --la-bg-overlay:      #F0F0F2;
-  --la-bg-hover:        rgba(0,0,0,0.04);
-  --la-bg-active:       rgba(0,0,0,0.07);
-  --la-bg-selected:     rgba(0,122,255,0.12);
+  --la-bg-hover:        rgba(0,0,0,0.05);
+  --la-bg-active:       rgba(0,0,0,0.09);
+  --la-bg-selected:     rgba(0,122,255,0.16);
 
   --la-bg-glass:        rgba(246,246,248,0.88);
 
-  /* 文字 */
+  /* 文字
+     对比度基线（相对白底 / 侧边栏 #F5F5F7 / 输入面 #F0F0F2）：
+       primary   16.8 / 15.5 / 14.8
+       secondary  8.8 /  8.1 /  7.7
+       tertiary   5.5 /  5.1 /  4.9
+       disabled   2.8 /  2.6 /  2.5 */
   --la-text-primary:    #1D1D1F;
-  --la-text-secondary:  #86868B;
-  --la-text-tertiary:   #AEAEB2;
-  --la-text-disabled:   #C7C7CC;
+  --la-text-secondary:  #4A4A52;
+  --la-text-tertiary:   #68686D;
+  --la-text-placeholder: #5F5F66;
+  --la-text-disabled:   #7C7C84;    /* 禁用态（4.1:1 于白底：仍可读，但明显弱于次要文字） */
+  --la-fill-disabled:   #E3E3E7;    /* 禁用按钮填充面 */
+  --la-text-on-accent:  #FFFFFF;
 
   /* 强调色（浅色模式 Apple Blue） */
   --la-accent:          #007AFF;
   --la-accent-hover:    #0066DD;
   --la-accent-pressed:  #0051A8;
   --la-accent-subtle:   rgba(0,122,255,0.12);
+  --la-accent-text:     #0066DD;    /* 用作「文字/图标」的强调色（5.3:1 on 白底） */
+  /* 强调色填充面 — 保证白色文字 ≥4.5:1（AA） */
+  --la-accent-fill:         #0071EB;
+  --la-accent-fill-hover:   #0066DD;
+  --la-accent-fill-pressed: #0051A8;
 
   /* 危险色 */
   --la-danger:          #FF3B30;
-  --la-danger-subtle:   rgba(255,59,48,0.10);
+  --la-danger-text:     #D70015;    /* 危险文字（5.4:1 on 白底） */
+  --la-danger-subtle:   rgba(255,59,48,0.12);
+  --la-danger-fill:         #D70015;
+  --la-danger-fill-hover:   #B8000F;
+  --la-danger-fill-pressed: #9C000D;
 
   /* 成功色 */
-  --la-success:         #34C759;
-  --la-success-subtle:  rgba(52,199,89,0.12);
+  --la-success:         #1F8B3B;
+  --la-success-subtle:  rgba(52,199,89,0.14);
+
+  /* 警告色 */
+  --la-warning:         #B25000;
+  --la-warning-hover:   #964300;
+  --la-warning-subtle:  rgba(255,149,0,0.14);
+  --la-text-on-warning: #FFFFFF;    /* 警告填充面上的文字（5.2:1）*/
 
   /* 边框 */
-  --la-border:          rgba(0,0,0,0.08);
-  --la-border-strong:   rgba(0,0,0,0.15);
-  --la-divider:         rgba(0,0,0,0.06);
+  --la-border:          rgba(0,0,0,0.12);
+  --la-border-strong:   rgba(0,0,0,0.22);
+  --la-divider:         rgba(0,0,0,0.09);
 
   /* 阴影 */
   --la-shadow-sm:       0 1px 3px rgba(0,0,0,0.10);
   --la-shadow-md:       0 4px 12px rgba(0,0,0,0.12);
   --la-shadow-lg:       0 8px 32px rgba(0,0,0,0.15);
+  --la-shadow-xl:       0 24px 64px rgba(0,0,0,0.20);
   --la-shadow-overlay:  0 16px 48px rgba(0,0,0,0.18);
 
   /* 滚动条 */
-  --la-scrollbar-thumb: rgba(0,0,0,0.15);
-  --la-scrollbar-thumb-hover: rgba(0,0,0,0.28);
+  --la-scrollbar-thumb: rgba(0,0,0,0.24);
+  --la-scrollbar-thumb-hover: rgba(0,0,0,0.40);
   --la-motion-fast:    var(--la-dur-fast);
   --la-motion-normal:  var(--la-dur-normal);
   --la-motion-slow:    var(--la-dur-slow);
@@ -277,6 +325,29 @@
   --font-sans: var(--la-font-sans);
   --font-mono: var(--la-font-mono);
 }
+/* ═══════════════════════════════════════════════════════════
+   高对比度偏好（Windows 设置 → 辅助功能 → 对比度主题）
+   系统声明 prefers-contrast 时进一步提升弱化文字与描边
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-contrast: more) {
+  :root,
+  :root.dark {
+    --la-text-secondary:  #C6C6CD;
+    --la-text-tertiary:   #A9A9B0;
+    --la-border:          rgba(255,255,255,0.22);
+    --la-border-strong:   rgba(255,255,255,0.34);
+    --la-divider:         rgba(255,255,255,0.18);
+  }
+
+  :root.light {
+    --la-text-secondary:  #35353B;
+    --la-text-tertiary:   #4A4A52;
+    --la-border:          rgba(0,0,0,0.22);
+    --la-border-strong:   rgba(0,0,0,0.34);
+    --la-divider:         rgba(0,0,0,0.16);
+  }
+}
+
 /* V2 Reduced Motion — 减少动画而非删除反馈 */
 @media (prefers-reduced-motion: reduce) {
   *,

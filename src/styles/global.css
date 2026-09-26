@@ -81,6 +81,29 @@ textarea {
   -webkit-user-select: text;
 }
 
+/* 表单控件继承界面字体与字号
+   （WebView2 默认给 input/button 用 Arial 13.33px，是桌面端最常见的「看不清」来源） */
+input,
+textarea,
+select {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+/* 占位符：使用专用令牌，避免 UA 默认灰（Firefox 会再乘 opacity） */
+input::placeholder,
+textarea::placeholder {
+  color: var(--la-text-placeholder);
+  opacity: 1;
+}
+
+/* 文本选中：保证选中态在深浅两套主题下都清晰可辨 */
+::selection {
+  background-color: var(--la-accent);
+  color: var(--la-text-on-accent);
+}
+
 /* 统一按钮/可点击元素的 cursor */
 button,
 [role='button'],
@@ -263,8 +286,40 @@ img {
 .la-text-primary   { color: var(--la-text-primary); }
 .la-text-secondary { color: var(--la-text-secondary); }
 .la-text-tertiary  { color: var(--la-text-tertiary); }
-.la-text-accent    { color: var(--la-accent); }
-.la-text-danger    { color: var(--la-danger); }
+.la-text-accent    { color: var(--la-accent-text); }
+.la-text-danger    { color: var(--la-danger-text); }
+
+/* ═══════════════════════════════════════════════════════════
+   图标动作按钮（侧边栏分组标题、工具栏图标按钮…）
+   桌面端规范：静止态即可辨识（≥ --la-text-secondary），
+   悬浮只加深背景与提升对比，不做「由浅入深」的文字弱化。
+   ═══════════════════════════════════════════════════════════ */
+
+.la-icon-button {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           var(--la-icon-button-size, 24px);
+  height:          var(--la-icon-button-size, 24px);
+  border-radius:   var(--la-radius-sm);
+  background-color: transparent;
+  border:          none;
+  color:           var(--la-text-secondary);
+  cursor:          default;
+  flex-shrink:     0;
+  transition:
+    background-color var(--la-motion-fast) var(--la-ease-out),
+    color var(--la-motion-fast) var(--la-ease-out);
+}
+
+.la-icon-button:hover {
+  background-color: var(--la-bg-hover);
+  color:            var(--la-text-primary);
+}
+
+.la-icon-button:active {
+  background-color: var(--la-bg-active);
+}
 
 /* ═══════════════════════════════════════════════════════════
    深色模式透明背景层（侧边栏、工具栏毛玻璃效果）
