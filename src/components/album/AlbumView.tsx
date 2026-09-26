@@ -200,7 +200,7 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--la-bg-overlay) 0%, var(--la-bg-raised) 100%)' }}>
-            <Icon name="book" size={22} color="var(--la-text-tertiary)" />
+            <Icon name="book" size={22} color="var(--la-text-secondary)" />
           </div>
         )}
       </div>
@@ -267,8 +267,8 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
           </span>
           {createdLabel && (
             <>
-              <span style={{ color: 'var(--la-text-tertiary)', fontSize: '12px' }}>·</span>
-              <span style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-tertiary)' }}>
+              <span style={{ color: 'var(--la-text-tertiary)', fontSize: 'var(--la-text-xs)' }}>·</span>
+              <span style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
                 创建于 {createdLabel}
               </span>
             </>
@@ -292,6 +292,7 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
             border:          '1px solid var(--la-border)',
             color:           'var(--la-text-secondary)',
             fontSize:        'var(--la-text-sm)',
+            fontWeight:      'var(--la-weight-medium)' as unknown as number,
             cursor:          'default',
             transition:      'all 100ms ease',
           }}
@@ -304,7 +305,7 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
             e.currentTarget.style.color = 'var(--la-text-secondary)'
           }}
         >
-          <Icon name="pencil" size={13} />
+          <Icon name="pencil" size={14} />
           <span>重命名</span>
         </button>
 
@@ -322,6 +323,7 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
             border:          '1px solid var(--la-border)',
             color:           'var(--la-text-secondary)',
             fontSize:        'var(--la-text-sm)',
+            fontWeight:      'var(--la-weight-medium)' as unknown as number,
             cursor:          'default',
             transition:      'all 100ms ease',
           }}
@@ -334,7 +336,7 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
             e.currentTarget.style.color = 'var(--la-text-secondary)'
           }}
         >
-          <Icon name="square" size={13} />
+          <Icon name="square" size={14} />
           <span>编辑封面</span>
         </button>
 
@@ -350,21 +352,22 @@ const AlbumHeader = memo(function AlbumHeader({ album, onBack, onOpenCoverPicker
             borderRadius:    'var(--la-radius-md)',
             backgroundColor: 'var(--la-danger-subtle)',
             border:          '1px solid transparent',
-            color:           'var(--la-danger)',
+            color:           'var(--la-danger-text)',
             fontSize:        'var(--la-text-sm)',
+            fontWeight:      'var(--la-weight-medium)' as unknown as number,
             cursor:          'default',
             transition:      'all 100ms ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--la-danger)'
-            e.currentTarget.style.color = '#fff'
+            e.currentTarget.style.backgroundColor = 'var(--la-danger-fill)'
+            e.currentTarget.style.color = 'var(--la-text-on-accent)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--la-danger-subtle)'
-            e.currentTarget.style.color = 'var(--la-danger)'
+            e.currentTarget.style.color = 'var(--la-danger-text)'
           }}
         >
-          <Icon name="trash" size={13} />
+          <Icon name="trash" size={14} />
           <span>删除相册</span>
         </button>
       </div>
@@ -385,14 +388,26 @@ function AlbumEmptyContent() {
       justifyContent: 'center',
       height:         '100%',
       gap:            '12px',
-      color:          'var(--la-text-tertiary)',
+      color:          'var(--la-text-primary)',
       userSelect:     'none',
     }}>
-      <Icon name="images" size={40} color="var(--la-text-tertiary)" />
-      <p style={{ fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
+      <Icon name="images" size={44} color="var(--la-text-secondary)" />
+      <p style={{
+        fontSize:   'var(--la-text-base)',
+        fontWeight: 'var(--la-weight-semibold)' as unknown as number,
+        color:      'var(--la-text-primary)',
+        margin:     0,
+      }}>
         相册里还没有照片
       </p>
-      <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)', textAlign: 'center', maxWidth: '240px', lineHeight: 'var(--la-leading-relaxed)' }}>
+      <p style={{
+        fontSize:   'var(--la-text-sm)',
+        color:      'var(--la-text-secondary)',
+        textAlign:  'center',
+        maxWidth:   '280px',
+        lineHeight: 'var(--la-leading-relaxed)',
+        margin:     0,
+      }}>
         在照片网格中右键照片，选择「添加到相册」
       </p>
     </div>
@@ -452,7 +467,7 @@ export function AlbumView() {
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
-        color:          'var(--la-text-tertiary)',
+        color:          'var(--la-text-secondary)',
         fontSize:       'var(--la-text-sm)',
       }}>
         请选择相册

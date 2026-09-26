@@ -79,7 +79,7 @@ const CoverPhotoItem = memo(function CoverPhotoItem({
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <Icon name="images" size={24} color="var(--la-text-tertiary)" />
+          <Icon name="images" size={24} color="var(--la-text-secondary)" />
         </div>
       )}
 
@@ -97,7 +97,7 @@ const CoverPhotoItem = memo(function CoverPhotoItem({
           alignItems:    'center',
           justifyContent: 'center',
         }}>
-          <Icon name="check" size={12} color="#fff" strokeWidth={3} />
+          <Icon name="check" size={12} color="var(--la-text-on-accent)" strokeWidth={3} />
         </div>
       )}
     </button>
@@ -210,7 +210,7 @@ export const CoverPicker = memo(function CoverPicker({
                 borderRadius:    'var(--la-radius-md)',
                 backgroundColor: 'transparent',
                 border:          'none',
-                color:           'var(--la-text-tertiary)',
+                color:           'var(--la-text-secondary)',
                 cursor:          'default',
                 transition:      'all 100ms ease',
               }}
@@ -220,7 +220,7 @@ export const CoverPicker = memo(function CoverPicker({
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.color = 'var(--la-text-tertiary)'
+                e.currentTarget.style.color = 'var(--la-text-secondary)'
               }}
             >
               <Icon name="x" size={16} strokeWidth={2} />
@@ -239,7 +239,7 @@ export const CoverPicker = memo(function CoverPicker({
                 alignItems:      'center',
                 justifyContent:  'center',
                 height:          '200px',
-                color:           'var(--la-text-tertiary)',
+                color:           'var(--la-text-secondary)',
                 fontSize:        'var(--la-text-sm)',
               }}>
                 加载中…
@@ -252,10 +252,10 @@ export const CoverPicker = memo(function CoverPicker({
                 justifyContent:  'center',
                 height:          '200px',
                 gap:             '8px',
-                color:           'var(--la-text-tertiary)',
+                color:           'var(--la-text-primary)',
               }}>
-                <Icon name="images" size={32} color="var(--la-text-tertiary)" />
-                <p style={{ fontSize: 'var(--la-text-sm)', margin: 0 }}>
+                <Icon name="images" size={32} color="var(--la-text-secondary)" />
+                <p style={{ fontSize: 'var(--la-text-base)', fontWeight: 'var(--la-weight-semibold)', color: 'var(--la-text-primary)', margin: 0 }}>
                   相册中没有照片
                 </p>
               </div>
@@ -288,7 +288,7 @@ export const CoverPicker = memo(function CoverPicker({
           }}>
             <p style={{
               fontSize: 'var(--la-text-xs)',
-              color:   'var(--la-text-tertiary)',
+              color:   'var(--la-text-secondary)',
               margin:  0,
             }}>
               {isSelecting ? '设置中…' : '点击照片即可设为封面'}
@@ -297,7 +297,7 @@ export const CoverPicker = memo(function CoverPicker({
               <div style={{
                 width:        12,
                 height:       12,
-                border:       '2px solid var(--la-text-tertiary)',
+                border:       '2px solid var(--la-text-secondary)',
                 borderTopColor: 'var(--la-accent)',
                 borderRadius: '50%',
                 animation:    'la-spin 0.7s linear infinite',

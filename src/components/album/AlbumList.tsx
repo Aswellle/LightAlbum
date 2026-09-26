@@ -175,14 +175,14 @@ const AlbumCard = memo(function AlbumCard({
                 backgroundColor: 'rgba(0,0,0,0.52)',
                 backdropFilter:  'blur(4px)',
                 border:          'none',
-                color:           '#fff',
+                color:           'var(--la-text-on-accent)',
                 display:         'flex',
                 alignItems:      'center',
                 justifyContent:  'center',
                 cursor:          'default',
               }}
             >
-              <Icon name="dots-h" size={14} color="#fff" />
+              <Icon name="dots-h" size={14} color="var(--la-text-on-accent)" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -203,7 +203,7 @@ const AlbumCard = memo(function AlbumCard({
             style={{
               width:           '100%',
               fontSize:        'var(--la-text-sm)',
-              fontWeight:      500,
+              fontWeight:      'var(--la-weight-medium)',
               color:           'var(--la-text-primary)',
               backgroundColor: 'var(--la-bg-overlay)',
               border:          '1px solid var(--la-accent)',
@@ -218,7 +218,7 @@ const AlbumCard = memo(function AlbumCard({
             onDoubleClick={(e) => { e.stopPropagation(); startRename() }}
             style={{
               fontSize:     'var(--la-text-sm)',
-              fontWeight:   500,
+              fontWeight:   'var(--la-weight-medium)',
               color:        'var(--la-text-primary)',
               overflow:     'hidden',
               whiteSpace:   'nowrap',
@@ -345,7 +345,7 @@ export function AlbumList() {
   return (
     <>
       <div style={{ height:'100%', overflowY:'auto', padding:'24px' }}>
-        <h1 style={{ fontSize:'var(--la-text-xl)', fontWeight:700, color:'var(--la-text-primary)', marginBottom:'20px', lineHeight:1.2 }}>
+        <h1 style={{ fontSize:'var(--la-text-xl)', fontWeight:'var(--la-weight-bold)', color:'var(--la-text-primary)', marginBottom:'20px', lineHeight:1.2 }}>
           相册
         </h1>
 
@@ -373,10 +373,10 @@ export function AlbumList() {
         </motion.div>
 
         {albums.length === 0 && (
-          <div style={{ marginTop:'48px', display:'flex', flexDirection:'column', alignItems:'center', gap:'10px', color:'var(--la-text-tertiary)' }}>
-            <Icon name="book" size={44} strokeWidth={1} />
-            <p style={{ fontSize:'var(--la-text-sm)' }}>还没有相册</p>
-            <p style={{ fontSize:'var(--la-text-xs)' }}>点击「新建相册」创建你的第一个相册</p>
+          <div style={{ marginTop:'48px', display:'flex', flexDirection:'column', alignItems:'center', gap:'10px', color:'var(--la-text-primary)' }}>
+            <Icon name="book" size={44} color="var(--la-text-secondary)" />
+            <p style={{ fontSize:'var(--la-text-base)', fontWeight:'var(--la-weight-semibold)', color:'var(--la-text-primary)', margin:0 }}>还没有相册</p>
+            <p style={{ fontSize:'var(--la-text-sm)', color:'var(--la-text-secondary)', margin:0 }}>点击「新建相册」创建你的第一个相册</p>
           </div>
         )}
       </div>
@@ -413,12 +413,12 @@ function NewAlbumCard({ onClick }: { onClick: () => void }) {
         justifyContent:  'center',
         gap:             '8px',
         aspectRatio:     '1.1',
-        color:           hovered ? 'var(--la-accent)' : 'var(--la-text-tertiary)',
+        color:           hovered ? 'var(--la-accent-text)' : 'var(--la-text-secondary)',
         padding:         0,
       }}
     >
-      <Icon name="plus" size={24} color={hovered ? 'var(--la-accent)' : 'var(--la-text-tertiary)'} strokeWidth={1.5} />
-      <span style={{ fontSize:'var(--la-text-sm)', fontWeight:500, lineHeight:1 }}>新建相册</span>
+      <Icon name="plus" size={24} color={hovered ? 'var(--la-accent-text)' : 'var(--la-text-secondary)'} strokeWidth={1.5} />
+      <span style={{ fontSize:'var(--la-text-sm)', fontWeight:'var(--la-weight-medium)', lineHeight:1 }}>新建相册</span>
     </button>
   )
 }

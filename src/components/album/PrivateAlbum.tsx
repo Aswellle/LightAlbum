@@ -334,7 +334,8 @@ export const PasswordLockScreen = memo(function PasswordLockScreen({
           display: 'flex', alignItems: 'center', gap: '4px',
           padding: '6px 12px 6px 8px', borderRadius: 'var(--la-radius-md)',
           backgroundColor: 'transparent', border: 'none',
-          color: 'var(--la-accent)', fontSize: 'var(--la-text-sm)',
+          color: 'var(--la-accent-text)', fontSize: 'var(--la-text-sm)',
+          fontWeight: 'var(--la-weight-medium)',
           cursor: 'default', transition: 'background-color 100ms ease',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)' }}
@@ -350,7 +351,7 @@ export const PasswordLockScreen = memo(function PasswordLockScreen({
         transition={{ type: 'spring', stiffness: 400, damping: 28, delay: 0.05 }}
         style={{
           width: '80px', height: '80px', borderRadius: '22px',
-          background: isCooling ? 'var(--la-bg-overlay)' : 'linear-gradient(145deg, #0A84FF 0%, #0055CC 100%)',
+          background: isCooling ? 'var(--la-bg-overlay)' : 'linear-gradient(145deg, var(--la-accent-fill) 0%, var(--la-accent-fill-pressed) 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           marginBottom: '28px',
           boxShadow: isCooling ? 'none' : '0 12px 32px rgba(10,132,255,0.35)',
@@ -360,8 +361,7 @@ export const PasswordLockScreen = memo(function PasswordLockScreen({
         <Icon
           name={isCooling ? 'x-circle' : 'lock'}
           size={36}
-          color={isCooling ? 'var(--la-text-tertiary)' : '#fff'}
-          strokeWidth={1.4}
+          color={isCooling ? 'var(--la-text-secondary)' : 'var(--la-text-on-accent)'}
         />
       </motion.div>
 
@@ -374,7 +374,7 @@ export const PasswordLockScreen = memo(function PasswordLockScreen({
       </h1>
 
       <p style={{
-        fontSize: 'var(--la-text-sm)', color: 'var(--la-text-tertiary)',
+        fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)',
         margin: '0 0 40px', textAlign: 'center', lineHeight: '1.4',
       }}>
         {isCooling ? `尝试次数过多，请等待 ${cooldown} 秒` : verifying ? '验证中…' : '输入 6 位数字密码'}
@@ -391,7 +391,7 @@ export const PasswordLockScreen = memo(function PasswordLockScreen({
               transition={{ duration: 0.2 }}
               style={{
                 fontSize: 'var(--la-text-sm)',
-                color: isCooling ? 'var(--la-text-secondary)' : 'var(--la-danger)',
+                color: isCooling ? 'var(--la-text-secondary)' : 'var(--la-danger-text)',
                 textAlign: 'center', margin: 0,
               }}
             >
@@ -407,13 +407,13 @@ export const PasswordLockScreen = memo(function PasswordLockScreen({
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{
               marginTop: '12px', display: 'flex', alignItems: 'center',
-              gap: '8px', color: 'var(--la-text-tertiary)', fontSize: 'var(--la-text-xs)',
+              gap: '8px', color: 'var(--la-text-secondary)', fontSize: 'var(--la-text-xs)',
             }}
           >
             <div style={{
               width: 12, height: 12,
-              border: '1.5px solid var(--la-text-tertiary)',
-              borderTopColor: 'transparent', borderRadius: '50%',
+              border: '1.5px solid var(--la-text-secondary)',
+              borderTopColor: 'var(--la-text-primary)', borderRadius: '50%',
               animation: 'la-spin 0.7s linear infinite',
             }} />
             正在验证
@@ -522,19 +522,19 @@ function StepIndicator({ currentStep, labels }: { currentStep: number; labels: s
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <div style={{
               width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
-              backgroundColor: done || active ? 'var(--la-accent)' : 'var(--la-bg-overlay)',
-              border: `1.5px solid ${done || active ? 'var(--la-accent)' : 'var(--la-border)'}`,
+              backgroundColor: done || active ? 'var(--la-accent-fill)' : 'var(--la-bg-overlay)',
+              border: `1.5px solid ${done || active ? 'var(--la-accent-fill)' : 'var(--la-border)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'all 200ms ease',
             }}>
               {done
-                ? <Icon name="check" size={12} color="#fff" strokeWidth={2.5} />
-                : <span style={{ fontSize: '11px', fontWeight: 'var(--la-weight-semibold)', color: active ? '#fff' : 'var(--la-text-tertiary)' }}>{i + 1}</span>
+                ? <Icon name="check" size={12} color="var(--la-text-on-accent)" strokeWidth={2.5} />
+                : <span style={{ fontSize: 'var(--la-text-xs)', fontWeight: 'var(--la-weight-semibold)', color: active ? 'var(--la-text-on-accent)' : 'var(--la-text-secondary)' }}>{i + 1}</span>
               }
             </div>
             <span style={{
-              fontSize: '12px',
-              color: active ? 'var(--la-text-primary)' : done ? 'var(--la-text-secondary)' : 'var(--la-text-tertiary)',
+              fontSize: 'var(--la-text-xs)',
+              color: active ? 'var(--la-text-primary)' : 'var(--la-text-secondary)',
               fontWeight: active ? 'var(--la-weight-medium)' : 'var(--la-weight-regular)',
               transition: 'color 200ms ease', whiteSpace: 'nowrap',
             }}>
@@ -669,7 +669,7 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
         >
           {/* 顶部蓝色 Header */}
           <div style={{
-            background: 'linear-gradient(160deg, #0A84FF 0%, #0055CC 100%)',
+            background: 'linear-gradient(160deg, var(--la-accent-fill) 0%, var(--la-accent-fill-pressed) 100%)',
             padding: '28px 28px 24px', textAlign: 'center',
           }}>
             <div style={{
@@ -679,15 +679,15 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 14px',
             }}>
-              <Icon name="shield" size={28} color="#fff" strokeWidth={1.4} />
+              <Icon name="shield" size={28} color="var(--la-text-on-accent)" strokeWidth={1.4} />
             </div>
             <h2 style={{
               fontSize: 'var(--la-text-lg)', fontWeight: 'var(--la-weight-semibold)',
-              color: '#fff', margin: '0 0 6px',
+              color: 'var(--la-text-on-accent)', margin: '0 0 6px',
             }}>
               新建私密相册
             </h2>
-            <p style={{ fontSize: 'var(--la-text-xs)', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+            <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-on-accent)', margin: 0 }}>
               需要密码才能查看其中的照片
             </p>
           </div>
@@ -713,7 +713,7 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                   >
                     <label style={{
                       display: 'block', fontSize: 'var(--la-text-xs)',
-                      color: 'var(--la-text-tertiary)', marginBottom: '8px',
+                      color: 'var(--la-text-secondary)', marginBottom: '8px',
                       letterSpacing: '0.04em', textTransform: 'uppercase',
                     }}>
                       相册名称
@@ -744,7 +744,7 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                       onBlur={(e)  => { e.currentTarget.style.borderColor = nameError ? 'var(--la-danger)' : 'var(--la-border)' }}
                     />
                     {nameError && (
-                      <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-danger)', margin: '6px 0 0' }}>
+                      <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-danger-text)', margin: '6px 0 0' }}>
                         {nameError}
                       </p>
                     )}
@@ -754,9 +754,9 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                       backgroundColor: 'var(--la-accent-subtle)',
                       border: '1px solid rgba(10,132,255,0.2)',
                     }}>
-                      <Icon name="info" size={14} color="var(--la-accent)" style={{ marginTop: '1px', flexShrink: 0 }} />
+                      <Icon name="info" size={14} color="var(--la-accent-text)" style={{ marginTop: '1px', flexShrink: 0 }} />
                       <p style={{
-                        fontSize: 'var(--la-text-xs)', color: 'var(--la-text-secondary)',
+                        fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)',
                         margin: 0, lineHeight: '1.5',
                       }}>
                         私密相册中的照片不会出现在「所有照片」等其他视图中，只有输入正确密码才能查看。
@@ -781,14 +781,14 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                     </p>
                     <PinRow digits={password} hasError={false} shake={pwShake} />
                     <p style={{
-                      fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)',
+                      fontSize: 'var(--la-text-xs)', color: 'var(--la-text-secondary)',
                       textAlign: 'center', margin: '16px 0 0',
                     }}>
                       请记住您的密码，忘记后将无法恢复
                     </p>
                     <p style={{
-                      fontSize: '11px', color: 'var(--la-accent)',
-                      textAlign: 'center', margin: '10px 0 0', opacity: 0.8,
+                      fontSize: 'var(--la-text-xs)', color: 'var(--la-accent-text)',
+                      textAlign: 'center', margin: '10px 0 0',
                     }}>
                       直接在键盘上输入数字即可
                     </p>
@@ -818,7 +818,7 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
                             style={{
-                              fontSize: 'var(--la-text-xs)', color: 'var(--la-danger)',
+                              fontSize: 'var(--la-text-xs)', color: 'var(--la-danger-text)',
                               margin: 0, textAlign: 'center',
                             }}
                           >
@@ -829,8 +829,8 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                     </div>
                     {!pinError && (
                       <p style={{
-                        fontSize: '11px', color: 'var(--la-accent)',
-                        textAlign: 'center', margin: '4px 0 0', opacity: 0.8,
+                        fontSize: 'var(--la-text-xs)', color: 'var(--la-accent-text)',
+                        textAlign: 'center', margin: '4px 0 0',
                       }}>
                         直接在键盘上输入数字即可
                       </p>
@@ -859,6 +859,7 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                   backgroundColor: 'var(--la-bg-overlay)',
                   border: '1px solid var(--la-border)',
                   color: 'var(--la-text-secondary)', fontSize: 'var(--la-text-sm)',
+                  fontWeight: 'var(--la-weight-medium)',
                   cursor: 'default', transition: 'all 100ms ease',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'; e.currentTarget.style.color = 'var(--la-text-primary)' }}
@@ -873,14 +874,15 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                   onClick={() => { if (!albumName.trim()) { setNameError('请输入相册名称'); return } setStep('password') }}
                   style={{
                     flex: 1, height: '40px', borderRadius: 'var(--la-radius-md)',
-                    backgroundColor: albumName.trim() ? 'var(--la-accent)' : 'var(--la-text-disabled)',
-                    border: 'none', color: '#fff',
+                    backgroundColor: albumName.trim() ? 'var(--la-accent-fill)' : 'var(--la-fill-disabled)',
+                    border: albumName.trim() ? 'none' : '1px solid var(--la-border)',
+                    color: albumName.trim() ? 'var(--la-text-on-accent)' : 'var(--la-text-disabled)',
                     fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)',
                     cursor: albumName.trim() ? 'default' : 'not-allowed',
                     transition: 'background-color 100ms ease',
                   }}
-                  onMouseEnter={(e) => { if (albumName.trim()) e.currentTarget.style.backgroundColor = 'var(--la-accent-hover)' }}
-                  onMouseLeave={(e) => { if (albumName.trim()) e.currentTarget.style.backgroundColor = 'var(--la-accent)' }}
+                  onMouseEnter={(e) => { if (albumName.trim()) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill-hover)' }}
+                  onMouseLeave={(e) => { if (albumName.trim()) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill)' }}
                 >
                   下一步
                 </button>
@@ -899,14 +901,15 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                   disabled={!pwFilled}
                   style={{
                     flex: 1, height: '40px', borderRadius: 'var(--la-radius-md)',
-                    backgroundColor: pwFilled ? 'var(--la-accent)' : 'var(--la-text-disabled)',
-                    border: 'none', color: '#fff',
+                    backgroundColor: pwFilled ? 'var(--la-accent-fill)' : 'var(--la-fill-disabled)',
+                    border: pwFilled ? 'none' : '1px solid var(--la-border)',
+                    color: pwFilled ? 'var(--la-text-on-accent)' : 'var(--la-text-disabled)',
                     fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)',
                     cursor: pwFilled ? 'default' : 'not-allowed',
                     transition: 'background-color 100ms ease',
                   }}
-                  onMouseEnter={(e) => { if (pwFilled) e.currentTarget.style.backgroundColor = 'var(--la-accent-hover)' }}
-                  onMouseLeave={(e) => { if (pwFilled) e.currentTarget.style.backgroundColor = pwFilled ? 'var(--la-accent)' : 'var(--la-text-disabled)' }}
+                  onMouseEnter={(e) => { if (pwFilled) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill-hover)' }}
+                  onMouseLeave={(e) => { if (pwFilled) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill)' }}
                 >
                   下一步
                 </button>
@@ -919,29 +922,30 @@ export const CreatePrivateAlbumDialog = memo(function CreatePrivateAlbumDialog({
                   disabled={!canCreate || creating}
                   style={{
                     flex: 1, height: '40px', borderRadius: 'var(--la-radius-md)',
-                    backgroundColor: canCreate ? 'var(--la-accent)' : 'var(--la-text-disabled)',
-                    border: 'none', color: '#fff',
+                    backgroundColor: canCreate ? 'var(--la-accent-fill)' : 'var(--la-fill-disabled)',
+                    border: canCreate ? 'none' : '1px solid var(--la-border)',
+                    color: canCreate ? 'var(--la-text-on-accent)' : 'var(--la-text-disabled)',
                     fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)',
                     cursor: canCreate && !creating ? 'default' : 'not-allowed',
-                    opacity: creating ? 0.7 : 1, transition: 'all 100ms ease',
+                    opacity: creating ? 0.7 : 1, transition: 'background-color 100ms ease',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
                   }}
-                  onMouseEnter={(e) => { if (canCreate && !creating) e.currentTarget.style.backgroundColor = 'var(--la-accent-hover)' }}
-                  onMouseLeave={(e) => { if (canCreate && !creating) e.currentTarget.style.backgroundColor = 'var(--la-accent)' }}
+                  onMouseEnter={(e) => { if (canCreate && !creating) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill-hover)' }}
+                  onMouseLeave={(e) => { if (canCreate && !creating) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill)' }}
                 >
                   {creating ? (
                     <>
                       <div style={{
                         width: 13, height: 13,
                         border: '2px solid rgba(255,255,255,0.5)',
-                        borderTopColor: '#fff', borderRadius: '50%',
+                        borderTopColor: 'var(--la-text-on-accent)', borderRadius: '50%',
                         animation: 'la-spin 0.7s linear infinite',
                       }} />
                       创建中…
                     </>
                   ) : (
                     <>
-                      <Icon name="lock" size={14} color="#fff" />
+                      <Icon name="lock" size={14} color="var(--la-text-on-accent)" />
                       创建私密相册
                     </>
                   )}

@@ -98,7 +98,7 @@ export function CreateAlbumDialog({ onClose, onCreated }: CreateAlbumDialogProps
         />
 
         {onCreated && (
-          <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-tertiary)', marginTop: '8px' }}>
+          <p style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-secondary)', marginTop: '8px' }}>
             创建后将自动把已选照片加入此相册
           </p>
         )}
@@ -108,7 +108,8 @@ export function CreateAlbumDialog({ onClose, onCreated }: CreateAlbumDialogProps
             onClick={onClose}
             style={{
               padding: '6px 14px', borderRadius: 'var(--la-radius-md)',
-              fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)',
+              fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)',
+              color: 'var(--la-text-secondary)',
               backgroundColor: 'transparent', border: '1px solid var(--la-border)',
               cursor: 'default', transition: 'all 100ms ease',
             }}
@@ -122,13 +123,14 @@ export function CreateAlbumDialog({ onClose, onCreated }: CreateAlbumDialogProps
             style={{
               padding: '6px 16px', borderRadius: 'var(--la-radius-md)',
               fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)',
-              color: '#fff',
-              backgroundColor: canSubmit ? 'var(--la-accent)' : 'var(--la-text-disabled)',
-              border: 'none', cursor: canSubmit ? 'default' : 'not-allowed',
+              color: canSubmit ? 'var(--la-text-on-accent)' : 'var(--la-text-disabled)',
+              backgroundColor: canSubmit ? 'var(--la-accent-fill)' : 'var(--la-fill-disabled)',
+              border: canSubmit ? 'none' : '1px solid var(--la-border)',
+              cursor: canSubmit ? 'default' : 'not-allowed',
               transition: 'background-color 100ms ease',
             }}
-            onMouseEnter={(e) => { if (canSubmit) e.currentTarget.style.backgroundColor = 'var(--la-accent-hover)' }}
-            onMouseLeave={(e) => { if (canSubmit) e.currentTarget.style.backgroundColor = 'var(--la-accent)' }}
+            onMouseEnter={(e) => { if (canSubmit) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill-hover)' }}
+            onMouseLeave={(e) => { if (canSubmit) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill)' }}
           >
             {isPending ? '创建中…' : '创建'}
           </button>

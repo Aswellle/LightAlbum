@@ -65,11 +65,12 @@ function TrashBtn({ onClick, label, icon, danger, disabled, active, compact }: T
       ? 'var(--la-accent-subtle)'
       : 'var(--la-bg-overlay)',
     color:           danger
-      ? 'var(--la-danger)'
+      ? 'var(--la-danger-text)'
       : active
-      ? 'var(--la-accent)'
+      ? 'var(--la-accent-text)'
       : 'var(--la-text-secondary)',
     fontSize:        'var(--la-text-sm)',
+    fontWeight:      'var(--la-weight-medium)',
     cursor:          disabled ? 'not-allowed' : 'default',
     opacity:         disabled ? 0.4 : 1,
     transition:      'all 100ms ease',
@@ -87,14 +88,14 @@ function TrashBtn({ onClick, label, icon, danger, disabled, active, compact }: T
       onMouseEnter={(e) => {
         if (!disabled) {
           e.currentTarget.style.backgroundColor = danger
-            ? 'rgba(255,69,58,0.2)'
+            ? 'var(--la-danger-fill)'
             : active
             ? 'var(--la-accent-subtle)'
             : 'var(--la-bg-hover)'
           e.currentTarget.style.color = danger
-            ? 'var(--la-danger)'
+            ? 'var(--la-text-on-accent)'
             : active
-            ? 'var(--la-accent)'
+            ? 'var(--la-accent-text)'
             : 'var(--la-text-primary)'
         }
       }}
@@ -106,9 +107,9 @@ function TrashBtn({ onClick, label, icon, danger, disabled, active, compact }: T
             ? 'var(--la-accent-subtle)'
             : 'var(--la-bg-overlay)'
           e.currentTarget.style.color = danger
-            ? 'var(--la-danger)'
+            ? 'var(--la-danger-text)'
             : active
-            ? 'var(--la-accent)'
+            ? 'var(--la-accent-text)'
             : 'var(--la-text-secondary)'
         }
       }}
@@ -241,8 +242,9 @@ const TrashActionBar = memo(function TrashActionBar() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               style={{
-                fontSize:        '11px',
-                color:           'var(--la-text-tertiary)',
+                fontSize:        'var(--la-text-xs)',
+                fontWeight:      'var(--la-weight-medium)',
+                color:           'var(--la-text-secondary)',
                 backgroundColor: 'var(--la-bg-overlay)',
                 borderRadius:    'var(--la-radius-full)',
                 padding:         '1px 8px',
@@ -271,7 +273,7 @@ const TrashActionBar = memo(function TrashActionBar() {
             <TrashBtn
               onClick={() => isSelectionMode ? exitSelection() : enterSelection()}
               label={isSelectionMode ? '退出选择' : '多选'}
-              icon={<Icon name={isSelectionMode ? 'x' : 'check-square'} size={13} color="currentColor" />}
+              icon={<Icon name={isSelectionMode ? 'x' : 'check-square'} size={14} color="currentColor" />}
               active={isSelectionMode}
             />
 
@@ -287,7 +289,7 @@ const TrashActionBar = memo(function TrashActionBar() {
                   <TrashBtn
                     onClick={() => isAllSelected ? clearSelection() : selectAll(allIds)}
                     label={isAllSelected ? '取消全选' : '全选'}
-                    icon={<Icon name={isAllSelected ? 'check-square' : 'square'} size={13} color="currentColor" />}
+                    icon={<Icon name={isAllSelected ? 'check-square' : 'square'} size={14} color="currentColor" />}
                     active={isAllSelected}
                   />
                 </motion.div>
@@ -301,7 +303,7 @@ const TrashActionBar = memo(function TrashActionBar() {
             <TrashBtn
               onClick={handleRestore}
               label={`恢复${hasSelection ? ` ${selectedCount} 张` : '全部'}`}
-              icon={<Icon name="rotate-ccw" size={13} color="currentColor" />}
+              icon={<Icon name="rotate-ccw" size={14} color="currentColor" />}
               disabled={!hasPhotos}
             />
 
@@ -309,7 +311,7 @@ const TrashActionBar = memo(function TrashActionBar() {
             <TrashBtn
               onClick={handlePurgeData}
               label={`清除${hasSelection ? ` ${selectedCount} 张` : '全部'}记录`}
-              icon={<Icon name="x-circle" size={13} color="currentColor" />}
+              icon={<Icon name="x-circle" size={14} color="currentColor" />}
               disabled={!hasPhotos}
             />
 
@@ -317,7 +319,7 @@ const TrashActionBar = memo(function TrashActionBar() {
             <TrashBtn
               onClick={handlePurge}
               label={`永久删除${hasSelection ? ` ${selectedCount} 张` : '全部'}`}
-              icon={<Icon name="trash" size={13} color="currentColor" />}
+              icon={<Icon name="trash" size={14} color="currentColor" />}
               danger
               disabled={!hasPhotos}
             />
@@ -354,21 +356,21 @@ function TrashEmptyState() {
         alignItems:      'center',
         justifyContent:  'center',
       }}>
-        <Icon name="trash" size={34} color="var(--la-text-tertiary)" strokeWidth={1.2} />
+        <Icon name="trash" size={34} color="var(--la-text-secondary)" />
       </div>
 
       <div style={{ textAlign: 'center' }}>
         <p style={{
           fontSize:   'var(--la-text-base)',
-          fontWeight: 'var(--la-weight-medium)',
-          color:      'var(--la-text-secondary)',
+          fontWeight: 'var(--la-weight-semibold)',
+          color:      'var(--la-text-primary)',
           margin:     '0 0 6px',
         }}>
           回收站已清空
         </p>
         <p style={{
           fontSize: 'var(--la-text-sm)',
-          color:    'var(--la-text-tertiary)',
+          color:    'var(--la-text-secondary)',
           margin:   0,
         }}>
           删除的照片会暂存在这里
