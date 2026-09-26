@@ -63,8 +63,9 @@ const PhotoCountLabel = memo(function PhotoCountLabel() {
     <div
       className="flex items-center gap-1"
       style={{
-        fontSize: 'var(--la-text-xs)',
-        color:    'var(--la-text-secondary)',
+        fontSize:   'var(--la-text-xs)',
+        fontWeight: 'var(--la-weight-medium)',
+        color:      'var(--la-text-secondary)',
       }}
     >
       <span>
@@ -80,7 +81,7 @@ const PhotoCountLabel = memo(function PhotoCountLabel() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -4 }}
             transition={{ duration: 0.15 }}
-            style={{ color: 'var(--la-accent)' }}
+            style={{ color: 'var(--la-accent-text)', fontWeight: 'var(--la-weight-semibold)' }}
           >
             · {selectedCount} 张已选中
           </motion.span>
@@ -126,6 +127,7 @@ const ScanProgressBar = memo(function ScanProgressBar() {
           <span
             style={{
               fontSize:  'var(--la-text-xs)',
+              fontWeight: 'var(--la-weight-medium)',
               color:     'var(--la-text-secondary)',
               flexShrink: 0,
               whiteSpace: 'nowrap',
@@ -160,7 +162,8 @@ const ScanProgressBar = memo(function ScanProgressBar() {
           <span
             style={{
               fontSize:   'var(--la-text-xs)',
-              color:      'var(--la-text-tertiary)',
+              fontWeight: 'var(--la-weight-medium)',
+              color:      'var(--la-text-secondary)',
               flexShrink: 0,
               whiteSpace: 'nowrap',
               fontVariantNumeric: 'tabular-nums',
@@ -192,22 +195,24 @@ const DensityControl = memo(function DensityControl() {
       {/* 布局模式标识 */}
       <span
         style={{
-          fontSize: 'var(--la-text-xs)',
-          color:    'var(--la-text-tertiary)',
+          fontSize:   'var(--la-text-xs)',
+          fontWeight: 'var(--la-weight-medium)',
+          color:      'var(--la-text-secondary)',
         }}
       >
         {mode === 'grid' ? '网格' : '瀑布流'}
       </span>
 
       {/* 分隔线 */}
-      <div style={{ width: '1px', height: '12px', backgroundColor: 'var(--la-border)' }} />
+      <div style={{ width: '1px', height: '14px', backgroundColor: 'var(--la-border-strong)' }} />
 
       {/* 密度标签 */}
       <span
         style={{
           fontSize:   'var(--la-text-xs)',
-          color:      'var(--la-text-secondary)',
-          minWidth:   '24px',
+          fontWeight: 'var(--la-weight-semibold)',
+          color:      'var(--la-text-primary)',
+          minWidth:   '26px',
           textAlign:  'right',
         }}
       >
@@ -223,7 +228,7 @@ const DensityControl = memo(function DensityControl() {
         {levels.map((level) => {
           const preset  = DENSITY_PRESETS[level]
           const active  = density === level
-          const colSize = Math.round(16 - (level - 1) * 3)  // 视觉上"紧凑→大"
+          const colSize = Math.round(20 - (level - 1) * 2)  // 视觉上"紧凑→大"
 
           return (
             <button
@@ -233,27 +238,27 @@ const DensityControl = memo(function DensityControl() {
               aria-label={`密度：${preset.label}`}
               aria-pressed={active}
               style={{
-                width:           `${colSize + 4}px`,
-                height:          '18px',
+                width:           `${colSize + 8}px`,
+                height:          '22px',
                 padding:         '2px',
-                borderRadius:    '3px',
-                border:          `1px solid ${active ? 'var(--la-accent)' : 'var(--la-border)'}`,
+                borderRadius:    'var(--la-radius-sm)',
+                border:          `1px solid ${active ? 'var(--la-accent)' : 'var(--la-border-strong)'}`,
                 backgroundColor: active ? 'var(--la-accent-subtle)' : 'transparent',
                 cursor:          'default',
-                transition:      'all 100ms ease',
+                transition:      'background-color 100ms ease, border-color 100ms ease',
                 display:         'flex',
                 alignItems:      'center',
                 justifyContent:  'center',
               }}
               onMouseEnter={(e) => {
                 if (!active) {
-                  e.currentTarget.style.borderColor = 'var(--la-border-strong)'
+                  e.currentTarget.style.borderColor = 'var(--la-text-tertiary)'
                   e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!active) {
-                  e.currentTarget.style.borderColor = 'var(--la-border)'
+                  e.currentTarget.style.borderColor = 'var(--la-border-strong)'
                   e.currentTarget.style.backgroundColor = 'transparent'
                 }
               }}
@@ -268,8 +273,9 @@ const DensityControl = memo(function DensityControl() {
       {/* Ctrl+滚轮 提示 */}
       <span
         style={{
-          fontSize: 'var(--la-text-xs)',
-          color:    'var(--la-text-tertiary)',
+          fontSize:   'var(--la-text-xs)',
+          fontWeight: 'var(--la-weight-medium)',
+          color:      'var(--la-text-secondary)',
         }}
         title="按住 Ctrl 并滚动鼠标滚轮调整密度"
       >
@@ -289,12 +295,12 @@ function DensityIcon({ level, active }: { level: DensityLevel; active: boolean }
     4: [[1,1],[1,1]],
   }
   const grid = gridMap[level]
-  const dotSize = level <= 2 ? 1.5 : 2.5
+  const dotSize = level <= 2 ? 2 : 3
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
       {grid.map((row, ri) => (
-        <div key={ri} style={{ display: 'flex', gap: '1px' }}>
+        <div key={ri} style={{ display: 'flex', gap: '1.5px' }}>
           {row.map((_, ci) => (
             <div
               key={ci}
@@ -302,7 +308,7 @@ function DensityIcon({ level, active }: { level: DensityLevel; active: boolean }
                 width:           `${dotSize}px`,
                 height:          `${dotSize}px`,
                 borderRadius:    '0.5px',
-                backgroundColor: active ? 'var(--la-accent)' : 'var(--la-text-tertiary)',
+                backgroundColor: active ? 'var(--la-accent)' : 'var(--la-text-secondary)',
               }}
             />
           ))}
