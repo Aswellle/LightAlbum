@@ -113,8 +113,10 @@ Distributing outside the Mac App Store requires notarization:
 | 平台 | 产物 |
 |------|----------|
 | Windows | `LightAlbum_x.y.z_x64-setup.exe`（NSIS）、`LightAlbum_x.y.z_x64_en-US.msi` |
-| macOS | `LightAlbum_x.y.z_aarch64.dmg`、`LightAlbum_x.y.z_x64.dmg` |
-| Linux | `light-album_x.y.z_amd64.AppImage`、`light-album_x.y.z_amd64.deb` |
+| macOS | `LightAlbum_x.y.z_aarch64.dmg`、`LightAlbum_x.y.z_x64.dmg`（另附 `.app.tar.gz` 更新包） |
+| Linux | `LightAlbum_x.y.z_amd64.AppImage`、`LightAlbum_x.y.z_amd64.deb`、`LightAlbum-x.y.z-1.x86_64.rpm` |
+
+产物名以 `gh release view <tag> --json assets` 的实际列表为准；`v0.4.0` 的实际资产为 9 个（上表 7 个 + 两个 `.app.tar.gz` 更新包）。
 
 ## Hotfix releases
 
