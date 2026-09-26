@@ -7,7 +7,7 @@
  * 照片保持原始宽高比（不裁切）。
  */
 
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useWaterfallGrid } from '@/hooks/useWaterfallGrid'
 import { useScrollVelocity } from '@/hooks/useScrollVelocity'
@@ -18,6 +18,7 @@ import { usePreviewStore } from '@/stores/previewStore'
 import { useSelectionStore, selectIsSelected } from '@/stores/selectionStore'
 import { Icon } from '@/components/common/Icon'
 import { GridEmptyState } from './GridEmptyState'
+import { GridSkeleton } from './GridSkeleton'
 import type { WaterfallLayoutItem } from '@/hooks/useWaterfallGrid'
 
 // ─────────────────────────────────────────────────────────
@@ -32,6 +33,9 @@ interface WaterfallItemProps {
 const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallItemProps) {
   const { photo, x, y, width, height } = item
   const { url } = useThumbnail(photo.id, 'm', 'normal')
+
+  // P0-2: 挂载时缩略图已缓存 → 不淡入（避免滚动回收/切换视图时整屏重复淡入）
+  const hasThumbAtMount = useRef(url != null).current
 
   const isSelected  = useSelectionStore(selectIsSelected(photo.id))
   const select      = useSelectionStore((s) => s.select)
@@ -58,6 +62,8 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
       onClick={handleClick}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.15 }}
+      // 与固定网格一致的合成层提示 + 统一的格子选择器（E2E 逐帧采样用）
+      className="la-grid-item"
       style={{
         position:    'absolute',
         left:        x,
@@ -75,7 +81,7 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
         <motion.img
           src={url}
           alt={photo.fileName}
-          initial={{ opacity: 0 }}
+          initial={hasThumbAtMount ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
           style={{
@@ -114,7 +120,19 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
 //  WaterfallGrid — 主组件
 // ─────────────────────────────────────────────────────────
 
-export const WaterfallGrid = memo(function WaterfallGrid({ isLoading = false }: { isLoading?: boolean }) {
+interface WaterfallGridProps {
+  isLoading?: boolean
+  /** 内容是否已对应当前视图（false 时不得渲染 store 中的旧照片） */
+  isSynced?:  boolean
+  /** 视图键：变化时滚动回顶部（切换视图从第一张照片开始） */
+  viewKey?:   string
+}
+
+export const WaterfallGrid = memo(function WaterfallGrid({
+  isLoading = false,
+  isSynced  = true,
+  viewKey,
+}: WaterfallGridProps) {
   const config  = useLayoutStore(selectGridConfig)
   const photos  = usePhotoStore(selectPhotos)
   const allIds  = photos.map((p) => p.id)
@@ -124,19 +142,24 @@ export const WaterfallGrid = memo(function WaterfallGrid({ isLoading = false }: 
     containerRef,
     totalHeight,
     visibleItems,
-  } = useWaterfallGrid({ photos, config })
+  } = useWaterfallGrid({ photos, config, resetKey: viewKey })
 
   if (!config) return null
 
-  // 空态：瀑布流此前没有任何空态提示（与固定网格保持一致）
-  if (!isLoading && photos.length === 0) {
-    return <GridEmptyState />
-  }
+  // 三态互斥（与 VirtualGrid 一致）：
+  //   切换视图时既不能闪空白网格，也不能闪「还没有照片」空态
+  const { columns, itemSize, gap } = config
+  const hasContent   = isSynced && photos.length > 0
+  const showSkeleton = !hasContent && (isLoading || !isSynced)
+  const showEmpty    = !hasContent && !isLoading && isSynced
 
   return (
     <div
       ref={containerRef}
       onScroll={onScroll}
+      data-testid="photo-grid"
+      // 三态标记：E2E 逐帧断言「不出现空白网格 / 空态闪烁」的观测点
+      data-grid-state={hasContent ? 'content' : showSkeleton ? 'skeleton' : 'empty'}
       style={{
         height:    '100%',
         overflowY: 'auto',
@@ -145,15 +168,24 @@ export const WaterfallGrid = memo(function WaterfallGrid({ isLoading = false }: 
         backgroundColor: 'var(--la-bg-app)',
       }}
     >
-      <div style={{ height: totalHeight, position: 'relative' }}>
-        {visibleItems.map((item) => (
-          <WaterfallItem
-            key={item.photo.id}
-            item={item}
-            allIds={allIds}
-          />
-        ))}
-      </div>
+      {/* 加载骨架屏（与固定网格共用，避免首屏/切换时出现空白内容区） */}
+      {showSkeleton && <GridSkeleton columns={columns} itemSize={itemSize} gap={gap} />}
+
+      {/* 空态 */}
+      {showEmpty && <GridEmptyState />}
+
+      {/* 内容 */}
+      {hasContent && (
+        <div style={{ height: totalHeight, position: 'relative' }}>
+          {visibleItems.map((item) => (
+            <WaterfallItem
+              key={item.photo.id}
+              item={item}
+              allIds={allIds}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 })

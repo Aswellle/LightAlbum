@@ -385,9 +385,11 @@ function TrashEmptyState() {
 // ─────────────────────────────────────────────────────────
 
 export function TrashView() {
-  const { isLoading, loadMore, hasMore } = usePhotoQuery()
+  const { isLoading, isSynced, viewKey, loadMore, hasMore } = usePhotoQuery()
   const photos = usePhotoStore(selectPhotos)
-  const isEmpty = !isLoading && photos.length === 0
+  // P0-2：空态只在「内容已对应当前视图 + 确实没有照片 + 不在加载中」时出现，
+  //       否则进入回收站视图会先闪一下空态
+  const isEmpty = isSynced && !isLoading && photos.length === 0
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -396,7 +398,13 @@ export function TrashView() {
         {isEmpty ? (
           <TrashEmptyState />
         ) : (
-          <VirtualGrid isLoading={isLoading} onLoadMore={loadMore} hasMore={hasMore} />
+          <VirtualGrid
+            isLoading={isLoading}
+            isSynced={isSynced}
+            viewKey={viewKey}
+            onLoadMore={loadMore}
+            hasMore={hasMore}
+          />
         )}
       </div>
     </div>

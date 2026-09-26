@@ -35,7 +35,7 @@
 import {
   useRef,
   useState,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useCallback,
 } from 'react'
@@ -162,6 +162,8 @@ function calcVisibleRange(
 export interface UseVirtualGridOptions {
   groups:    PhotoGroup[]
   config:    GridConfig | null
+  /** 视图键：变化时滚动位置回到顶部（切换视图应从第一张照片开始） */
+  resetKey?: string
 }
 
 export interface UseVirtualGridResult {
@@ -183,10 +185,10 @@ export interface UseVirtualGridResult {
 export function useVirtualGrid({
   groups,
   config,
+  resetKey,
 }: UseVirtualGridOptions): UseVirtualGridResult {
   const containerRef = useRef<HTMLDivElement>(null)
   const rafRef       = useRef<number | null>(null)
-  const scrollTopRef = useRef(0)
 
   // ── 预计算所有行（仅当 groups / config 变化时重算）──
   const allRows = useMemo(() => {
@@ -212,45 +214,79 @@ export function useVirtualGrid({
     return ids
   }, [allRows])
 
-  // ── 可见行切片 ──
-  const [range, setRange] = useState({ startIdx: 0, endIdx: 0 })
+  // ── 视口状态 ──
+  //
+  // P0-2 修复：可见范围不再存进 state 由 effect 回填，而是「视口 + 行数组」直接推导。
+  //   原实现：数据到达 → 渲染出 range {0,0} / 空切片 → effect 里 setRange → 再渲染一次。
+  //   中间那一帧就是用户看到的「空白照片网格」。现在数据集变化的当帧即可算出可见行。
+  const [viewport, setViewport] = useState({ scrollTop: 0, height: 0 })
 
-  const recompute = useCallback(() => {
-    rafRef.current = null
+  const commitViewport = useCallback(() => {
     const el = containerRef.current
     if (!el) return
-    const { scrollTop, clientHeight } = el
-    scrollTopRef.current = scrollTop
-    const next = calcVisibleRange(allRows, scrollTop, clientHeight)
-    setRange((prev) =>
-      prev.startIdx === next.startIdx && prev.endIdx === next.endIdx
-        ? prev   // 引用稳定，避免无意义 re-render
-        : next,
+    const scrollTop = el.scrollTop
+    const height    = el.clientHeight
+    setViewport((prev) =>
+      prev.scrollTop === scrollTop && prev.height === height ? prev : { scrollTop, height },
     )
-  }, [allRows])
+  }, [])
 
-  // rAF 节流：每帧最多触发一次 recompute
-  const scheduleRecompute = useCallback(() => {
-    if (rafRef.current !== null) return
-    rafRef.current = requestAnimationFrame(recompute)
-  }, [recompute])
+  // ── 布局阶段测量 + 监听滚动/尺寸 ──
+  //   useLayoutEffect：首帧就拿到真实视口高度（在绘制前完成），不会先渲染 0 行
+  //
+  //   注意 hasContainer：gridConfig 尚未算出时组件返回 null（容器不在 DOM 中），
+  //   此时本 effect 拿不到 ref。必须把「容器已挂载」纳入依赖，
+  //   否则测量只会在没有容器时执行一次，之后永远不测量 → 只渲染 overscan 的几行。
+  const hasContainer = config != null
 
-  // ── 绑定滚动事件 ──
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current
     if (!el) return
-    el.addEventListener('scroll', scheduleRecompute, { passive: true })
-    recompute()   // 初次计算
-    return () => {
-      el.removeEventListener('scroll', scheduleRecompute)
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
-    }
-  }, [scheduleRecompute, recompute])
 
-  // ── 当 allRows 变化时（视图切换 / 数据追加）强制重算 ──
-  useEffect(() => {
-    recompute()
-  }, [allRows, recompute])
+    commitViewport()
+
+    const ro = new ResizeObserver(commitViewport)
+    ro.observe(el)
+
+    // rAF 节流：每帧最多触发一次状态更新
+    const onScroll = () => {
+      if (rafRef.current !== null) return
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        commitViewport()
+      })
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => {
+      ro.disconnect()
+      el.removeEventListener('scroll', onScroll)
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+    }
+  }, [commitViewport, hasContainer])
+
+  // ── 视图切换：滚动位置回到顶部 ──
+  //   网格实例在不同视图之间保持挂载（不再整块重挂载），因此必须显式复位，
+  //   否则新视图会沿用上一个视图的滚动位置，看起来像空白网格。
+  useLayoutEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    if (el.scrollTop !== 0) el.scrollTop = 0
+    setViewport((prev) =>
+      prev.scrollTop === 0 && prev.height === el.clientHeight
+        ? prev
+        : { scrollTop: 0, height: el.clientHeight },
+    )
+  }, [resetKey, hasContainer])
+
+  // ── 可见行范围（渲染期推导）──
+  const range = useMemo(
+    () => calcVisibleRange(allRows, viewport.scrollTop, viewport.height),
+    [allRows, viewport.scrollTop, viewport.height],
+  )
 
   // ── 切片 ──
   const visibleRows = useMemo(
@@ -272,9 +308,7 @@ export function useVirtualGrid({
 
   // ── 视口中心照片（缩略图优先级用）──
   const centerPhotoId = useMemo(() => {
-    const el = containerRef.current
-    const clientH = el?.clientHeight ?? 0
-    const centerY = scrollTopRef.current + clientH / 2
+    const centerY = viewport.scrollTop + viewport.height / 2
 
     for (const row of visibleRows) {
       if (row.type !== 'photo-row') continue
@@ -283,7 +317,7 @@ export function useVirtualGrid({
       }
     }
     return null
-  }, [visibleRows])
+  }, [visibleRows, viewport.scrollTop, viewport.height])
 
   return {
     containerRef,

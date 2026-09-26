@@ -10,9 +10,11 @@
  *   - 滚动触底时调用 onLoadMore（加载下一页）
  *   - 将 centerPhotoId 提升为 'high' 优先级缩略图请求
  *
- * 空态/加载态：
- *   - isLoading = true（首次加载）→ 骨架屏占位格矩阵
- *   - photos = [] + !isLoading    → 空态提示（视图相关文案）
+ * 空态/加载态（P0-2 三态互斥）：
+ *   - 内容已同步且有照片            → 渲染虚拟化网格
+ *   - 内容尚未对应当前视图 / 首屏加载 → 骨架屏占位格矩阵
+ *   - 内容已同步、无照片、不在加载中 → 空态提示（视图相关文案）
+ *   三者互斥，避免切换视图时先闪一帧「空白网格」或「还没有照片」。
  *
  * 与 PhotoGrid 的分工：
  *   PhotoGrid  负责数据查询（usePhotoQuery）+ 视图路由
@@ -28,38 +30,11 @@ import { usePhotoStore, selectGroups } from '@/stores/photoStore'
 import { DateGroup } from './DateGroup'
 import { GridItem } from './GridItem'
 import { GridEmptyState } from './GridEmptyState'
+import { GridSkeleton } from './GridSkeleton'
 
 // ─────────────────────────────────────────────────────────
-//  加载态骨架屏
+//  加载态骨架屏：见 GridSkeleton.tsx（与瀑布流共用）
 // ─────────────────────────────────────────────────────────
-
-function GridSkeleton({ columns, itemSize, gap }: { columns: number; itemSize: number; gap: number }) {
-  const count = columns * 4   // 4 行占位格
-  return (
-    <div style={{
-      display:             'grid',
-      gridTemplateColumns: `repeat(${columns}, ${itemSize}px)`,
-      gap,
-      padding:             gap,
-    }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width:           itemSize,
-            height:          itemSize,
-            borderRadius:    4,
-            backgroundColor: 'var(--la-bg-overlay)',
-            backgroundImage: 'linear-gradient(90deg, var(--la-bg-overlay) 0%, var(--la-bg-hover) 50%, var(--la-bg-overlay) 100%)',
-            backgroundSize:  '200% 100%',
-            animation:       'la-shimmer 1.5s linear infinite',
-            animationDelay:  `${(i * 0.05) % 0.5}s`,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
 
 // ─────────────────────────────────────────────────────────
 //  空态（共用组件：图案保留，可见度提升）
@@ -119,12 +94,18 @@ const RowRenderer = memo(function RowRenderer({ row, config, allIds }: RowRender
 
 interface VirtualGridProps {
   isLoading?:  boolean
+  /** 内容是否已对应当前视图（false 时不得渲染 store 中的旧照片） */
+  isSynced?:   boolean
+  /** 视图键：变化时滚动回顶部（切换视图从第一张照片开始） */
+  viewKey?:    string
   onLoadMore?: () => void
   hasMore?:    boolean
 }
 
 export const VirtualGrid = memo(function VirtualGrid({
   isLoading  = false,
+  isSynced   = true,
+  viewKey,
   onLoadMore,
   hasMore    = false,
 }: VirtualGridProps) {
@@ -140,7 +121,7 @@ export const VirtualGrid = memo(function VirtualGrid({
     offsetBottom,
     visibleRows,
     allPhotoIds,
-  } = useVirtualGrid({ groups, config })
+  } = useVirtualGrid({ groups, config, resetKey: viewKey })
 
   // ── 预加载 overscan 区域缩略图 ──
   const overscanIds = useMemo(() => {
@@ -165,15 +146,25 @@ export const VirtualGrid = memo(function VirtualGrid({
     }
   }, [onScrollVelocity, onLoadMore, hasMore])
 
-  // ── 空态 / 加载态 ──
+  // ── 内容 / 骨架屏 / 空态（三态互斥）──
+  //
+  // P0-2：判定必须严格 ——
+  //   hasContent 只在「内容已对应当前视图」时成立，否则会把上一个视图的照片当成当前视图渲染
+  //   空态只在「内容已同步 + 确实没有照片 + 不在加载中」时出现，
+  //   否则首屏加载、切换选项卡、切换筛选条件时都会先闪一下「还没有照片」
   if (!config) return null
   const { columns, itemSize, gap } = config
-  const isEmpty = groups.length === 0 && !isLoading
+  const hasContent   = isSynced && groups.length > 0
+  const showSkeleton = !hasContent && (isLoading || !isSynced)
+  const showEmpty    = !hasContent && !isLoading && isSynced
 
   return (
     <div
       ref={containerRef}
       onScroll={handleScroll}
+      data-testid="photo-grid"
+      // 三态标记：E2E 逐帧断言「不出现空白网格 / 空态闪烁」的观测点
+      data-grid-state={hasContent ? 'content' : showSkeleton ? 'skeleton' : 'empty'}
       style={{
         height:    '100%',
         overflowY: 'auto',
@@ -184,13 +175,13 @@ export const VirtualGrid = memo(function VirtualGrid({
       }}
     >
       {/* 加载骨架屏 */}
-      {isLoading && <GridSkeleton columns={columns} itemSize={itemSize} gap={gap} />}
+      {showSkeleton && <GridSkeleton columns={columns} itemSize={itemSize} gap={gap} />}
 
       {/* 空态 */}
-      {isEmpty && <GridEmptyState />}
+      {showEmpty && <GridEmptyState />}
 
       {/* 虚拟化内容区 */}
-      {!isLoading && !isEmpty && (
+      {hasContent && (
         <div style={{ height: totalHeight, position: 'relative' }}>
           {/* 上方占位 */}
           <div style={{ height: offsetTop }} />

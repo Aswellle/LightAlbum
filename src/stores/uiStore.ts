@@ -23,6 +23,15 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import type { ViewState } from '@/types/layout'
 import type { ScanProgress } from '@/types/photo'
 import type { AppTheme } from '@/types/ipc'
+import { readPersistedTheme } from '@/services/themePreference'
+
+/**
+ * 启动过渡：使用上次实际生效的主题作为初始值。
+ * index.html 已在首帧前按同一来源设置 html class；若这里再退回默认值
+ * （system），挂载瞬间会与已绘制的画面不一致，随后设置加载完成又切回来 —— 闪屏。
+ * 设置加载完成后仍以 AppSettings 为准。
+ */
+const initialTheme: AppTheme = readPersistedTheme() ?? 'system'
 
 // ─────────────────────────────────────────────────────────
 //  Toast 类型
@@ -218,8 +227,8 @@ export const useUiStore = create<UiStore>()(
       photoId: null,
     },
 
-    theme:         'system',
-    resolvedTheme: 'dark',
+    theme:         initialTheme,
+    resolvedTheme: initialTheme === 'system' ? 'dark' : initialTheme,
 
     isSearchOpen: false,
     searchQuery:  '',

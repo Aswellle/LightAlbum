@@ -6,12 +6,20 @@
       首帧渲染前应用主题 class，避免启动闪屏。
       原实现硬编码 class="dark"，浅色/跟随系统用户启动时会先闪一帧深色，
       React 挂载后 useTheme 再按保存的设置切换，导致深↔浅跳变。
-      这里按 prefers-color-scheme 立即设好初值（默认主题为 system）；
-      用户显式保存的主题仍由 useTheme 在 settings 加载后应用。
+
+      优先级：上次实际生效的主题（localStorage，由 useTheme 写入）
+            → 系统偏好 prefers-color-scheme
+            → 深色
+      用户显式保存的主题仍由 useTheme 在 settings 加载后应用并写回此处。
     -->
     <script>
       (function () {
         try {
+          var stored = window.localStorage.getItem('la-theme')
+          if (stored === 'light' || stored === 'dark') {
+            document.documentElement.classList.add(stored)
+            return
+          }
           var dark = window.matchMedia('(prefers-color-scheme: dark)').matches
           document.documentElement.classList.add(dark ? 'dark' : 'light')
         } catch (e) {

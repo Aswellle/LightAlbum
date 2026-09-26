@@ -15,6 +15,7 @@
 import {
   useRef,
   useEffect,
+  useLayoutEffect,
   useState,
   useCallback,
   type PointerEvent as ReactPointerEvent,
@@ -156,34 +157,25 @@ function AlbumViewRouter({ albumId }: { albumId: string }) {
 // ─────────────────────────────────────────────────────────
 
 function MainContent({ view }: { view: ViewState }) {
-  const viewKey = view.type === 'album' ? `album-${view.albumId}` : view.type
-
-  // 首次挂载不淡入（消除启动时整块内容从透明浮现的闪屏）；
-  // 之后切换视图仍保留淡入淡出。
-  const firstViewRendered = useRef(false)
-  useEffect(() => {
-    firstViewRendered.current = true
-  }, [])
-
+  // P0-2：不再使用 AnimatePresence + key 重挂载。
+  //
+  //   原实现每次切换视图都会：卸载当前网格 → 等 120ms 淡出 → 挂载新网格 → 淡入。
+  //   这段时间里内容区必然出现「空态提示 / 空白网格」的中间帧，而且整棵网格
+  //   （虚拟化范围、滚动位置、缩略图元素）都要重新挂载一次，视觉上就是闪烁。
+  //
+  //   现在保持同一棵子树挂载：照片内容的替换完全由 photoStore 的视图键原子切换
+  //   在绘制前完成，切换选项卡在同一帧内得到最终画面。
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={viewKey}
-        initial={firstViewRendered.current ? { opacity: 0 } : false}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.12, ease: 'easeInOut' }}
-        style={{
-          position:        'absolute',
-          inset:           0,
-          // 实心应用背景：mode="wait" 切换间隙 / 淡入期间不再透出下方内容，
-          // 消除旧的「黑色停留动画」和旧网格缩略图的「虚影」重叠。
-          backgroundColor: 'var(--la-bg-app)',
-        }}
-      >
-        {renderView(view)}
-      </motion.div>
-    </AnimatePresence>
+    <div
+      style={{
+        position:        'absolute',
+        inset:           0,
+        // 实心应用背景：避免切换瞬间透出下层内容产生「虚影」重叠
+        backgroundColor: 'var(--la-bg-app)',
+      }}
+    >
+      {renderView(view)}
+    </div>
   )
 }
 
@@ -243,7 +235,10 @@ export function AppShell() {
   const dragStartXRef     = useRef<number>(0)
   const dragStartWidthRef = useRef<number>(sidebarWidth)
 
-  useEffect(() => {
+  // P0-2: useLayoutEffect —— 容器宽度必须在首次绘制前写入 layoutStore。
+  //   原实现用 useEffect：首帧 gridConfig 仍为 null，两个网格组件都返回 null，
+  //   于是启动时先画出一帧「完全空白的内容区」，测量完成后照片才出现。
+  useLayoutEffect(() => {
     const el = mainContentRef.current
     if (!el) return
 

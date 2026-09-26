@@ -18,6 +18,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { useUiStore, selectTheme } from '@/stores/uiStore'
 import { useLayoutStore } from '@/stores/layoutStore'
 import { api } from '@/services/tauriIpc'
+import { persistResolvedTheme } from '@/services/themePreference'
 import type { AppTheme } from '@/types/ipc'
 
 // ─────────────────────────────────────────────────────────
@@ -37,6 +38,8 @@ function applyThemeClass(resolved: 'light' | 'dark'): void {
   const root = document.documentElement
   root.classList.remove('light', 'dark')
   root.classList.add(resolved)
+  // 启动过渡：记录实际生效主题，下次启动时 index.html 可在首帧前直接应用
+  persistResolvedTheme(resolved)
 }
 
 // ─────────────────────────────────────────────────────────

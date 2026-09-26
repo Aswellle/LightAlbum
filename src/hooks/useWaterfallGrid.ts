@@ -24,7 +24,7 @@
 import {
   useRef,
   useState,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useCallback,
 } from 'react'
@@ -103,8 +103,10 @@ function getVisibleItems(
 // ─────────────────────────────────────────────────────────
 
 export interface UseWaterfallGridOptions {
-  photos: PhotoThumb[]
-  config: GridConfig | null
+  photos:    PhotoThumb[]
+  config:    GridConfig | null
+  /** 视图键：变化时滚动位置回到顶部（切换视图应从第一张照片开始） */
+  resetKey?: string
 }
 
 export interface UseWaterfallGridResult {
@@ -117,6 +119,7 @@ export interface UseWaterfallGridResult {
 export function useWaterfallGrid({
   photos,
   config,
+  resetKey,
 }: UseWaterfallGridOptions): UseWaterfallGridResult {
   const containerRef = useRef<HTMLDivElement>(null)
   const rafRef       = useRef<number | null>(null)
@@ -130,34 +133,73 @@ export function useWaterfallGrid({
   // ── 扁平化 ID ──
   const allPhotoIds = useMemo(() => photos.map((p) => p.id), [photos])
 
-  // ── 可见切片 ──
-  const [visibleItems, setVisibleItems] = useState<WaterfallLayoutItem[]>([])
+  // ── 视口状态 ──
+  //
+  // P0-2 修复：可见切片改为渲染期推导。
+  //   原实现把 visibleItems 放在 state 里由 effect 回填 → 数据变化的当帧先渲染
+  //   空数组，浏览器画出「空白网格」，下一帧才出现照片。
+  const [viewport, setViewport] = useState({ scrollTop: 0, height: 0 })
 
-  const recompute = useCallback(() => {
-    rafRef.current = null
+  const commitViewport = useCallback(() => {
     const el = containerRef.current
     if (!el) return
-    const next = getVisibleItems(allItems, el.scrollTop, el.clientHeight)
-    setVisibleItems(next)
-  }, [allItems])
+    const scrollTop = el.scrollTop
+    const height    = el.clientHeight
+    setViewport((prev) =>
+      prev.scrollTop === scrollTop && prev.height === height ? prev : { scrollTop, height },
+    )
+  }, [])
 
-  const scheduleRecompute = useCallback(() => {
-    if (rafRef.current !== null) return
-    rafRef.current = requestAnimationFrame(recompute)
-  }, [recompute])
+  // ── 布局阶段测量 + 监听滚动/尺寸 ──
+  //   hasContainer：gridConfig 未算出时组件返回 null（容器不在 DOM 中），
+  //   必须把「容器已挂载」纳入依赖，否则测量只会在没有容器时执行一次。
+  const hasContainer = config != null
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current
     if (!el) return
-    el.addEventListener('scroll', scheduleRecompute, { passive: true })
-    recompute()
-    return () => {
-      el.removeEventListener('scroll', scheduleRecompute)
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+
+    commitViewport()
+
+    const ro = new ResizeObserver(commitViewport)
+    ro.observe(el)
+
+    const onScroll = () => {
+      if (rafRef.current !== null) return
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        commitViewport()
+      })
     }
-  }, [scheduleRecompute, recompute])
+    el.addEventListener('scroll', onScroll, { passive: true })
 
-  useEffect(() => { recompute() }, [allItems, recompute])
+    return () => {
+      ro.disconnect()
+      el.removeEventListener('scroll', onScroll)
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+    }
+  }, [commitViewport, hasContainer])
+
+  // ── 视图切换：滚动位置回到顶部 ──
+  useLayoutEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    if (el.scrollTop !== 0) el.scrollTop = 0
+    setViewport((prev) =>
+      prev.scrollTop === 0 && prev.height === el.clientHeight
+        ? prev
+        : { scrollTop: 0, height: el.clientHeight },
+    )
+  }, [resetKey, hasContainer])
+
+  // ── 可见切片（渲染期推导）──
+  const visibleItems = useMemo(
+    () => getVisibleItems(allItems, viewport.scrollTop, viewport.height),
+    [allItems, viewport.scrollTop, viewport.height],
+  )
 
   return { containerRef, totalHeight, visibleItems, allPhotoIds }
 }

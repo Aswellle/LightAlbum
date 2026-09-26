@@ -8,16 +8,22 @@
  *   完全不处理 '#tagName' 语法，标签过滤无效。
  *
  * 方案：
- *   新增此 hook，在 search 视图且 query 以 '#' 开头时：
+ *   在 search 视图且 query 以 '#' 开头时：
  *     1. 从 tags 缓存中查找同名标签，取其 id
  *     2. 调用 api.search.query({ tagIds: [tagId] }) 获取带该标签的照片
  *     3. 同步结果到 photoStore（与 usePhotoQuery 接口兼容）
- *   返回 { isTagSearch: boolean, tagName: string } 供外层决定是否替代 usePhotoQuery。
+ *   返回 { isTagSearch, isSynced, viewKey } 供外层决定是否替代 usePhotoQuery。
  *
  * 使用方：PhotoGrid 中检测当前是否为标签搜索视图，若是则用本 hook。
+ *
+ * P0-2 闪烁修复：
+ *   - 同步改用 useLayoutEffect（原 useEffect 在绘制后才写 store → 先闪一帧空内容）
+ *   - 标签视图的首页/清空同样在绘制前完成；标签列表尚未加载完时不显示空态
+ *   - 暴露 isSynced：为 false 时渲染层必须显示骨架屏，不得显示空态
+ *   - usePhotoQuery 在标签视图下被禁用（enabled=false），避免两个写入方互相覆盖
  */
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/services/tauriIpc'
 import { useUiStore, selectCurrentView } from '@/stores/uiStore'
@@ -31,6 +37,10 @@ export interface UseTagPhotoQueryResult {
   /** 提取的标签名（不含 #） */
   tagName:     string
   isLoading:   boolean
+  /** photoStore 内容是否已对应当前标签视图 */
+  isSynced:    boolean
+  /** 标签视图键（供内容区判断是否需要重置滚动位置） */
+  viewKey:     string
   totalCount:  number
 }
 
@@ -55,8 +65,10 @@ export function useTagPhotoQuery(): UseTagPhotoQueryResult {
     ? extractTagName(currentView.query)
     : ''
 
+  const viewKey = `tag:${tagName.toLowerCase()}`
+
   // 获取所有标签列表，从中找到匹配的标签 id
-  const { data: allTags = [] } = useQuery<Tag[]>({
+  const { data: allTags = [], isLoading: tagsLoading } = useQuery<Tag[]>({
     queryKey: ['tags'],
     queryFn:  () => api.tags.list(),
     staleTime: 60_000,
@@ -69,7 +81,7 @@ export function useTagPhotoQuery(): UseTagPhotoQueryResult {
   )
 
   // 用 search_photos 接口按 tagIds 查询照片
-  const { data: searchResult, isLoading } = useQuery({
+  const { data: searchResult, isLoading: searchLoading } = useQuery({
     queryKey: ['tag-photos', matchedTag?.id ?? ''],
     queryFn:  async () => {
       if (!matchedTag) return { items: [], nextCursor: null, total: 0 }
@@ -82,32 +94,57 @@ export function useTagPhotoQuery(): UseTagPhotoQueryResult {
     staleTime: 30_000,
   })
 
-  // 清空状态（当从标签视图切换走时）
-  const prevTagName = useRef('')
-  useEffect(() => {
-    if (prevTagName.current !== tagName) {
-      prevTagName.current = tagName
-      setPhotos([], 0)
-      resetSelection()
-    }
-  }, [tagName, setPhotos, resetSelection])
+  const isLoading = isTagSearch && (tagsLoading || searchLoading)
 
-  // 同步到 photoStore
-  useEffect(() => {
+  // P0-2: 离开标签视图后作废同步标记，再次进入同一标签时必须重新同步
+  const syncedKeyRef = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    if (isTagSearch) return
+    syncedKeyRef.current = null
+  }, [isTagSearch])
+
+  // P0-2: 绘制前同步 —— 切换标签时同一帧内替换，不留「空网格/空态」中间帧
+  useLayoutEffect(() => {
     if (!isTagSearch) return
-    if (isLoading) return
+
+    if (syncedKeyRef.current !== viewKey) {
+      // ── 切换到另一个标签（或首次进入）──
+      syncedKeyRef.current = viewKey
+      resetSelection()
+      if (!tagsLoading && searchResult) {
+        setPhotos(searchResult.items, searchResult.total)
+      } else {
+        // 尚无数据：清空，由渲染层显示骨架屏
+        setPhotos([], 0)
+      }
+      return
+    }
+
+    if (tagsLoading || searchLoading) return
+
     if (searchResult) {
       setPhotos(searchResult.items, searchResult.total)
     } else if (!matchedTag) {
-      // 标签名未找到 → 显示空态
+      // 标签名未找到 → 空态
       setPhotos([], 0)
     }
-  }, [isTagSearch, isLoading, searchResult, matchedTag, setPhotos])
+  }, [
+    isTagSearch,
+    viewKey,
+    tagsLoading,
+    searchLoading,
+    searchResult,
+    matchedTag,
+    setPhotos,
+    resetSelection,
+  ])
 
   return {
     isTagSearch,
     tagName,
-    isLoading: isTagSearch && isLoading,
+    isLoading,
+    isSynced:   isTagSearch && syncedKeyRef.current === viewKey,
+    viewKey,
     totalCount: searchResult?.total ?? 0,
   }
 }
