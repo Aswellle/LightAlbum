@@ -72,6 +72,11 @@ export type IconName =
   | 'x-circle'
   // ── 标签系统图标（Phase-B M-12）──
   | 'tag'
+  // ── 可见度改造（P0-1）：侧边栏「新建/添加」动作图标 ──
+  //    统一为「父级图形 + 加号」家族：相册=书、私密相册=锁、文件夹=文件夹
+  | 'book-plus'
+  | 'lock-plus'
+  | 'folder-plus'
 
 interface IconProps {
   name:         IconName
@@ -471,6 +476,37 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <circle cx="7.5" cy="7.5" r="1" fill="currentColor" stroke="none" />
     </>
   ),
+
+  // ════════════════════════════════════════════════════
+  //  新建/添加动作图标（P0-1 可见度改造）
+  //  设计：父级图形（书 / 锁 / 文件夹）+ 加号，一眼可辨功能
+  // ════════════════════════════════════════════════════
+
+  // 新建相册 — 书 + 加号
+  'book-plus': (
+    <>
+      <path d="M2.5 3.5h8.5a1 1 0 0 1 1 1v12.5l-5.25-2L1.5 17V4.5a1 1 0 0 1 1-1z" strokeLinejoin="round" />
+      <path d="M1.5 4.5a1 1 0 0 1 1-1" strokeLinecap="round" />
+      <path d="M15.5 11.5v6M12.5 14.5h6" strokeLinecap="round" />
+    </>
+  ),
+
+  // 新建私密相册 — 锁 + 加号
+  'lock-plus': (
+    <>
+      <rect x="2" y="9.5" width="11" height="8" rx="2" />
+      <path d="M4.5 9.5V7a3 3 0 0 1 6 0v2.5" strokeLinecap="round" />
+      <path d="M16.5 3v5M14 5.5h5" strokeLinecap="round" />
+    </>
+  ),
+
+  // 添加文件夹 — 文件夹 + 加号
+  'folder-plus': (
+    <>
+      <path d="M2 6a1 1 0 0 1 1-1h5l1.5 2H17a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z" strokeLinejoin="round" />
+      <path d="M10 8.5v6.5M6.75 11.75h6.5" strokeLinecap="round" />
+    </>
+  ),
 }
 
 // ─────────────────────────────────────────────────────────
@@ -481,10 +517,20 @@ export const Icon = memo(function Icon({
   name,
   size        = 16,
   color       = 'currentColor',
-  strokeWidth = 1.5,
+  strokeWidth,
   className,
   style,
 }: IconProps) {
+  // 线宽随尺寸自适应：20×20 viewBox 在小尺寸下按比例加粗，
+  // 避免 12–14px 图标渲染成 <1px 的发丝线（可见度关键修复）
+  const stroke = strokeWidth ?? (
+    size >= 20 ? 1.5 :
+    size >= 16 ? 1.65 :
+    size >= 14 ? 1.8  :
+    size >= 12 ? 1.95 :
+                 2.1
+  )
+
   return (
     <svg
       width={size}
@@ -492,7 +538,7 @@ export const Icon = memo(function Icon({
       viewBox="0 0 20 20"
       fill="none"
       stroke={color}
-      strokeWidth={strokeWidth}
+      strokeWidth={stroke}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
