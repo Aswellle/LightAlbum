@@ -338,6 +338,16 @@ jobs:
       name: release
 
     steps:
+      # gh 解析目标仓库依赖 git 上下文（远端 / --repo 推断）。
+      # 没有 checkout 时 gh 会执行 git 并失败：
+      #   failed to run git: fatal: not a git repository (or any of the parent directories): .git
+      # fetch-depth/fetch-tags：确保 --verify-tag 在本地也能看到该 tag。不要删除本步骤。
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
