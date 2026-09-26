@@ -130,8 +130,8 @@ const HistoryDropdown = memo(function HistoryDropdown({
       }}>
         <span style={{
           fontSize:   'var(--la-text-xs)',
-          color:      'var(--la-text-tertiary)',
-          fontWeight: 'var(--la-weight-medium)',
+          color:      'var(--la-text-secondary)',
+          fontWeight: 'var(--la-weight-semibold)',
         }}>
           最近搜索
         </span>
@@ -139,16 +139,17 @@ const HistoryDropdown = memo(function HistoryDropdown({
           onClick={onClearAll}
           style={{
             fontSize:        'var(--la-text-xs)',
-            color:           'var(--la-text-tertiary)',
+            fontWeight:      'var(--la-weight-medium)',
+            color:           'var(--la-text-secondary)',
             backgroundColor: 'transparent',
             border:          'none',
             cursor:          'default',
-            padding:         '2px 4px',
+            padding:         '2px 6px',
             borderRadius:    'var(--la-radius-sm)',
-            transition:      'color 100ms ease',
+            transition:      'color 100ms ease, background-color 100ms ease',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--la-danger)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--la-text-tertiary)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--la-danger-text)'; e.currentTarget.style.backgroundColor = 'var(--la-danger-subtle)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--la-text-secondary)'; e.currentTarget.style.backgroundColor = 'transparent' }}
         >
           清除历史
         </button>
@@ -172,6 +173,7 @@ const HistoryDropdown = memo(function HistoryDropdown({
                 cursor:          'default',
                 color:           'var(--la-text-secondary)',
                 fontSize:        'var(--la-text-sm)',
+                fontWeight:      'var(--la-weight-medium)',
                 transition:      'background-color 80ms ease',
               }}
               onMouseEnter={(e) => {
@@ -183,7 +185,7 @@ const HistoryDropdown = memo(function HistoryDropdown({
                 e.currentTarget.style.color = 'var(--la-text-secondary)'
               }}
             >
-              <Icon name="clock" size={13} color="var(--la-text-tertiary)" />
+              <Icon name="clock" size={14} color="var(--la-text-secondary)" />
               <span style={{ flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                 {item}
               </span>
@@ -265,7 +267,7 @@ const SuggestionsDropdown = memo(function SuggestionsDropdown({
           items={fileNames.map((n) => ({
             key:   n,
             text:  n,
-            icon:  <Icon name="images" size={12} color="var(--la-text-tertiary)" />,
+            icon:  <Icon name="images" size={14} color="var(--la-text-secondary)" />,
             query: n,
           }))}
           onSelect={onSelect}
@@ -279,7 +281,7 @@ const SuggestionsDropdown = memo(function SuggestionsDropdown({
           items={cameras.map((c) => ({
             key:   c,
             text:  c,
-            icon:  <Icon name="camera" size={12} color="var(--la-text-tertiary)" />,
+            icon:  <Icon name="camera" size={14} color="var(--la-text-secondary)" />,
             query: c,
           }))}
           onSelect={onSelect}
@@ -306,8 +308,8 @@ function SuggSection({ label, items, onSelect }: {
       <div style={{
         padding:      '6px 12px 2px',
         fontSize:     'var(--la-text-xs)',
-        color:        'var(--la-text-tertiary)',
-        fontWeight:   'var(--la-weight-medium)',
+        color:        'var(--la-text-secondary)',
+        fontWeight:   'var(--la-weight-semibold)',
         letterSpacing:'0.04em',
         textTransform:'uppercase',
       }}>
@@ -330,6 +332,7 @@ function SuggSection({ label, items, onSelect }: {
                 cursor:          'default',
                 color:           'var(--la-text-secondary)',
                 fontSize:        'var(--la-text-sm)',
+                fontWeight:      'var(--la-weight-medium)',
                 transition:      'background-color 80ms ease',
               }}
               onMouseEnter={(e) => {
@@ -525,22 +528,21 @@ export const SearchBox = memo(function SearchBox() {
         style={{
           display:         'flex',
           alignItems:      'center',
-          gap:             '7px',
-          height:          '32px',
+          gap:             '8px',
+          height:          '34px',
           padding:         '0 10px 0 12px',
           borderRadius:    'var(--la-radius-full)',
-          backgroundColor: isOpen
-            ? 'var(--la-bg-overlay)'
-            : 'var(--la-bg-hover)',
-          border:          `1px solid ${isOpen ? 'var(--la-border-strong)' : 'transparent'}`,
+          // 静止态即使用可承载 4.5:1 文字/占位符的底色，不再用近乎透明的 hover 底色
+          backgroundColor: 'var(--la-bg-raised)',
+          border:          `1px solid ${isOpen ? 'var(--la-accent)' : 'var(--la-border-strong)'}`,
           transition:      'background-color 150ms ease, border-color 150ms ease',
         }}
       >
         {/* 搜索图标 */}
         <Icon
           name="search"
-          size={14}
-          color={isOpen ? 'var(--la-text-secondary)' : 'var(--la-text-tertiary)'}
+          size={15}
+          color={isOpen ? 'var(--la-text-primary)' : 'var(--la-text-secondary)'}
         />
 
         {/* 输入框 */}
@@ -581,23 +583,25 @@ export const SearchBox = memo(function SearchBox() {
                 display:         'flex',
                 alignItems:      'center',
                 justifyContent:  'center',
-                width:           '18px',
-                height:          '18px',
+                width:           '20px',
+                height:          '20px',
                 borderRadius:    '50%',
-                backgroundColor: 'var(--la-text-tertiary)',
-                border:          'none',
+                backgroundColor: 'var(--la-bg-active)',
+                border:          '1px solid var(--la-border-strong)',
                 cursor:          'default',
                 flexShrink:      0,
-                transition:      'background-color 100ms ease',
+                transition:      'background-color 100ms ease, border-color 100ms ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--la-text-secondary)'
+                e.currentTarget.style.backgroundColor = 'var(--la-bg-selected)'
+                e.currentTarget.style.borderColor = 'var(--la-accent)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--la-text-tertiary)'
+                e.currentTarget.style.backgroundColor = 'var(--la-bg-active)'
+                e.currentTarget.style.borderColor = 'var(--la-border-strong)'
               }}
             >
-              <Icon name="x" size={10} color="#fff" strokeWidth={2.5} />
+              <Icon name="x" size={11} color="var(--la-text-primary)" strokeWidth={2.2} />
             </motion.button>
           ) : !isOpen ? (
             <motion.span
@@ -607,9 +611,11 @@ export const SearchBox = memo(function SearchBox() {
               exit={{    opacity: 0 }}
               transition={{ duration: 0.1 }}
               style={{
-                fontSize:        '11px',
-                color:           'var(--la-text-tertiary)',
+                fontSize:        'var(--la-text-xs)',
+                fontWeight:      'var(--la-weight-medium)',
+                color:           'var(--la-text-secondary)',
                 backgroundColor: 'var(--la-bg-overlay)',
+                border:          '1px solid var(--la-border)',
                 borderRadius:    'var(--la-radius-sm)',
                 padding:         '1px 5px',
                 flexShrink:      0,

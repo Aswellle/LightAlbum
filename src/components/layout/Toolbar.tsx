@@ -53,10 +53,10 @@ const LayoutToggle = memo(function LayoutToggle() {
 
   const btnStyle = (isActive: boolean): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: '28px', height: '28px', borderRadius: '5px',
+    width: '30px', height: '30px', borderRadius: 'var(--la-radius-sm)',
     backgroundColor: isActive ? 'var(--la-bg-raised)' : 'transparent',
-    border: 'none', color: isActive ? 'var(--la-text-primary)' : 'var(--la-text-tertiary)',
-    cursor: 'default', transition: 'all 120ms ease',
+    border: 'none', color: isActive ? 'var(--la-text-primary)' : 'var(--la-text-secondary)',
+    cursor: 'default', transition: 'background-color 120ms ease, color 120ms ease',
     boxShadow: isActive ? 'var(--la-shadow-sm)' : 'none',
   })
 
@@ -68,17 +68,17 @@ const LayoutToggle = memo(function LayoutToggle() {
     }}>
       <button onClick={() => setMode('grid')} aria-label="网格布局" aria-pressed={mode === 'grid'}
         title="网格布局（Ctrl+1）" style={btnStyle(mode === 'grid')}
-        onMouseEnter={(e) => { if (mode !== 'grid') e.currentTarget.style.color = 'var(--la-text-secondary)' }}
-        onMouseLeave={(e) => { if (mode !== 'grid') e.currentTarget.style.color = 'var(--la-text-tertiary)' }}
+        onMouseEnter={(e) => { if (mode !== 'grid') e.currentTarget.style.color = 'var(--la-text-primary)' }}
+        onMouseLeave={(e) => { if (mode !== 'grid') e.currentTarget.style.color = 'var(--la-text-secondary)' }}
       >
-        <Icon name="grid" size={14} />
+        <Icon name="grid" size={15} />
       </button>
       <button onClick={() => setMode('waterfall')} aria-label="瀑布流布局" aria-pressed={mode === 'waterfall'}
         title="瀑布流布局（Ctrl+2）" style={btnStyle(mode === 'waterfall')}
-        onMouseEnter={(e) => { if (mode !== 'waterfall') e.currentTarget.style.color = 'var(--la-text-secondary)' }}
-        onMouseLeave={(e) => { if (mode !== 'waterfall') e.currentTarget.style.color = 'var(--la-text-tertiary)' }}
+        onMouseEnter={(e) => { if (mode !== 'waterfall') e.currentTarget.style.color = 'var(--la-text-primary)' }}
+        onMouseLeave={(e) => { if (mode !== 'waterfall') e.currentTarget.style.color = 'var(--la-text-secondary)' }}
       >
-        <Icon name="waterfall" size={14} />
+        <Icon name="waterfall" size={15} />
       </button>
     </div>
   )
@@ -111,19 +111,20 @@ const SortDropdown = memo(function SortDropdown() {
       <button
         onClick={() => setOpen((v) => !v)} aria-label="排序方式" aria-haspopup="listbox" aria-expanded={open}
         style={{
-          display: 'flex', alignItems: 'center', gap: '5px',
+          display: 'flex', alignItems: 'center', gap: '6px',
           height: '32px', padding: '0 10px', borderRadius: 'var(--la-radius-md)',
           backgroundColor: open ? 'var(--la-bg-active)' : 'transparent',
-          border: `1px solid ${open ? 'var(--la-border)' : 'transparent'}`,
+          border: `1px solid ${open ? 'var(--la-border-strong)' : 'transparent'}`,
           color: 'var(--la-text-secondary)', fontSize: 'var(--la-text-sm)',
-          cursor: 'default', transition: 'all 100ms ease',
+          fontWeight: 'var(--la-weight-medium)',
+          cursor: 'default', transition: 'background-color 100ms ease, color 100ms ease',
         }}
         onMouseEnter={(e) => { if (!open) { e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'; e.currentTarget.style.color = 'var(--la-text-primary)' } }}
         onMouseLeave={(e) => { if (!open) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--la-text-secondary)' } }}
       >
-        <span style={{ fontSize: '11px', opacity: 0.7 }}>{sortAsc ? '↑' : '↓'}</span>
+        <span style={{ fontSize: 'var(--la-text-xs)', color: 'var(--la-text-secondary)', fontWeight: 'var(--la-weight-medium)' }}>{sortAsc ? '↑' : '↓'}</span>
         <span>{currentLabel}</span>
-        <Icon name="chevron-down" size={12} style={{ transition: 'transform 150ms ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+        <Icon name="chevron-down" size={13} style={{ transition: 'transform 150ms ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
       </button>
 
       <AnimatePresence>
@@ -148,11 +149,11 @@ const SortDropdown = memo(function SortDropdown() {
                     style={{
                       flex: 1, height: '26px', borderRadius: 'var(--la-radius-sm)',
                       fontSize: 'var(--la-text-xs)',
+                      fontWeight: 'var(--la-weight-medium)',
                       backgroundColor: isActive ? 'var(--la-accent-subtle)' : 'var(--la-bg-overlay)',
-                      color: isActive ? 'var(--la-accent)' : 'var(--la-text-secondary)',
+                      color: isActive ? 'var(--la-accent-text)' : 'var(--la-text-secondary)',
                       border: `1px solid ${isActive ? 'var(--la-accent)' : 'transparent'}`,
-                      cursor: 'default', transition: 'all 100ms ease',
-                      fontWeight: isActive ? 'var(--la-weight-medium)' as unknown as number : undefined,
+                      cursor: 'default', transition: 'background-color 100ms ease',
                     }}
                   >
                     {dir === 'asc' ? '↑ 从早到晚' : '↓ 从晚到早'}
@@ -216,17 +217,17 @@ const ImportButton = memo(function ImportButton() {
     <button
       onClick={handleImport} disabled={loading} aria-label="添加照片文件夹" title="添加照片文件夹"
       style={{
-        display: 'flex', alignItems: 'center', gap: '5px',
+        display: 'flex', alignItems: 'center', gap: '6px',
         height: '32px', padding: '0 12px', borderRadius: 'var(--la-radius-md)',
-        backgroundColor: 'var(--la-accent)', border: 'none', color: '#fff',
-        fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)' as unknown as number,
-        cursor: loading ? 'wait' : 'default', opacity: loading ? 0.7 : 1,
-        transition: 'all 100ms ease', flexShrink: 0,
+        backgroundColor: 'var(--la-accent-fill)', border: 'none', color: 'var(--la-text-on-accent)',
+        fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-semibold)',
+        cursor: loading ? 'wait' : 'default', opacity: loading ? 0.75 : 1,
+        transition: 'background-color 100ms ease', flexShrink: 0,
       }}
-      onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--la-accent-hover)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-accent)' }}
+      onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--la-accent-fill-hover)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--la-accent-fill)' }}
     >
-      <Icon name="import" size={14} color="#fff" />
+      <Icon name="import" size={15} color="var(--la-text-on-accent)" />
       <span>导入</span>
     </button>
   )
@@ -240,7 +241,7 @@ function ToolbarDivider({ inSelectionMode }: { inSelectionMode?: boolean }) {
   return (
     <div style={{
       width: '1px', height: '18px', flexShrink: 0,
-      backgroundColor: inSelectionMode ? 'rgba(255,255,255,0.2)' : 'var(--la-border)',
+      backgroundColor: inSelectionMode ? 'rgba(255,255,255,0.35)' : 'var(--la-border-strong)',
     }} />
   )
 }
@@ -292,7 +293,7 @@ export function Toolbar({ allIds = [], totalCount = 0 }: ToolbarProps) {
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '0 14px', height: 'var(--la-toolbar-h)', flexShrink: 0,
-        backgroundColor: isSelectionMode ? 'var(--la-accent)' : 'var(--la-bg-toolbar)',
+        backgroundColor: isSelectionMode ? 'var(--la-accent-fill)' : 'var(--la-bg-toolbar)',
         borderBottom: '1px solid var(--la-border)',
         transition: 'background-color 200ms ease',
       }}
@@ -355,31 +356,32 @@ export function Toolbar({ allIds = [], totalCount = 0 }: ToolbarProps) {
               style={{
                 display:         'flex',
                 alignItems:      'center',
-                gap:             '4px',
-                height:          '30px',
-                padding:         '0 10px',
+                gap:             '6px',
+                height:          '32px',
+                padding:         '0 12px',
                 borderRadius:    'var(--la-radius-md)',
                 backgroundColor: 'var(--la-bg-overlay)',
-                border:          '1px solid var(--la-border)',
+                border:          '1px solid var(--la-border-strong)',
                 color:           'var(--la-text-secondary)',
                 fontSize:        'var(--la-text-sm)',
+                fontWeight:      'var(--la-weight-medium)',
                 cursor:          'default',
-                transition:      'all 100ms ease',
+                transition:      'background-color 100ms ease, color 100ms ease, border-color 100ms ease',
                 flexShrink:      0,
                 whiteSpace:      'nowrap',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--la-bg-hover)'
+                e.currentTarget.style.backgroundColor = 'var(--la-bg-active)'
                 e.currentTarget.style.color = 'var(--la-text-primary)'
-                e.currentTarget.style.borderColor = 'var(--la-border-strong)'
+                e.currentTarget.style.borderColor = 'var(--la-accent)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'var(--la-bg-overlay)'
                 e.currentTarget.style.color = 'var(--la-text-secondary)'
-                e.currentTarget.style.borderColor = 'var(--la-border)'
+                e.currentTarget.style.borderColor = 'var(--la-border-strong)'
               }}
             >
-              <Icon name="check-square" size={13} color="currentColor" strokeWidth={1.5} />
+              <Icon name="check-square" size={15} color="currentColor" />
               选择
             </button>
           </motion.div>
