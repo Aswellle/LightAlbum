@@ -1,48 +1,93 @@
 # Release Guide
 
+> 发行系统使用**不可变发行账本**模型：一个版本号 = 一个 commit = 一个 Release，已发布的 Release / Tag 永不改写。
+> 铁律与 AI 禁止事项见 `AGENTS.md` → *Release Safety Rules*，此处只描述可执行流程。
+
 ## Versioning
 
-LightAlbum follows [Semantic Versioning](https://semver.org/). Version is defined in:
-- `package.json` → `"version"`
-- `src-tauri/Cargo.toml` → `[package] version`
-- `src-tauri/tauri.conf.json` → `"version"`
+四个文件必须一致，由 `pnpm version:check` 校验：
 
-Keep all three in sync before tagging a release.
+| 文件 | 字段 |
+|---|---|
+| `package.json` | `"version"` |
+| `src-tauri/tauri.conf.json` | `"version"` |
+| `src-tauri/Cargo.toml` | `[package] version` |
+| `src-tauri/Cargo.lock` | `[[package]] light-album` 的 `version` |
+
+只改 `package.json`，其余由脚本同步（禁止手改，容易漏 `Cargo.lock`）：
+
+```bash
+pnpm version:set 0.4.1      # 同步四个文件到指定版本
+pnpm version:bump patch     # 或 minor / major（按 package.json 当前值推导）
+pnpm version:check          # 校验四者一致
+```
+
+版本号语义：`patch` = 仅修复；`minor` = 体验/功能升级（0.x 下的常规发行）；`major` = 稳定承诺。
 
 ## Release process
 
-### 1. Prepare the release
+### 1. Prepare
+
+- `CHANGELOG.md`：把 `[Unreleased]` 提升为新版本小节（`## [0.4.1] — YYYY-MM-DD`），条目按 Added / Changed / Fixed 归类。
+- 写 `release_notes.md`：**用户视角**的发行说明，按「实现 / 添加 / 修复」分条，不含文件名、组件名、令牌等实现细节——它会被用作 GitHub Release 正文。
+- 提交：`chore(release): bump version to X.Y.Z and update CHANGELOG`。
+
+### 2. Preflight and tag（不要手写 `git tag`）
 
 ```bash
-# Update version in all three files (example: 0.2.0)
-# package.json, src-tauri/Cargo.toml, src-tauri/tauri.conf.json
-
-# Update CHANGELOG.md — move [Unreleased] to the new version + date
-# Format: ## [0.2.0] — YYYY-MM-DD
-
-# Commit the version bump
-git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json CHANGELOG.md
-git commit -m "chore: release v0.2.0"
+pnpm release:preflight v0.4.1   # tag 格式 · 版本一致 · 在 main 上 · 工作树干净 · 远端无重名 tag · 非不可变版本
+pnpm release:tag v0.4.1         # 创建**附注** tag 并推送 → 触发 Release workflow
 ```
 
-### 2. Tag and push
+参数直接跟在脚本名后（`pnpm release:tag -- v0.4.1` 会把 `--` 原样传给脚本并报错）。脚本是 create-only：不会删除或覆盖任何已有 tag。
 
-```bash
-git tag v0.2.0
-git push origin main --tags
+### 3. What the workflow does
+
+```
+Preflight → Full CI (workflow_call) → Create Draft Release (release_id)
+  → Build Windows / macOS ARM64 / macOS Intel / Linux（同一 release_id）
+  → Verify Assets（四平台 · 仍为 Draft）
+  → release Environment（人工批准）
+  → Publish → 不可变
 ```
 
-Pushing the tag triggers the `release.yml` workflow, which:
-- Builds platform binaries in parallel (Windows x64, macOS ARM64, macOS x64, Linux x64)
-- Builds the sidecar binary for each platform
-- Creates a draft GitHub Release with all installers attached
+### 4. Finalize（必须在发布前完成——发布后不可改写）
 
-### 3. Finalize the release
+1. Releases 页面打开 Draft，确认四平台资产齐全（命名见文末表格）。
+2. 用 `release_notes.md` 替换正文（workflow 用 `--generate-notes` 生成的是提交标题，面向开发者）：
 
-1. Go to the GitHub Releases page.
-2. Review the draft release and verify all platform binaries are attached.
-3. Edit the release notes (copy from CHANGELOG.md).
-4. Publish the release.
+   ```bash
+   gh auth refresh -h github.com        # 本机 gh token 失效时先刷新
+   gh release edit v0.4.1 --title "LightAlbum v0.4.1" --notes-file release_notes.md
+   ```
+
+   Draft 允许编辑；一旦 Publish 即不可变。
+3. 批准 `release` environment 的 deployment（Actions → 该 run → Review deployments），workflow 完成 Publish。
+
+## GitHub environment settings（必需，一次性）
+
+`release` environment 除了 **Required reviewers**，还必须**允许 tag 部署**。否则 publish 作业会失败：
+
+> Tag "v0.4.0" is not allowed to deploy to release due to environment protection rules.
+
+Settings → Environments → `release` → **Deployment branches and tags** → Edit:
+
+- *Selected branches and tags* → 添加一条 **Tag** 规则，pattern `v*`（推荐，作用域最小）；或
+- *All branches*（宽松）。
+
+注意：`Protected branches only` 永远不匹配 tag——这正是默认/常见配置下 tag 发行被拒的原因。Required reviewers 是另一道门，**不能替代**该规则：被规则拒绝的 deployment 根本不会进入等待批准状态。
+
+其余一次性设置（Immutable Releases、Tag Ruleset）见 `AGENTS.md` → *GitHub Settings Required*。
+
+## Failure recovery
+
+| 场景 | 处理 |
+|---|---|
+| CI 失败 | 修代码 → main → **新版本号**；绝不移动失败的 tag |
+| 单平台构建失败（Tag / Commit 未变，Release 仍为 Draft） | Actions → 该 run → **Re-run failed jobs** |
+| publish 被 environment 规则拒绝 | 按上节补 tag 规则 → **Re-run failed jobs**（Tag / Commit 未变，允许重跑） |
+| Draft 的正文/标题不合格 | Publish 之前用 `gh release edit --notes-file` 或网页编辑 |
+| 已发布后发现 bug | 新版本号（0.4.2）→ 新 tag → 新 Release；**禁止**重传资产或改写已发布 Release |
 
 ## Code signing
 
@@ -63,16 +108,18 @@ Distributing outside the Mac App Store requires notarization:
 
 ## Build artifacts
 
-| Platform | Artifact |
-|----------|----------|
-| Windows  | `LightAlbum_x.y.z_x64-setup.exe` (NSIS installer) |
-| macOS    | `LightAlbum_x.y.z_aarch64.dmg`, `LightAlbum_x.y.z_x64.dmg` |
-| Linux    | `light-album_x.y.z_amd64.AppImage`, `light-album_x.y.z_amd64.deb` |
+`bundle.targets = "all"`，产物按 Tauri 默认命名（`{productName}_{version}_{arch}[_{locale}]`，Linux 使用小写包名）：
+
+| 平台 | 产物 |
+|------|----------|
+| Windows | `LightAlbum_x.y.z_x64-setup.exe`（NSIS）、`LightAlbum_x.y.z_x64_en-US.msi` |
+| macOS | `LightAlbum_x.y.z_aarch64.dmg`、`LightAlbum_x.y.z_x64.dmg` |
+| Linux | `light-album_x.y.z_amd64.AppImage`、`light-album_x.y.z_amd64.deb` |
 
 ## Hotfix releases
 
 For critical fixes (security vulnerabilities, data-loss bugs):
 1. Branch from the release tag: `git checkout -b hotfix/0.1.1 v0.1.0`
 2. Apply the minimum fix.
-3. Update version + CHANGELOG, tag `v0.1.1`, push.
+3. Update version + CHANGELOG, tag `v0.1.1` via `pnpm release:tag v0.1.1`, push.
 4. Merge the hotfix branch back to `main`.

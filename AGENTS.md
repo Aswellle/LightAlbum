@@ -346,6 +346,9 @@ version:set → commit → push main → CI passes
 1. **Immutable Releases** — Settings → General → Releases → Enable release immutability (affects v0.2.0+).
 2. **Tag Ruleset** — Settings → Rules → Rulesets → Target Tag `v*` → Restrict creations, Block force pushes, Restrict updates.
 3. **release Environment** — Settings → Environments → New `release` → add Required reviewers (human approval gate).
+4. **release Environment → Deployment branches and tags** — must allow the tag ref, otherwise the publish job fails with
+   `Tag "v0.4.0" is not allowed to deploy to release due to environment protection rules.`
+   Set *Selected branches and tags* → add a **Tag** rule with pattern `v*` (or *All branches*). A "protected branches only" setting never matches tags. Required reviewers (item 3) do **not** substitute for this rule — a rejected deployment never reaches the approval prompt.
 
 ### Git 提交规则
 

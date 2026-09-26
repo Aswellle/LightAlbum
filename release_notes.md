@@ -6,10 +6,10 @@
 
 | 平台 | 文件 |
 |------|------|
-| Windows (x64) | `LightAlbum-0.4.0-x64.msi` 或 `.exe` |
-| macOS (Apple Silicon) | `LightAlbum-0.4.0-aarch64.dmg` |
-| macOS (Intel) | `LightAlbum-0.4.0-x64.dmg` |
-| Linux (x64) | `LightAlbum-0.4.0-amd64.deb` 或 `.AppImage` |
+| Windows (x64) | `LightAlbum_0.4.0_x64-setup.exe`（推荐）或 `LightAlbum_0.4.0_x64_en-US.msi` |
+| macOS (Apple Silicon) | `LightAlbum_0.4.0_aarch64.dmg` |
+| macOS (Intel) | `LightAlbum_0.4.0_x64.dmg` |
+| Linux (x64) | `light-album_0.4.0_amd64.AppImage` 或 `light-album_0.4.0_amd64.deb` |
 
 [前往 Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest)
 
