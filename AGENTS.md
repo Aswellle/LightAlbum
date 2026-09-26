@@ -344,3 +344,19 @@ version:set → commit → push main → CI passes
 1. **Immutable Releases** — Settings → General → Releases → Enable release immutability (affects v0.2.0+).
 2. **Tag Ruleset** — Settings → Rules → Rulesets → Target Tag `v*` → Restrict creations, Block force pushes, Restrict updates.
 3. **release Environment** — Settings → Environments → New `release` → add Required reviewers (human approval gate).
+
+### Git 提交规则
+
+  - commit message 中禁止包含任何 `Co-Authored-By` 署名（包括但不限于 Claude、Anthropic、noreply@anthropic.com 等任何 AI 相关署名）
+
+  - 所有提交仅保留用户本人的 git 作者信息（`用户名 <邮箱>`）
+
+  - 创建 PR 时同样不添加任何 AI 合作者信息
+
+### 仓库管理硬性规则（永远不可违反）
+
+  - **禁止修改公共仓库的可见性**：不得将任何公开（public）仓库切换为私有（private）或内部（internal），即使是为了清除 contributor 缓存、刷新索引或其他任何原因。此操作会导致 star 和 fork 数据永久丢失。
+
+  - **禁止通过 `gh repo edit --visibility` 切换任何仓库的可见性**：除非用户明确要求且已书面确认接受丢失 star/fork 的后果。
+
+  - **禁止通过其他任何手段（API、浏览器设置等）修改仓库可见性**：本规则覆盖所有可能的可见性修改方式。
