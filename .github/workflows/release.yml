@@ -159,14 +159,35 @@ jobs:
 
             echo "Reusing existing draft release."
 
+            # release_notes.md 是发行正文的唯一来源（见 docs/RELEASE.md）。
+            # 恢复中断的 draft 时同步正文，避免带着 --generate-notes 的临时内容发布。
+            if [[ -f release_notes.md ]]; then
+              echo "Syncing draft body from release_notes.md"
+              gh release edit "$TAG" \
+                --title "LightAlbum $TAG" \
+                --notes-file release_notes.md
+            fi
+
           else
             echo "Creating draft release."
 
-            gh release create "$TAG" \
-              --verify-tag \
-              --draft \
-              --generate-notes \
-              --title "LightAlbum $TAG"
+            # 优先使用仓库内 release_notes.md；缺失时才退回自动生成
+            # （自动生成的是提交标题列表，面向开发者，不适合作为发行正文）。
+            if [[ -f release_notes.md ]]; then
+              echo "Creating draft with release_notes.md as body."
+              gh release create "$TAG" \
+                --verify-tag \
+                --draft \
+                --title "LightAlbum $TAG" \
+                --notes-file release_notes.md
+            else
+              echo "release_notes.md not found; falling back to generated notes."
+              gh release create "$TAG" \
+                --verify-tag \
+                --draft \
+                --generate-notes \
+                --title "LightAlbum $TAG"
+            fi
           fi
 
           RELEASE_ID="$(
