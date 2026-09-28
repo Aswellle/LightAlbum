@@ -167,8 +167,16 @@ export const ExifPanel = memo(function ExifPanel({ photoId }: ExifPanelProps) {
           exit={{    x: '100%', opacity: 0 }}
           transition={{ duration: 0.25, ease: [0, 0, 0.2, 1] }}
           style={{
+            // P0-3：面板改为覆盖层（绝对定位），不再参与 flex 行宽计算。
+            // 原实现是 flex 兄弟节点（width 320 + flexShrink:0）：面板出现的第一帧
+            // 就把图片列挤窄 → fitDim 当帧变小（照片瞬跳），250ms 后面板才滑到位。
+            // 覆盖层方案无任何重排，滑动保持纯 transform（符合「动画只用 transform/opacity」约定）。
+            position:        'absolute',
+            top:             0,
+            right:           0,
+            bottom:          0,
+            zIndex:          5,
             width:           'var(--la-exif-panel-w)',
-            flexShrink:      0,
             height:          '100%',
             backgroundColor: 'rgba(28,28,30,0.92)',
             backdropFilter:  'blur(20px)',

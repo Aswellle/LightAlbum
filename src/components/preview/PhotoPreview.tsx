@@ -62,6 +62,7 @@ export function PhotoPreview() {
   return (
     <motion.div
       key="photo-preview-root"
+      data-testid="preview-root"
       variants={backdropVariants}
       initial="hidden"
       animate="visible"

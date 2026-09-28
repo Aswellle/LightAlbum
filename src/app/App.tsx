@@ -23,7 +23,7 @@
  *   - <ContextMenu> / <Toast> 使用 React.createPortal 渲染到 body
  */
 
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { Providers } from './providers'
 import { AppShell } from '@/components/layout/AppShell'
 import { PhotoPreview } from '@/components/preview/PhotoPreview'
@@ -55,6 +55,12 @@ function AppContent() {
      *   - font-sans → Segoe UI Variable
      */
     <ErrorBoundary>
+      {/*
+        MotionConfig reducedMotion="user"：系统开启「减少动态效果」时，
+        framer-motion 自动跳过位移/缩放类动画（保留透明度过渡）。
+        全局 CSS 的 prefers-reduced-motion 只能约束 CSS 动画，管不到 framer —— 这里是补齐。
+      */}
+      <MotionConfig reducedMotion="user">
       <div
         className="h-screen w-screen overflow-hidden select-none"
         style={{
@@ -68,10 +74,13 @@ function AppContent() {
 
         {/*
           大图预览覆盖层
-          AnimatePresence 监听 isPreviewOpen 变化，
-          在 true→false 时等待退出动画完成后再卸载 PhotoPreview
+          AnimatePresence 负责卸载时机（退出动画结束后才卸载 PhotoPreview）。
+
+          不使用 mode="wait"：快速「关闭 → 立刻重开」时，wait 会等退出动画走完
+          才挂载新的覆盖层，这期间 isPreviewOpen 已是 true 但画面空白（像卡住）。
+          默认模式下重开会立即接管，退出动画自然被打断。
         */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {isPreviewOpen && <PhotoPreview key="photo-preview" />}
         </AnimatePresence>
 
@@ -79,6 +88,7 @@ function AppContent() {
         <ContextMenu />
         <Toast />
       </div>
+      </MotionConfig>
     </ErrorBoundary>
   )
 }

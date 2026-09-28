@@ -35,13 +35,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { convertFileSrc } from '@tauri-apps/api/core'
-import { useThumbnailWithFallback } from '@/hooks/useThumbnail'
+import { useThumbnail, useThumbnailWithFallback } from '@/hooks/useThumbnail'
 import { usePreviewGesture } from '@/hooks/usePreviewGesture'
 import {
   usePreviewStore,
   selectDirection,
   selectHasNext,
   selectHasPrev,
+  selectIsExifOpen,
 } from '@/stores/previewStore'
 import { usePhotoStore } from '@/stores/photoStore'
 import { api } from '@/services/tauriIpc'
@@ -53,23 +54,24 @@ import { Icon } from '@/components/common/Icon'
 
 const slideVariants = {
   enter: (dir: number) => ({
-    x:       dir > 0 ? '25%' : '-25%',
+    // P0-3：位移从 25% 收到 15% —— 相邻两张照片半透明对穿时位移过大显得凌乱
+    x:       dir > 0 ? '15%' : '-15%',
     opacity: 0,
   }),
   center: {
     x:       0,
     opacity: 1,
     transition: {
-      x:       { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
-      opacity: { duration: 0.18 },
+      x:       { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
+      opacity: { duration: 0.16 },
     },
   },
   exit: (dir: number) => ({
-    x:       dir > 0 ? '-25%' : '25%',
+    x:       dir > 0 ? '-15%' : '15%',
     opacity: 0,
     transition: {
-      x:       { duration: 0.2,  ease: [0.4, 0, 1, 1] },
-      opacity: { duration: 0.15 },
+      x:       { duration: 0.18, ease: [0.4, 0, 1, 1] },
+      opacity: { duration: 0.14 },
     },
   }),
 }
@@ -78,9 +80,15 @@ const slideVariants = {
 //  导航箭头（不变）
 // ─────────────────────────────────────────────────────────
 
-interface NavArrowProps { direction: 'prev' | 'next'; visible: boolean; onClick: () => void }
+interface NavArrowProps {
+  direction: 'prev' | 'next'
+  visible:   boolean
+  onClick:   () => void
+  /** 距容器边缘的距离（信息面板打开时需让出面板宽度） */
+  offset:    string
+}
 
-const NavArrow = memo(function NavArrow({ direction, visible, onClick }: NavArrowProps) {
+const NavArrow = memo(function NavArrow({ direction, visible, onClick, offset }: NavArrowProps) {
   return (
     <AnimatePresence>
       {visible && (
@@ -91,7 +99,7 @@ const NavArrow = memo(function NavArrow({ direction, visible, onClick }: NavArro
           aria-label={direction === 'prev' ? '上一张' : '下一张'}
           style={{
             position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-            [direction === 'prev' ? 'left' : 'right']: '20px',
+            [direction === 'prev' ? 'left' : 'right']: offset,
             zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: '44px', height: '44px', borderRadius: '50%',
             backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
@@ -197,10 +205,12 @@ interface ImageContentProps {
   offset:     { x: number; y: number }
   containerW: number
   containerH: number
+  /** 原图真实像素尺寸回调（父级据此启用平移边界钳制） */
+  onNaturalSizeChange?: (size: { width: number; height: number }) => void
 }
 
 const ImageContent = memo(function ImageContent({
-  photoId, direction, scale, offset, containerW, containerH,
+  photoId, direction, scale, offset, containerW, containerH, onNaturalSizeChange,
 }: ImageContentProps) {
 
   // ── v7 核心：查询原图路径（与 ExifPanel 共用 queryKey，TanStack Query 自动去重）
@@ -215,33 +225,40 @@ const ImageContent = memo(function ImageContent({
   // convertFileSrc 自动处理平台差异（Windows: http://asset.localhost/... 等）
   const originalUrl = photo?.filePath ? convertFileSrc(photo.filePath) : undefined
 
-  // 缩略图：原图查询/加载期间的过渡占位，保证用户看到即时反馈
-  const { url: thumbUrl } = useThumbnailWithFallback(photoId, 'm')
-
-  // 显示 URL：原图优先，缩略图兜底
-  const displayUrl = originalUrl ?? thumbUrl
+  // 底图：缩略图。's' 在网格里通常已缓存 → 切换照片时立即可见；
+  // 'm' 更清晰，就绪后作为底图。两者都只是底图，原图加载完成后被覆盖。
+  const { url: smallUrl } = useThumbnail(photoId, 's', 'high')
+  const { url: mediumUrl } = useThumbnailWithFallback(photoId, 'm')
+  const baseUrl = mediumUrl ?? smallUrl
 
   // ── 元数据宽高（v5，不变）
   const photos   = usePhotoStore((s) => s.photos)
   const metaSize = getPhotoDisplaySize(photoId, photos)
 
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null)
+  const [originalLoaded, setOriginalLoaded] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
 
+  // 原图已在缓存中（complete）时无需等待 onLoad 事件
   useEffect(() => {
-    setNaturalSize(null)
     const img = imgRef.current
     if (img?.complete && img.naturalWidth > 0) {
-      setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight })
+      const size = { w: img.naturalWidth, h: img.naturalHeight }
+      setNaturalSize(size)
+      onNaturalSizeChange?.({ width: size.w, height: size.h })
+      setOriginalLoaded(true)
     }
-  }, [displayUrl])
+  }, [originalUrl, onNaturalSizeChange])
 
   const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
     if (img.naturalWidth > 0) {
-      setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight })
+      const size = { w: img.naturalWidth, h: img.naturalHeight }
+      setNaturalSize(size)
+      onNaturalSizeChange?.({ width: size.w, height: size.h })
     }
-  }, [])
+    setOriginalLoaded(true)
+  }, [onNaturalSizeChange])
 
   // 宽高比：元数据优先（立即），naturalSize 次之（onLoad 后）
   const displaySize = metaSize ?? naturalSize
@@ -249,11 +266,33 @@ const ImageContent = memo(function ImageContent({
     ? calcFitDimensions(containerW, containerH, displaySize.w, displaySize.h)
     : null
 
-  const tempMaxW = containerW > 0 ? containerW : undefined
-  const tempMaxH = containerH > 0 ? containerH : undefined
+  // 图像框：两个图层共用，保证底图与原图占据完全相同的几何
+  const imgBox: React.CSSProperties = {
+    position:       'absolute',
+    inset:          0,
+    margin:         'auto',
+    width:          fitDim ? `${fitDim.width}px`  : undefined,
+    height:         fitDim ? `${fitDim.height}px` : undefined,
+    maxWidth:       fitDim ? 'none' : (containerW > 0 ? `${containerW}px` : '100%'),
+    maxHeight:      fitDim ? 'none' : (containerH > 0 ? `${containerH}px` : '100%'),
+    objectFit:      'contain',
+    objectPosition: 'center',
+    userSelect:     'none',
+    pointerEvents:  'none',
+    display:        'block',
+    transform:       `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
+    transformOrigin: 'center',
+    // 缩放态下 transform 必须即时跟随指针；回到适应尺寸时给一段过渡。
+    // 透明度过渡始终保留 → 底图↔原图的切换是淡变而不是硬切（原来 filter 不在过渡里，会当帧跳变）
+    transition: scale === 1
+      ? 'transform 200ms ease, opacity 200ms ease'
+      : 'opacity 200ms ease',
+    willChange: 'transform',
+  }
 
-  // 原图已加载完成标志（缩略图占位时略暗，原图加载后恢复正常亮度）
-  const isOriginalLoaded = Boolean(originalUrl && naturalSize)
+  // 占位几何与最终图像一致 → 图像出现时不再跳尺寸
+  const placeholderW = fitDim ? fitDim.width  : (containerW > 0 ? Math.min(containerW * 0.6, 600) : 360)
+  const placeholderH = fitDim ? fitDim.height : placeholderW * 2 / 3
 
   return (
     <motion.div
@@ -273,38 +312,33 @@ const ImageContent = memo(function ImageContent({
         willChange:     'transform',
       }}
     >
-      {displayUrl ? (
+      {/* 底图：缩略图立即可见（切换照片不闪占位，也不必等原图解码） */}
+      {baseUrl && (
+        <img
+          src={baseUrl}
+          alt=""
+          draggable={false}
+          style={{ ...imgBox, opacity: originalLoaded ? 0 : 1 }}
+        />
+      )}
+
+      {/* 原图：onLoad 后淡入，与底图交叉淡变（原实现在同一个 <img> 上硬切 src） */}
+      {originalUrl && (
         <img
           ref={imgRef}
-          src={displayUrl}
+          src={originalUrl}
           alt=""
           draggable={false}
           onLoad={handleLoad}
-          style={{
-            width:     fitDim ? `${fitDim.width}px`  : undefined,
-            height:    fitDim ? `${fitDim.height}px` : undefined,
-            maxWidth:  fitDim ? 'none' : (tempMaxW ? `${tempMaxW}px` : '100vw'),
-            maxHeight: fitDim ? 'none' : (tempMaxH ? `${tempMaxH}px` : '100vh'),
-            // object-fit:contain 保证内容在 fitDim 框内无失真
-            // 原图 naturalSize = 真实像素，不存在压缩/裁切导致的比例偏差
-            objectFit:      'contain',
-            objectPosition: 'center',
-            flexShrink:     0,
-            userSelect:     'none',
-            pointerEvents:  'none',
-            display:        'block',
-            transform:        `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
-            transformOrigin:  'center',
-            transition:       scale === 1 ? 'transform 200ms ease' : undefined,
-            // 缩略图占位期间略暗，原图加载后平滑过渡到正常亮度
-            filter:     isOriginalLoaded ? 'none' : 'brightness(0.92)',
-            willChange: 'transform',
-          }}
+          style={{ ...imgBox, opacity: originalLoaded ? 1 : 0 }}
         />
-      ) : (
+      )}
+
+      {/* 两者都不可用：与最终图像同尺寸的骨架占位（原来固定 3:2，替换时会跳尺寸） */}
+      {!baseUrl && !originalUrl && (
         <div style={{
-          width:           Math.min(containerW * 0.6, 600) || 360,
-          height:          (Math.min(containerW * 0.6, 600) || 360) * 2 / 3,
+          width:           placeholderW,
+          height:          placeholderH,
           borderRadius:    'var(--la-radius-md)',
           backgroundColor: 'var(--la-bg-overlay)',
           backgroundImage: 'linear-gradient(90deg, var(--la-bg-overlay) 0%, var(--la-bg-hover) 50%, var(--la-bg-overlay) 100%)',
@@ -328,12 +362,24 @@ export const PreviewImage = memo(function PreviewImage() {
   const next           = usePreviewStore((s) => s.next)
   const prev           = usePreviewStore((s) => s.prev)
   const isUiHidden     = usePreviewStore((s) => s.isUiHidden)
+  // P0-3：信息面板是覆盖层，打开时箭头需向左让出面板宽度，避免叠在面板上
+  const isExifOpen     = usePreviewStore(selectIsExifOpen)
+  const arrowOffset    = isExifOpen ? 'calc(var(--la-exif-panel-w) + 20px)' : '20px'
 
   const [showHud, setShowHud]   = useState(false)
   const [hovering, setHovering] = useState(false)
   const hudTimerRef             = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { gestureState, containerRef } = usePreviewGesture(null)
+  // 原图尺寸由 ImageContent 上抛（onNaturalSizeChange）→ 平移边界钳制才能生效
+  // （原实现传 null，clampOffset 直接早退，照片可以被拖出屏幕）
+  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
+
+  // 切换照片时清空尺寸（绘制前完成），避免用上一张的尺寸做边界判断
+  useLayoutEffect(() => {
+    setNaturalSize(null)
+  }, [currentPhotoId])
+
+  const { gestureState, containerRef } = usePreviewGesture(naturalSize)
   const { scale, offset, isFit }       = gestureState
 
   const containerSize = useContainerSize(containerRef)
@@ -363,7 +409,9 @@ export const PreviewImage = memo(function PreviewImage() {
         cursor:          scale > 1 ? 'grab' : 'default',
       }}
     >
-      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+      {/* mode 用默认值（sync）：两个图层都是绝对定位，切换本就需要交叠；
+          popLayout 会为绝对定位于元素做额外测量，收益为零。 */}
+      <AnimatePresence initial={false} custom={direction}>
         <ImageContent
           key={currentPhotoId}
           photoId={currentPhotoId}
@@ -372,11 +420,12 @@ export const PreviewImage = memo(function PreviewImage() {
           offset={offset}
           containerW={containerSize.w}
           containerH={containerSize.h}
+          onNaturalSizeChange={setNaturalSize}
         />
       </AnimatePresence>
 
-      <NavArrow direction="prev" visible={hovering && !isUiHidden && hasPrev && isFit} onClick={prev} />
-      <NavArrow direction="next" visible={hovering && !isUiHidden && hasNext && isFit} onClick={next} />
+      <NavArrow direction="prev" offset={arrowOffset} visible={hovering && !isUiHidden && hasPrev && isFit} onClick={prev} />
+      <NavArrow direction="next" offset={arrowOffset} visible={hovering && !isUiHidden && hasNext && isFit} onClick={next} />
 
       <AnimatePresence>
         {showHud && <ScaleHud key="hud" scale={scale} />}

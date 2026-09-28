@@ -27,6 +27,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useLayoutEffect,
   type RefObject,
 } from 'react'
 import { usePreviewStore } from '@/stores/previewStore'
@@ -279,9 +280,10 @@ export function usePreviewGesture(
     return () => el.removeEventListener('wheel', onWheel)
   }, [commit, clampOffset, next, prev])
 
-  // ── 切换照片时重置手势状态 ──
+  // ── 切换照片时重置手势状态（必须绘制前完成）──
+  // 原实现用 useEffect：新照片会先按上一张的缩放/偏移绘制一帧，随后才跳回适应尺寸 —— 可见的跳动。
   const currentPhotoId = usePreviewStore((s) => s.currentPhotoId)
-  useEffect(() => {
+  useLayoutEffect(() => {
     reset()
   }, [currentPhotoId, reset])
 

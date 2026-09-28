@@ -199,7 +199,7 @@
   --la-z-dropdown:    100;
   --la-z-sticky:      200;
   --la-z-overlay:     300;
-  --la-z-modal:       400;
+  --la-z-modal:       550;    /* 确认弹窗需高于大图预览（500）：预览内的删除确认叠在其上 */
   --la-z-preview:     500;    /* 大图预览覆盖所有内容 */
   --la-z-toast:       600;
   --la-z-tooltip:     700;
