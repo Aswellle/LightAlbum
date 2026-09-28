@@ -78,6 +78,15 @@ async function installStub(page: Page) {
           case 'photos_list':
             await sleep(delayMs)
             return { items: [PHOTO], nextCursor: null, total: 1 }
+          case 'photos_get':
+            return PHOTO
+          case 'photos_get_batch':
+            return [PHOTO]
+          // 列表类接口必须返回数组：组件里的 `= []` 默认值只对 undefined 生效，
+          // 返回 null 会直接落到 `.length` 上抛错（曾把应用打进 ErrorBoundary）
+          case 'photo_tags_get':
+          case 'photo_tags_list':
+            return []
           case 'search_stats':
             await sleep(delayMs)
             return { totalPhotos: 1, totalAlbums: 0, totalTags: 0, totalSizeBytes: 0 }
@@ -105,6 +114,9 @@ async function installStub(page: Page) {
     const frames: StartupFrame[] = []
     w.__frames = frames
 
+    // 采样必须同时有 rAF（贴近绘制）和定时心跳（保证空闲期也覆盖）：
+    // 页面静止时 CI 的合成器可能不再产生 rAF 帧，只靠 rAF 会漏掉"数据到达后"的整段窗口，
+    // 断言就会变成"没采到 = 没闪"的假通过。
     const sample = () => {
       const text = document.body.textContent ?? ''
       frames.push({
@@ -112,9 +124,12 @@ async function installStub(page: Page) {
         tagHint:   text.includes('暂无标签'),
         ts:        performance.now(),
       })
-      window.requestAnimationFrame(sample)
     }
-    window.requestAnimationFrame(sample)
+    window.requestAnimationFrame(function loop() {
+      sample()
+      window.requestAnimationFrame(loop)
+    })
+    window.setInterval(sample, 50)
   }, { delayMs: DELAY_MS })
 }
 
@@ -157,14 +172,23 @@ test.describe('P0-3 启动阶段', () => {
     const frames = await takeFrames(page)
     expect(frames.length).toBeGreaterThan(0)
 
-    // 数据到达之前的任何一帧都不得出现空态引导文案
+    // 核心回归不变量：数据到达之前的任何一帧都不得出现空态引导文案。
+    // （断言失败时把帧轨迹带进报错信息，便于定位）
     const premature = frames.filter((f) => (f.albumHint || f.tagHint) && f.ts < resolvedAt)
-    expect(premature.length).toBe(0)
+    const trace = frames.map((f) => `${f.albumHint ? 'A' : '-'}${f.tagHint ? 'T' : '-'}@${Math.round(f.ts)}`).join(' ')
+    expect(premature.length, trace).toBe(0)
 
-    // 数据到达后（本用例返回空列表）引导文案必须照常出现
-    const afterResolve = frames.filter((f) => f.ts > resolvedAt + 50)
-    expect(afterResolve.some((f) => f.albumHint)).toBe(true)
-    expect(afterResolve.some((f) => f.tagHint)).toBe(true)
+    // 守卫：采样必须覆盖到"数据到达之后"，否则上面的 0 可能是"没采到"造成的假通过
+    const coveredAfterResolve = frames.filter((f) => f.ts > resolvedAt + 50).length
+    expect(coveredAfterResolve, trace).toBeGreaterThan(0)
+
+    // 数据到达后（本用例返回空列表）引导文案必须照常出现。
+    // 用自动重试断言而不是「帧时间窗」——帧采样只能证明"没闪"，不能可靠证明"何时出现"。
+    await expect(page.getByText('暂无相册')).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByText('暂无标签，右键照片选择「管理标签」创建')).toBeVisible({ timeout: 5_000 })
+
+    // 任何渲染异常都会把界面替换成错误边界（曾因 stub 返回 null 而崩溃），必须显式挡住
+    await expect(page.getByText('界面渲染出错')).toHaveCount(0)
   })
 
   test('首屏数据仍在途中时外壳已可交互（点击收藏即切换视图）', async ({ page }) => {
