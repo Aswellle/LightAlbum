@@ -3,7 +3,7 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.4.1] — 2026-09-28
 
 ### P0-2 内容区闪烁消除（切换视图 / 筛选 / 启动过渡）
 
@@ -33,6 +33,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **启动空白内容区** — 首帧即有 `gridConfig`，且首帧即为骨架屏而非空白。
 - **筛选闪烁** — 标签视图与基础查询不再竞争同一个 store（一个视图一个写入方）。
 - **已生效主题在启动时跳变** — 浅色用户不再先闪一帧深色。
+
+
+### 发布流程修复（v0.4.0 发布期间发现）
+
+#### Fixed
+
+- **发布作业缺 checkout** — `publish` 作业没有 `actions/checkout`，`gh release edit` 无法解析仓库而失败（`failed to run git: fatal: not a git repository`）；已补 checkout（`fetch-depth: 0` + `fetch-tags`）并注明不可删除。`.github/workflows/release.yml`
+- **发布环境缺少 tag 部署规则** — `release` environment 的 *Deployment branches and tags* 未允许 tag，publish 作业被环境保护规则拒绝；已把该要求写入一次性设置清单与发布指南。`AGENTS.md`、`docs/RELEASE.md`
+- **产物文件名与实际不符** — 下载表按 Tauri 实际命名修正（Linux 为大写 `LightAlbum_` 前缀，另含 `.rpm` 与两个 `.app.tar.gz` 更新包）。`release_notes.md`、`docs/RELEASE.md`
 
 ## [0.4.0] — 2026-09-27
 
