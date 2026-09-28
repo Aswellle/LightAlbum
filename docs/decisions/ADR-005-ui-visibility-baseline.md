@@ -41,4 +41,4 @@ Root causes: (1) the tertiary/secondary tiers were chosen as *aesthetic* greys r
 - **Good**: tokens are the single control point — future components inherit the baseline automatically, and the measured ratios live next to the values so reviewers can check them.
 - **Bad**: light mode looks noticeably higher-contrast than the original Apple-derived palette, and filled buttons use deeper blues/reds (`#0071EB`, `#D70015`) than `#007AFF`/`#FF3B30` so that white labels pass AA.
 - **Bad**: disabled text is deliberately readable (~3–4:1) rather than nearly invisible, so "disabled" must be conveyed by fill + cursor as well.
-- **Enforcement**: `src/styles/tokens.css` documents the floor per tier; `AGENTS.md` consumers must not reintroduce hardcoded px sizes or opacity dimming.
+- **Enforcement**: `src/styles/tokens.css` documents the floor per tier; components must not reintroduce hardcoded px sizes or opacity dimming (checked in review across `src/components/**`).

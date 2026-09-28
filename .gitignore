@@ -32,6 +32,7 @@ package-lock.json
 
 # Internal development artifacts (not for public repo)
 CLAUDE.md
+AGENTS.md
 开发日志/
 docs/superpowers/
 .full-review/

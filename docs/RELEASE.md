@@ -1,7 +1,7 @@
 # Release Guide
 
 > 发行系统使用**不可变发行账本**模型：一个版本号 = 一个 commit = 一个 Release，已发布的 Release / Tag 永不改写。
-> 铁律与 AI 禁止事项见 `AGENTS.md` → *Release Safety Rules*，此处只描述可执行流程。
+> 这些约束由 GitHub 侧的 Tag Ruleset、Immutable Releases 与 `release` environment 强制执行；此处只描述可执行流程。
 
 ## Versioning
 
@@ -77,7 +77,10 @@ Settings → Environments → `release` → **Deployment branches and tags** →
 
 注意：`Protected branches only` 永远不匹配 tag——这正是默认/常见配置下 tag 发行被拒的原因。Required reviewers 是另一道门，**不能替代**该规则：被规则拒绝的 deployment 根本不会进入等待批准状态。
 
-其余一次性设置（Immutable Releases、Tag Ruleset）见 `AGENTS.md` → *GitHub Settings Required*。
+其余一次性设置（**Immutable Releases**、**Tag Ruleset**）：
+
+- Settings → General → Releases → Enable release immutability（对 v0.2.0+ 生效）。
+- Settings → Rules → Rulesets → Target Tag `v*` → Restrict creations、Block force pushes、Restrict updates。
 
 ## Failure recovery
 
