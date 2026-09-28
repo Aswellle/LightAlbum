@@ -359,7 +359,8 @@ export function Sidebar() {
   const [showCreatePrivateAlbum, setShowCreatePrivateAlbum] = useState(false)
 
   // v3：使用 listAll 以包含私密相册（侧边栏全量显示）
-  const { data: albums = [] } = useQuery({
+  // P0-3：pending 期间不渲染「暂无相册」——数据几毫秒后到达，否则首屏会闪一下空态
+  const { data: albums = [], isPending: albumsPending } = useQuery({
     queryKey: ['albums'],
     queryFn:  api.albums.listAll,
     staleTime: Infinity,
@@ -507,9 +508,11 @@ export function Sidebar() {
               />
 
               {regularAlbums.length === 0 && privateAlbums.length === 0 ? (
-                <p style={{ padding: '4px 14px 6px', fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
-                  暂无相册
-                </p>
+                albumsPending ? null : (
+                  <p style={{ padding: '4px 14px 6px', fontSize: 'var(--la-text-sm)', color: 'var(--la-text-secondary)' }}>
+                    暂无相册
+                  </p>
+                )
               ) : (
                 regularAlbums.map((album) => (
                   <AlbumItem

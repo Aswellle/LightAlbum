@@ -12,6 +12,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`src/services/thumbnail/ThumbnailScheduler.test.ts`** — 覆盖缓存命中、LRU 淘汰、`invalidate` 代际失效、`preload` 跳过、容量受控。
 - **`tests/e2e/preview-animation.spec.ts`** — 预览逐帧回归：打开与方向键切换全程有图像（不闪骨架占位）；信息面板打开不改变照片几何（覆盖层判别式）；删除确认弹窗位于预览之上且可点击。
 - **`MotionConfig reducedMotion="user"`** — 系统「减少动态效果」现在也能约束 framer-motion（此前全局 CSS 的 `prefers-reduced-motion` 只能管 CSS 动画，管不到 JS 动画）。
+- **`tests/e2e/startup.spec.ts`** — 启动回归：列表数据到达前不闪「暂无相册 / 暂无标签」，到达后提示照常出现；首屏数据仍在途中时外壳已可交互（点击收藏即发出收藏查询）。
 
 #### Changed
 
@@ -23,6 +24,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **切换动画更克制** — 位移 25% → 15%；去掉两张绝对定位图层之间的 `mode="popLayout"`（无效测量）。`src/components/preview/PreviewImage.tsx`
 - **导航箭头让出面板宽度** — 信息面板打开时箭头左移，不再叠在面板边缘。`src/components/preview/PreviewImage.tsx`
 - **快速「关闭 → 重开」不再有空白窗口** — 覆盖层 `AnimatePresence` 去掉 `mode="wait"`（wait 会等 0.22s 退出动画走完才挂载新的覆盖层）。`src/app/App.tsx`
+- **侧边栏加载态不再误显示为空** — 相册与标签区块在查询 pending 期间不渲染「暂无相册 / 暂无标签」，避免首屏闪一下空态（实测未门控时，数据到达前会画出 ~24 帧空态，约 400ms）；数据到达后若确实为空，引导文案照常出现。`src/components/layout/Sidebar.tsx`、`src/components/layout/TagFilterPanel.tsx`
 
 #### Fixed
 

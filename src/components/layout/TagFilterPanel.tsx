@@ -33,7 +33,8 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
   // 用 ref（不触发重渲染），在点击标签时更新，退出时恢复
   const prevViewRef = useRef<ViewState>({ type: 'all_photos' })
 
-  const { data: tags = [] } = useQuery<Tag[]>({
+  // P0-3：pending 期间不渲染「暂无标签」——首屏会闪一下空态
+  const { data: tags = [], isPending: tagsPending } = useQuery<Tag[]>({
     queryKey: ['tags'],
     queryFn:  () => api.tags.list(),
     staleTime: 60_000,
@@ -114,7 +115,8 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
 
       {/* ── 空标签引导文案 ── */}
       {tags.length === 0 ? (
-        <p style={{
+        tagsPending ? null : (
+          <p style={{
           margin:     0,
           padding:    '2px 14px 6px',
           fontSize:   'var(--la-text-sm)',
@@ -123,7 +125,8 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
           userSelect: 'none' as const,
         }}>
           暂无标签，右键照片选择「管理标签」创建
-        </p>
+          </p>
+        )
       ) : (
         <>
           {/* ── 标签徽章列表 ── */}
