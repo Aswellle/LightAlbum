@@ -38,13 +38,26 @@ export interface ThumbTask {
 const MAX_CONCURRENT = 6
 const PRIORITY_ORDER: Record<ThumbPriority, number> = { high: 0, normal: 1, low: 2 }
 
+/**
+ * 缩略图 URL 记忆缓存的容量上限（`key → asset URL`）。
+ *
+ * 为什么可以安全淘汰：显示中的 URL 由 React Query 持有（gcTime 30 分钟），
+ * 这里只是「避免重复解析路径」的记忆层。淘汰一条只会让下次访问重新解析一次，
+ * 不会让已显示的照片回退成骨架屏。
+ * 100K 张库 × 两种尺寸约 20 万条，取 2 万条上限即可覆盖正常浏览窗口。
+ */
+const MAX_CACHED_URLS = 20_000
+
 class LruCache<K, V> {
   private map = new Map<K, V>()
+
+  constructor(private readonly capacity: number) {}
 
   get(key: K): V | undefined {
     if (!this.map.has(key)) return undefined
     const val = this.map.get(key)
     if (val === undefined) return undefined
+    // 命中即刷新为最近使用（Map 迭代顺序：队首 = 最久未使用）
     this.map.delete(key)
     this.map.set(key, val)
     return val
@@ -53,6 +66,13 @@ class LruCache<K, V> {
   set(key: K, val: V): void {
     if (this.map.has(key)) this.map.delete(key)
     this.map.set(key, val)
+
+    // 容量超出时淘汰最久未使用的条目（原实现只插入从不淘汰 → 内存只增不减）
+    while (this.map.size > this.capacity) {
+      const oldest = this.map.keys().next()
+      if (oldest.done) break
+      this.map.delete(oldest.value)
+    }
   }
 
   has(key: K): boolean { return this.map.has(key) }
@@ -91,7 +111,7 @@ class Deque<T> {
 }
 
 export class ThumbnailScheduler {
-  private cache = new LruCache<string, string>()
+  private cache: LruCache<string, string>
   private taskMap = new Map<string, ThumbTask>()
   private keyGeneration = new Map<string, number>()
 
@@ -102,8 +122,13 @@ export class ThumbnailScheduler {
   private running = 0
   private onResult?: (photoId: string, size: ThumbSize, url: string) => void
 
-  constructor(options?: { onResult?: (photoId: string, size: ThumbSize, url: string) => void }) {
+  constructor(options?: {
+    onResult?: (photoId: string, size: ThumbSize, url: string) => void
+    /** 覆盖 URL 记忆缓存容量（测试用；默认 MAX_CACHED_URLS） */
+    cacheCapacity?: number
+  }) {
     this.onResult = options?.onResult
+    this.cache = new LruCache<string, string>(options?.cacheCapacity ?? MAX_CACHED_URLS)
   }
 
   request(
@@ -201,6 +226,11 @@ export class ThumbnailScheduler {
     this.highQueue.clear()
     this.normalQueue.clear()
     this.lowQueue.clear()
+  }
+
+  /** 当前缓存的 URL 条数（不会超过容量上限） */
+  get cachedUrlCount(): number {
+    return this.cache.size
   }
 
   private cacheKey(photoId: string, size: ThumbSize): string {

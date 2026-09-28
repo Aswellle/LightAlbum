@@ -3,6 +3,32 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### P0-3 大图预览观感 + 缩略图缓存上限
+
+#### Added
+
+- **`src/services/thumbnail/ThumbnailScheduler.test.ts`** — 覆盖缓存命中、LRU 淘汰、`invalidate` 代际失效、`preload` 跳过、容量受控。
+- **`tests/e2e/preview-animation.spec.ts`** — 预览逐帧回归：打开与方向键切换全程有图像（不闪骨架占位）；信息面板打开不改变照片几何（覆盖层判别式）；删除确认弹窗位于预览之上且可点击。
+- **`MotionConfig reducedMotion="user"`** — 系统「减少动态效果」现在也能约束 framer-motion（此前全局 CSS 的 `prefers-reduced-motion` 只能管 CSS 动画，管不到 JS 动画）。
+
+#### Changed
+
+- **逐张切换不再硬切** — 预览改为「缩略图底图 + 原图」双层交叉淡变：切换照片时网格里已缓存的 `s` 缩略图立即顶上，原图 `onLoad` 后淡入。原实现在同一个 `<img>` 上换 `src`，并用未纳入过渡的 `filter: brightness(0.92)` 提示占位，切换当帧跳变。`src/components/preview/PreviewImage.tsx`
+- **占位几何与最终图像一致** — 骨架占位改用 `fitDim`，不再固定 3:2（换成 `<img>` 时会跳尺寸）。
+- **切换照片的手势重置改到绘制前** — `useEffect` → `useLayoutEffect`：新照片不会再先按上一张的缩放/偏移绘制一帧。`src/hooks/usePreviewGesture.ts`
+- **平移边界钳制生效** — 原图尺寸由图片层上抛给手势钩子（原先恒传 `null`，`clampOffset` 直接早退，照片可被拖出屏幕）。`src/components/preview/PreviewImage.tsx`
+- **信息面板改为覆盖层** — 原为 flex 兄弟节点（`width:320px` + `flexShrink:0`），面板出现的第一帧就把照片挤窄（重排），250ms 后面板才滑到位；现在绝对定位覆盖，照片几何不变，滑动仍是纯 transform。`src/components/preview/ExifPanel.tsx`
+- **切换动画更克制** — 位移 25% → 15%；去掉两张绝对定位图层之间的 `mode="popLayout"`（无效测量）。`src/components/preview/PreviewImage.tsx`
+- **导航箭头让出面板宽度** — 信息面板打开时箭头左移，不再叠在面板边缘。`src/components/preview/PreviewImage.tsx`
+- **快速「关闭 → 重开」不再有空白窗口** — 覆盖层 `AnimatePresence` 去掉 `mode="wait"`（wait 会等 0.22s 退出动画走完才挂载新的覆盖层）。`src/app/App.tsx`
+
+#### Fixed
+
+- **预览内的确认弹窗点不到** — `--la-z-modal` 400 < `--la-z-preview` 500，删除确认被压在预览覆盖层之下（Playwright 实测：`<div id="root">` 拦截了点击）；令牌提升到 550，仍低于 toast(600)/tooltip(700)/标题栏(800)。`src/styles/tokens.css`
+- **`ThumbnailScheduler` 的「LRU」从不淘汰** — 只有 Map、无容量判断，长时间浏览内存只增不减；改为真正按访问序淘汰（默认 20000 条 URL 记忆）。淘汰只影响「重复解析路径」的优化，不影响已显示照片（URL 由 React Query 持有，gcTime 30 分钟）。`src/services/thumbnail/ThumbnailScheduler.ts`
+
 ## [0.4.1] — 2026-09-28
 
 ### P0-2 内容区闪烁消除（切换视图 / 筛选 / 启动过渡）
