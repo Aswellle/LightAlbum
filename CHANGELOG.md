@@ -3,7 +3,7 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [0.4.2] — 2026-09-29
+## [0.4.3] — 2026-09-29
 
 ### P0-3 大图预览观感 + 缩略图缓存上限
 
@@ -12,7 +12,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`src/services/thumbnail/ThumbnailScheduler.test.ts`** — 覆盖缓存命中、LRU 淘汰、`invalidate` 代际失效、`preload` 跳过、容量受控。
 - **`tests/e2e/preview-animation.spec.ts`** — 预览逐帧回归：打开与方向键切换全程有图像（不闪骨架占位）；信息面板打开不改变照片几何（覆盖层判别式）；删除确认弹窗位于预览之上且可点击。
 - **`MotionConfig reducedMotion="user"`** — 系统「减少动态效果」现在也能约束 framer-motion（此前全局 CSS 的 `prefers-reduced-motion` 只能管 CSS 动画，管不到 JS 动画）。
-- **`tests/e2e/startup.spec.ts`** — 启动回归：列表数据到达前不闪「暂无相册 / 暂无标签」，到达后提示照常出现；首屏数据仍在途中时外壳已可交互（点击收藏即发出收藏查询）。
+- **`tests/e2e/startup.spec.ts`** — 启动回归：列表数据到达前不闪「暂无相册 / 暂无标签」，到达后提示照常出现；首屏数据仍在途中时外壳已可交互（点击收藏即发出收藏查询）。帧采样同时使用 `requestAnimationFrame` 与 50ms 定时心跳：页面静止时 CI 合成器可能不再产生 rAF 帧，只靠 rAF 会漏采「数据到达之后」的窗口，让「不闪空态」的断言假通过；并加守卫断言要求采样确实覆盖该窗口。
 
 #### Changed
 

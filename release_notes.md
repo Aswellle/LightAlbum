@@ -1,4 +1,4 @@
-# LightAlbum v0.4.2
+# LightAlbum v0.4.3
 
 > 大图预览观感打磨 — 切换照片不再跳变，信息面板与确认弹窗各归其位
 
@@ -6,11 +6,11 @@
 
 | 平台 | 文件 |
 |------|------|
-| Windows (x64) | `LightAlbum_0.4.2_x64-setup.exe`（推荐）或 `LightAlbum_0.4.2_x64_en-US.msi` |
-| macOS (Apple Silicon) | `LightAlbum_0.4.2_aarch64.dmg` |
-| macOS (Intel) | `LightAlbum_0.4.2_x64.dmg` |
-| Linux (x64) | `LightAlbum_0.4.2_amd64.AppImage` 或 `LightAlbum_0.4.2_amd64.deb` |
-| Linux (Fedora/RHEL, x64) | `LightAlbum-0.4.2-1.x86_64.rpm` |
+| Windows (x64) | `LightAlbum_0.4.3_x64-setup.exe`（推荐）或 `LightAlbum_0.4.3_x64_en-US.msi` |
+| macOS (Apple Silicon) | `LightAlbum_0.4.3_aarch64.dmg` |
+| macOS (Intel) | `LightAlbum_0.4.3_x64.dmg` |
+| Linux (x64) | `LightAlbum_0.4.3_amd64.AppImage` 或 `LightAlbum_0.4.3_amd64.deb` |
+| Linux (Fedora/RHEL, x64) | `LightAlbum-0.4.3-1.x86_64.rpm` |
 
 [前往 Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest)
 
