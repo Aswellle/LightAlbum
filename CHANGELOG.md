@@ -32,6 +32,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **预览遮罩合成：先测量后决定（不改动）** — 用一次性 rAF 帧间隔探针测得：空闲 60fps 干净，打开动画 p95 73.3ms（9 帧 >33ms），关闭 p95 70.9ms；**关掉 `backdrop-filter` 后 p95 降至 35.9ms**，但仍剩 5 帧 >33ms。结论与候选修法记入 `docs/decisions/ADR-008-preview-backdrop-compositing.md`：不以 headless 软件合成的数字改架构，待真机 GPU 复测后再决定是否拆分「静态模糊层 + 遮罩层」。
 - **`previewStore.open()` 恢复 `rect` 参数** — 与 v0.4.4 删掉的死管道不是一回事：这次它被真正消费（飞入起点），入参来自格子 `getBoundingClientRect()` 的快照。
 
+### 注释与文档整理
+
+#### Changed
+
+- **移除源码注释与 E2E 标题里的内部批次编号** — 这些标记对仓库读者没有意义，注释正文本身已说明代码在做什么；E2E 标题改为按行为命名（`内容区无闪烁` / `大图预览无闪烁` / `启动阶段`），CHANGELOG 段标题改为按内容命名。`src/**`、`tests/e2e/*.spec.ts`、`docs/decisions/ADR-007-*.md`
+
 ## [0.4.4] — 2026-09-29
 
 ### 预览相邻预取 / 测试基建 / 死代码清理
@@ -52,6 +58,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **未使用的预览 CSS** — `.la-preview-backdrop`、`.la-preview-container`（无任何引用）。`src/styles/animations.css`
 
 ## [0.4.3] — 2026-09-29
+
+> 注：**0.4.2 未发行** —— 该次运行的 Full CI 被启动回归 spec 的崩溃挡住，未走到构建阶段；标签留在原地，同样内容以 0.4.3 发行（本节的用户可见内容即 0.4.2 那一批）。
 
 ### 大图预览观感 + 缩略图缓存上限
 
