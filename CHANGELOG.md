@@ -5,6 +5,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 设置项生效性 + 发版流程自动化
+
+#### Added
+
+- **`scripts/release-notes.mjs`** — 发行说明（GitHub Release 正文的唯一来源）的版本号同步与校验：`version:set` / `version:bump` 会一并改写标题与 6 个下载文件名（只匹配这两类形状，正文里的历史版本引用不动），`version:check` 在二者不一致时直接失败。`scripts/release-notes.test.mjs` 覆盖替换、幂等、历史引用不改写与不一致报错（6 条）。
+- **`tests/e2e/settings-behavior.spec.ts`** — 断言两个预览开关**真的改变行为**，而不是只断言设置页上有个开关。
+- **E2E 共用 stub 支持覆盖 `settings_get`** — `installTauriStub(page, { settings: { … } })`。
+
+#### Fixed
+
+- **两个「死」设置项** — `previewOnDoubleClick` 与 `autoHidePreviewUI` 此前只存在于设置页与类型定义，网格与预览从未读取（点它没有任何效果）。现在前者决定单击 / 双击进入预览（固定网格与两种瀑布流都遵循），后者决定预览工具栏与胶片条是否在闲置 2 秒后自动隐藏；两者启动时从 AppSettings 初始化，设置页改动后即时生效。`src/stores/uiStore.ts`、`src/hooks/useTheme.ts`、`src/components/grid/GridItem.tsx`、`src/components/grid/WaterfallGrid.tsx`、`src/features/library/grid/WaterfallGridV2.tsx`、`src/components/preview/PreviewToolbar.tsx`、`src/components/settings/sections/GeneralSection.tsx`
+- **双击打开预览会「闪一下就被关掉」** — 双击的第二下落在遮罩背板上会触发「点背板关闭」；现在忽略打开后 300ms 内的背板点击。`src/components/preview/PhotoPreview.tsx`、`src/stores/previewStore.ts`
+
 ### P0-4 预览共享元素飞入 / 飞出（ADR-007）
 
 #### Added

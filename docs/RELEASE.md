@@ -32,6 +32,11 @@ pnpm version:check          # 校验四者一致
 - 写 `release_notes.md`：**用户视角**的发行说明，按「实现 / 添加 / 修复」分条，不含文件名、组件名、令牌等实现细节——它会被用作 GitHub Release 正文。
 - 提交：`chore(release): bump version to X.Y.Z and update CHANGELOG`。
 
+> **版本号不用手改**：`pnpm version:set X.Y.Z`（或 `pnpm version:bump …`）会把
+> `package.json` / `tauri.conf.json` / `Cargo.toml` / `Cargo.lock` **与 `release_notes.md`**
+> （标题行 + 下载文件名）一起同步到目标版本；`pnpm version:check` 在 `release_notes.md`
+> 与四文件不一致时直接失败，避免把上一版的文件名发出去。正文里的历史版本引用不会被改写。
+
 ### 2. Preflight and tag（不要手写 `git tag`）
 
 ```bash
