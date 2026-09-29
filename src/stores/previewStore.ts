@@ -19,7 +19,6 @@
 
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import type { SourceRect } from '@/types/layout'
 
 // ─────────────────────────────────────────────────────────
 //  Store 接口
@@ -47,12 +46,6 @@ interface PreviewStore {
   photoIds: string[]
 
   /**
-   * 飞入/飞出动画的起始/终止位置
-   * 即用户点击的 GridItem 的 getBoundingClientRect()
-   */
-  sourceRect: SourceRect | null
-
-  /**
    * 左右切换方向，用于 Framer Motion slide 动画
    * +1 = 向后（下一张），-1 = 向前（上一张），0 = 首次打开
    */
@@ -70,20 +63,16 @@ interface PreviewStore {
    */
   isUiHidden: boolean
 
-  /** 是否正在加载原图（大图异步加载过程中显示渐进占位） */
-  isLoadingOriginal: boolean
-
   // ── 写操作 ──
 
   /**
    * 打开预览
    * @param photoId   要预览的照片 ID
    * @param photoIds  当前视图所有照片 ID（用于左右切换）
-   * @param rect      GridItem 的 DOMRect（飞入动画起点）
    */
-  open: (photoId: string, photoIds: string[], rect: SourceRect) => void
+  open: (photoId: string, photoIds: string[]) => void
 
-  /** 关闭预览（触发飞回动画） */
+  /** 关闭预览 */
   close: () => void
 
   /** 切换到下一张（direction = +1） */
@@ -101,17 +90,8 @@ interface PreviewStore {
   /** 切换 EXIF 面板（I 键 / 工具栏按钮） */
   toggleExif: () => void
 
-  /** 切换 Filmstrip */
-  toggleFilmstrip: () => void
-
   /** 设置 UI 隐藏状态（由 usePreviewGesture 中的 idle 计时器驱动） */
   setUiHidden: (hidden: boolean) => void
-
-  /** 设置原图加载状态 */
-  setLoadingOriginal: (loading: boolean) => void
-
-  /** 更新 sourceRect（用于飞回动画——关闭时需要最新的格子位置） */
-  updateSourceRect: (rect: SourceRect) => void
 }
 
 // ─────────────────────────────────────────────────────────
@@ -120,29 +100,25 @@ interface PreviewStore {
 
 export const usePreviewStore = create<PreviewStore>()(
   subscribeWithSelector((set, get) => ({
-    isOpen:              false,
-    currentPhotoId:      null,
-    currentIndex:        0,
-    photoIds:            [],
-    sourceRect:          null,
-    direction:           0,
-    isExifOpen:          false,
-    isFilmstripVisible:  true,
-    isUiHidden:          false,
-    isLoadingOriginal:   false,
+    isOpen:             false,
+    currentPhotoId:     null,
+    currentIndex:       0,
+    photoIds:           [],
+    direction:          0,
+    isExifOpen:         false,
+    isFilmstripVisible: true,
+    isUiHidden:         false,
 
     // ── 打开 ──
-    open: (photoId, photoIds, rect) => {
+    open: (photoId, photoIds) => {
       const index = photoIds.indexOf(photoId)
       set({
-        isOpen:            true,
-        currentPhotoId:    photoId,
-        currentIndex:      index === -1 ? 0 : index,
+        isOpen:         true,
+        currentPhotoId: photoId,
+        currentIndex:   index === -1 ? 0 : index,
         photoIds,
-        sourceRect:        rect,
-        direction:         0,
-        isUiHidden:        false,
-        isLoadingOriginal: false,
+        direction:      0,
+        isUiHidden:     false,
       })
     },
 
@@ -150,8 +126,7 @@ export const usePreviewStore = create<PreviewStore>()(
     close: () =>
       set({
         isOpen:         false,
-        // 保留 currentPhotoId 和 sourceRect，供飞回动画使用
-        // AnimatePresence exit 动画结束后由组件 unmount 自然清理
+        // 保留 currentPhotoId：AnimatePresence exit 动画结束后由组件 unmount 自然清理
         isExifOpen:     false,
         isUiHidden:     false,
       }),
@@ -165,7 +140,6 @@ export const usePreviewStore = create<PreviewStore>()(
         currentIndex:      nextIndex,
         currentPhotoId:    photoIds[nextIndex],
         direction:         1,
-        isLoadingOriginal: false,
         isUiHidden:        false,
       })
     },
@@ -179,7 +153,6 @@ export const usePreviewStore = create<PreviewStore>()(
         currentIndex:      prevIndex,
         currentPhotoId:    photoIds[prevIndex],
         direction:         -1,
-        isLoadingOriginal: false,
         isUiHidden:        false,
       })
     },
@@ -193,7 +166,6 @@ export const usePreviewStore = create<PreviewStore>()(
         currentIndex:      index,
         currentPhotoId:    photoIds[index],
         direction,
-        isLoadingOriginal: false,
         isUiHidden:        false,
       })
     },
@@ -201,18 +173,8 @@ export const usePreviewStore = create<PreviewStore>()(
     // ── EXIF 面板 ──
     toggleExif: () => set((s) => ({ isExifOpen: !s.isExifOpen })),
 
-    // ── Filmstrip ──
-    toggleFilmstrip: () =>
-      set((s) => ({ isFilmstripVisible: !s.isFilmstripVisible })),
-
     // ── UI 隐藏 ──
     setUiHidden: (isUiHidden) => set({ isUiHidden }),
-
-    // ── 原图加载 ──
-    setLoadingOriginal: (isLoadingOriginal) => set({ isLoadingOriginal }),
-
-    // ── 更新 sourceRect ──
-    updateSourceRect: (sourceRect) => set({ sourceRect }),
   })),
 )
 
@@ -224,7 +186,6 @@ export const selectIsPreviewOpen    = (s: PreviewStore) => s.isOpen
 export const selectCurrentPhotoId  = (s: PreviewStore) => s.currentPhotoId
 export const selectCurrentIndex    = (s: PreviewStore) => s.currentIndex
 export const selectPhotoIds        = (s: PreviewStore) => s.photoIds
-export const selectSourceRect      = (s: PreviewStore) => s.sourceRect
 export const selectDirection       = (s: PreviewStore) => s.direction
 export const selectIsExifOpen      = (s: PreviewStore) => s.isExifOpen
 export const selectIsFilmstrip     = (s: PreviewStore) => s.isFilmstripVisible

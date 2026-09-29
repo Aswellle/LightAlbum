@@ -51,8 +51,7 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
       toggle(photo.id)
     } else {
       select(photo.id)
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      openPreview(photo.id, photoIds, rect)
+      openPreview(photo.id, photoIds)
     }
   }
 

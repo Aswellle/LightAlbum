@@ -219,13 +219,5 @@ export function viewStateToFilter(view: ViewState): import('./ipc').PhotoFilter 
 //  预览相关
 // ─────────────────────────────────────────────────────────
 
-/** 大图预览的飞入飞出动画起始/终止矩形 */
-export interface SourceRect {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
 /** 大图切换方向 */
 export type PreviewDirection = 'next' | 'prev'

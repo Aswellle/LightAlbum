@@ -98,10 +98,7 @@ export function useKeyboard(allIds: string[]) {
         }
         const focusedId = sel.focusedId ?? [...sel.selectedIds][0]
         if (!focusedId) break
-        const el = document.querySelector(`[data-photo-id="${focusedId}"]`) as HTMLElement | null
-        if (el) {
-          usePreviewStore.getState().open(focusedId, allIds, el.getBoundingClientRect())
-        }
+        usePreviewStore.getState().open(focusedId, allIds)
         break
       }
 

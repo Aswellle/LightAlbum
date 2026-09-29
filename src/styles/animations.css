@@ -236,24 +236,6 @@
    以下类配合 Framer Motion 的 className 属性使用
    ═══════════════════════════════════════════════════════════ */
 
-/* 大图预览背景层：Framer Motion 控制 opacity，CSS 提供毛玻璃 */
-.la-preview-backdrop {
-  position: fixed;
-  inset: 0;
-  backdrop-filter: blur(var(--la-bg-glass-blur));
-  -webkit-backdrop-filter: blur(var(--la-bg-glass-blur));
-  z-index: var(--la-z-preview);
-  will-change: opacity;
-}
-
-/* 大图预览容器：GPU 合成层 */
-.la-preview-container {
-  position: fixed;
-  inset: 0;
-  z-index: var(--la-z-preview);
-  will-change: transform, opacity;
-}
-
 /* 网格项：GPU 合成层提示 */
 .la-grid-item {
   will-change: transform, opacity;

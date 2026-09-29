@@ -49,8 +49,7 @@ const WaterfallCell = memo(function WaterfallCell({ item, allIds, photoId }: Wat
       toggle(photoId)
     } else {
       select(photoId)
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      openPreview(photoId, photoIds, rect)
+      openPreview(photoId, photoIds)
     }
   }
 
