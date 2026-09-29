@@ -1,6 +1,6 @@
 /**
  * @file src/components/grid/GridEmptyState.tsx
- * @description 照片网格空态（可见度改造 P0-1）
+ * @description 照片网格空态（可见度改造）
  *
  * 设计：
  *   - 保留原有「双相框 + 山峰」插画图案，仅提升描边与颜色可见度

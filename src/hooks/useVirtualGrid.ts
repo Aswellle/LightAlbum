@@ -216,7 +216,7 @@ export function useVirtualGrid({
 
   // ── 视口状态 ──
   //
-  // P0-2 修复：可见范围不再存进 state 由 effect 回填，而是「视口 + 行数组」直接推导。
+  // 修复：可见范围不再存进 state 由 effect 回填，而是「视口 + 行数组」直接推导。
   //   原实现：数据到达 → 渲染出 range {0,0} / 空切片 → effect 里 setRange → 再渲染一次。
   //   中间那一帧就是用户看到的「空白照片网格」。现在数据集变化的当帧即可算出可见行。
   const [viewport, setViewport] = useState({ scrollTop: 0, height: 0 })

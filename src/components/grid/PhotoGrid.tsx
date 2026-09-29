@@ -44,7 +44,7 @@ export function PhotoGrid() {
 
   // ── 数据查询（同步到 photoStore）──
   // Fix: 标签视图使用专用查询 hook，普通视图走 usePhotoQuery
-  // P0-2: 标签视图下禁用基础查询 —— 否则它会以「全部照片」覆盖标签结果，
+  // 标签视图下禁用基础查询 —— 否则它会以「全部照片」覆盖标签结果，
   //       两个写入方竞争同一个 store 会让内容来回跳变（筛选时闪烁的根因之一）
   const tagQuery  = useTagPhotoQuery()
   const baseQuery = usePhotoQuery({ enabled: !tagQuery.isTagSearch })
@@ -111,7 +111,7 @@ export function PhotoGrid() {
   }, [handleDeleteSelected])
 
   // ── 布局路由 ──
-  // P0-2: viewKey / isSynced 下传 —— 内容区据此区分「骨架屏 / 内容 / 空态」，
+  // viewKey / isSynced 下传 —— 内容区据此区分「骨架屏 / 内容 / 空态」，
   //       并在切换视图时重置滚动位置（切换选项卡不再出现空白网格）
   if (mode === 'waterfall') {
     return <WaterfallGrid isLoading={isLoading} isSynced={isSynced} viewKey={viewKey} />

@@ -64,7 +64,7 @@ const FilmThumb = memo(function FilmThumb({ photoId, active, onClick }: FilmThum
         border:          active
           ? '2px solid var(--la-accent)'
           : '2px solid transparent',
-        // P0-1 可见度改造：缩略图是可选内容，不使用 opacity 弱化；
+        // 可见度改造：缩略图是可选内容，不使用 opacity 弱化；
         // 选中态由强调色描边表达，hover 由描边变亮反馈。
         cursor:          'default',
         transition:      'border-color 120ms ease',

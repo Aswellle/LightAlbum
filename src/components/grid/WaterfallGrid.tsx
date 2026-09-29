@@ -35,7 +35,7 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
   const { photo, x, y, width, height } = item
   const { url } = useThumbnail(photo.id, 'm', 'normal')
 
-  // P0-2: 挂载时缩略图已缓存 → 不淡入（避免滚动回收/切换视图时整屏重复淡入）
+  // 挂载时缩略图已缓存 → 不淡入（避免滚动回收/切换视图时整屏重复淡入）
   const hasThumbAtMount = useRef(url != null).current
 
   const isSelected  = useSelectionStore(selectIsSelected(photo.id))

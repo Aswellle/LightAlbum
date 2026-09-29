@@ -16,7 +16,7 @@
  *
  * 使用方：PhotoGrid 中检测当前是否为标签搜索视图，若是则用本 hook。
  *
- * P0-2 闪烁修复：
+ * 闪烁修复：
  *   - 同步改用 useLayoutEffect（原 useEffect 在绘制后才写 store → 先闪一帧空内容）
  *   - 标签视图的首页/清空同样在绘制前完成；标签列表尚未加载完时不显示空态
  *   - 暴露 isSynced：为 false 时渲染层必须显示骨架屏，不得显示空态
@@ -96,14 +96,14 @@ export function useTagPhotoQuery(): UseTagPhotoQueryResult {
 
   const isLoading = isTagSearch && (tagsLoading || searchLoading)
 
-  // P0-2: 离开标签视图后作废同步标记，再次进入同一标签时必须重新同步
+  // 离开标签视图后作废同步标记，再次进入同一标签时必须重新同步
   const syncedKeyRef = useRef<string | null>(null)
   useLayoutEffect(() => {
     if (isTagSearch) return
     syncedKeyRef.current = null
   }, [isTagSearch])
 
-  // P0-2: 绘制前同步 —— 切换标签时同一帧内替换，不留「空网格/空态」中间帧
+  // 绘制前同步 —— 切换标签时同一帧内替换，不留「空网格/空态」中间帧
   useLayoutEffect(() => {
     if (!isTagSearch) return
 

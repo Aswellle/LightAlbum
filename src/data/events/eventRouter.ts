@@ -81,7 +81,7 @@ export class EventRouter {
   }
 
   private onPhotoCreated(_payload: { photoId: string }): boolean {
-    // P0-2: refetchType 'active' —— 内容区网格不再随视图切换重挂载，
+    // refetchType 'active' —— 内容区网格不再随视图切换重挂载，
     //       不能再依赖 refetchOnMount 去刷新已挂载的查询，否则新照片不会出现。
     this.queryClient.invalidateQueries({
       queryKey: photoQueryKeys.all,
@@ -118,7 +118,7 @@ export class EventRouter {
   }
 
   private onScanCompleted(_payload: { folder: string; totalNew: number; totalUpdated: number; durationMs: number }): boolean {
-    // P0-2: 未加载 pages 的重新取数由 usePhotoData 在绘制前原子替换（不闪骨架屏），
+    // 未加载 pages 的重新取数由 usePhotoData 在绘制前原子替换（不闪骨架屏），
     //       因此这里直接刷新当前挂载的视图，不必等下一次挂载。
     this.queryClient.invalidateQueries({
       queryKey: photoQueryKeys.all,

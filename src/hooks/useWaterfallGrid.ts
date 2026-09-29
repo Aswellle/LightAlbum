@@ -135,7 +135,7 @@ export function useWaterfallGrid({
 
   // ── 视口状态 ──
   //
-  // P0-2 修复：可见切片改为渲染期推导。
+  // 修复：可见切片改为渲染期推导。
   //   原实现把 visibleItems 放在 state 里由 effect 回填 → 数据变化的当帧先渲染
   //   空数组，浏览器画出「空白网格」，下一帧才出现照片。
   const [viewport, setViewport] = useState({ scrollTop: 0, height: 0 })

@@ -2,7 +2,7 @@
  * @file src/services/thumbnail/ThumbnailScheduler.test.ts
  * @description 缩略图调度器的 URL 记忆缓存语义
  *
- * 重点覆盖 P0-3：原实现的「LruCache」只有 Map、从不淘汰（内存只增不减）。
+ * 重点覆盖：原实现的「LruCache」只有 Map、从不淘汰（内存只增不减）。
  * 这里断言的是**可观察行为**——IPC 解析次数与缓存规模——而不是内部数据结构。
  */
 

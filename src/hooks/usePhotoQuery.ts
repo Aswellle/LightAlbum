@@ -13,7 +13,7 @@
  *   - 不管理 TanStack Query 状态
  *   - 不写入 photoStore（由 usePhotoData 负责）
  *
- * P0-2 闪烁修复：
+ * 闪烁修复：
  *   原实现在 filter 变化时立即 setPhotos([], 0) 清空 photoStore。
  *   但清空发生在 useEffect（绘制之后），而新数据要等 usePhotoData 的下一次
  *   同步才写入，于是内容区必然先画出一帧「照片为空」的画面：切选项卡时闪

@@ -359,7 +359,7 @@ export function Sidebar() {
   const [showCreatePrivateAlbum, setShowCreatePrivateAlbum] = useState(false)
 
   // v3：使用 listAll 以包含私密相册（侧边栏全量显示）
-  // P0-3：pending 期间不渲染「暂无相册」——数据几毫秒后到达，否则首屏会闪一下空态
+  // pending 期间不渲染「暂无相册」——数据几毫秒后到达，否则首屏会闪一下空态
   const { data: albums = [], isPending: albumsPending } = useQuery({
     queryKey: ['albums'],
     queryFn:  api.albums.listAll,

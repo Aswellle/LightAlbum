@@ -150,7 +150,7 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
 
   const { url: thumbUrl } = useThumbnail(photo.id, 's', 'normal')
 
-  // P0-2: 挂载时缩略图缓存已命中 → 直接显示，不做淡入。
+  // 挂载时缩略图缓存已命中 → 直接显示，不做淡入。
   //       否则虚拟化回收 / 切换视图等重挂载场景下每张照片都会重新淡入一次，
   //       视觉上就是内容区「闪一下」。（首次加载完成时的淡入保留）
   const hasThumbAtMount = useRef(thumbUrl != null).current

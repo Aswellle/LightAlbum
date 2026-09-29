@@ -157,7 +157,7 @@ function AlbumViewRouter({ albumId }: { albumId: string }) {
 // ─────────────────────────────────────────────────────────
 
 function MainContent({ view }: { view: ViewState }) {
-  // P0-2：不再使用 AnimatePresence + key 重挂载。
+  // 不再使用 AnimatePresence + key 重挂载。
   //
   //   原实现每次切换视图都会：卸载当前网格 → 等 120ms 淡出 → 挂载新网格 → 淡入。
   //   这段时间里内容区必然出现「空态提示 / 空白网格」的中间帧，而且整棵网格
@@ -235,7 +235,7 @@ export function AppShell() {
   const dragStartXRef     = useRef<number>(0)
   const dragStartWidthRef = useRef<number>(sidebarWidth)
 
-  // P0-2: useLayoutEffect —— 容器宽度必须在首次绘制前写入 layoutStore。
+  // useLayoutEffect —— 容器宽度必须在首次绘制前写入 layoutStore。
   //   原实现用 useEffect：首帧 gridConfig 仍为 null，两个网格组件都返回 null，
   //   于是启动时先画出一帧「完全空白的内容区」，测量完成后照片才出现。
   useLayoutEffect(() => {

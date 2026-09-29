@@ -33,7 +33,7 @@ export const TagFilterPanel = memo(function TagFilterPanel({ collapsed }: TagFil
   // 用 ref（不触发重渲染），在点击标签时更新，退出时恢复
   const prevViewRef = useRef<ViewState>({ type: 'all_photos' })
 
-  // P0-3：pending 期间不渲染「暂无标签」——首屏会闪一下空态
+  // pending 期间不渲染「暂无标签」——首屏会闪一下空态
   const { data: tags = [], isPending: tagsPending } = useQuery<Tag[]>({
     queryKey: ['tags'],
     queryFn:  () => api.tags.list(),

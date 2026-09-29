@@ -387,7 +387,7 @@ function TrashEmptyState() {
 export function TrashView() {
   const { isLoading, isSynced, viewKey, loadMore, hasMore } = usePhotoQuery()
   const photos = usePhotoStore(selectPhotos)
-  // P0-2：空态只在「内容已对应当前视图 + 确实没有照片 + 不在加载中」时出现，
+  // 空态只在「内容已对应当前视图 + 确实没有照片 + 不在加载中」时出现，
   //       否则进入回收站视图会先闪一下空态
   const isEmpty = isSynced && !isLoading && photos.length === 0
 

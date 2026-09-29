@@ -56,7 +56,7 @@ import { Icon } from '@/components/common/Icon'
 
 const slideVariants = {
   enter: (dir: number) => ({
-    // P0-3：位移从 25% 收到 15% —— 相邻两张照片半透明对穿时位移过大显得凌乱
+    // 位移从 25% 收到 15% —— 相邻两张照片半透明对穿时位移过大显得凌乱
     x:       dir > 0 ? '15%' : '-15%',
     opacity: 0,
   }),
@@ -394,7 +394,7 @@ export const PreviewImage = memo(function PreviewImage() {
   const next           = usePreviewStore((s) => s.next)
   const prev           = usePreviewStore((s) => s.prev)
   const isUiHidden     = usePreviewStore((s) => s.isUiHidden)
-  // P0-3：信息面板是覆盖层，打开时箭头需向左让出面板宽度，避免叠在面板上
+  // 信息面板是覆盖层，打开时箭头需向左让出面板宽度，避免叠在面板上
   const isExifOpen     = usePreviewStore(selectIsExifOpen)
   const arrowOffset    = isExifOpen ? 'calc(var(--la-exif-panel-w) + 20px)' : '20px'
 

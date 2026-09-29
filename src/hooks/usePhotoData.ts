@@ -16,7 +16,7 @@
  * PERF-C1（保留）：
  *   第 k+1 页只追加增量（appendPhotos），避免每次翻页都 O(N) 全量重建。
  *
- * P0-2 闪烁修复（本文件的核心不变量）：
+ * 闪烁修复（本文件的核心不变量）：
  *   photoStore 中的内容**永远要么属于当前视图，要么为空**，且状态切换发生在
  *   浏览器绘制之前，因此内容区不会出现「空网格 / 空态提示」的中间帧。
  *   1. 同步改用 useLayoutEffect（原实现是 useEffect —— 在绘制之后才写入 store，
@@ -80,10 +80,10 @@ export function usePhotoData(
   // SEC-H3: re-lock private album when backend rejects the session token
   const { onTokenExpired } = useContext(AlbumContext)
 
-  // P0-2: 视图键 —— 用于判断 store 内容是否属于当前查询
+  // 视图键 —— 用于判断 store 内容是否属于当前查询
   const viewKey = useMemo(() => JSON.stringify(filter), [filter])
 
-  // P0-2: 已同步到 photoStore 的视图键 / 页数 / 数据引用
+  // 已同步到 photoStore 的视图键 / 页数 / 数据引用
   //   syncedKeyRef  —— 判断 store 内容是否属于当前视图
   //   syncedDataRef —— 判断查询数据是否变化（含 resetQueries / invalidateQueries 后的重新拉取）
   const syncedKeyRef   = useRef<string | null>(null)
@@ -112,7 +112,7 @@ export function usePhotoData(
     enabled,
   })
 
-  // P0-2: 被禁用（标签视图接管 store）时作废同步标记，
+  // 被禁用（标签视图接管 store）时作废同步标记，
   //       重新启用时必须重新同步，否则会沿用上一个视图遗留的内容
   useLayoutEffect(() => {
     if (enabled) return
@@ -120,7 +120,7 @@ export function usePhotoData(
     syncedPagesRef.current = 0
   }, [enabled])
 
-  // P0-2: 必须在绘制前同步 —— useEffect 会先画一帧空内容
+  // 必须在绘制前同步 —— useEffect 会先画一帧空内容
   useLayoutEffect(() => {
     if (!enabled) return
 
