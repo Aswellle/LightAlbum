@@ -98,7 +98,13 @@ export function useKeyboard(allIds: string[]) {
         }
         const focusedId = sel.focusedId ?? [...sel.selectedIds][0]
         if (!focusedId) break
-        usePreviewStore.getState().open(focusedId, allIds)
+        // 焦点格子的矩形用于飞入动画起点（无格子时不做飞入）
+        const cell = document.querySelector(`[data-photo-id="${focusedId}"]`)
+        usePreviewStore.getState().open(
+          focusedId,
+          allIds,
+          cell instanceof HTMLElement ? cell.getBoundingClientRect() : undefined,
+        )
         break
       }
 

@@ -44,14 +44,14 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
   const openPreview = usePreviewStore((s) => s.open)
   const photoIds    = usePhotoStore(selectPhotos).map((p) => p.id)
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (e.shiftKey) {
       rangeSelect(photo.id, allIds)
     } else if (e.ctrlKey || e.metaKey) {
       toggle(photo.id)
     } else {
       select(photo.id)
-      openPreview(photo.id, photoIds)
+      openPreview(photo.id, photoIds, e.currentTarget.getBoundingClientRect())
     }
   }
 

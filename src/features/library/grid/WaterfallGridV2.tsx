@@ -42,14 +42,14 @@ const WaterfallCell = memo(function WaterfallCell({ item, allIds, photoId }: Wat
   const rangeSelect = useSelectionStore((s) => s.rangeSelect)
   const openPreview = usePreviewStore((s) => s.open)
   const photoIds = allIds
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (e.shiftKey) {
       rangeSelect(photoId, allIds)
     } else if (e.ctrlKey || e.metaKey) {
       toggle(photoId)
     } else {
       select(photoId)
-      openPreview(photoId, photoIds)
+      openPreview(photoId, photoIds, e.currentTarget.getBoundingClientRect())
     }
   }
 

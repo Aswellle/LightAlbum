@@ -20,6 +20,17 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
+/**
+ * 网格格子的视口矩形 —— 飞入/飞出动画的起点（见 ADR-007）。
+ * 只保留数值快照，不持有 DOM 引用：虚拟化可能在飞行途中卸载源格子。
+ */
+export interface SourceRect {
+  x:      number
+  y:      number
+  width:  number
+  height: number
+}
+
 // ─────────────────────────────────────────────────────────
 //  Store 接口
 // ─────────────────────────────────────────────────────────
@@ -46,6 +57,12 @@ interface PreviewStore {
   photoIds: string[]
 
   /**
+   * 打开预览时点击的格子矩形（飞入动画起点，见 ADR-007）。
+   * 关闭时**不清空**：退出动画需要它；下一次 open() 会重置（未提供 rect 时置 null）。
+   */
+  sourceRect: SourceRect | null
+
+  /**
    * 左右切换方向，用于 Framer Motion slide 动画
    * +1 = 向后（下一张），-1 = 向前（上一张），0 = 首次打开
    */
@@ -69,8 +86,9 @@ interface PreviewStore {
    * 打开预览
    * @param photoId   要预览的照片 ID
    * @param photoIds  当前视图所有照片 ID（用于左右切换）
+   * @param rect      点击的格子矩形（飞入起点）。胶片条等无格子的入口不传 → 不做飞入
    */
-  open: (photoId: string, photoIds: string[]) => void
+  open: (photoId: string, photoIds: string[], rect?: SourceRect) => void
 
   /** 关闭预览 */
   close: () => void
@@ -104,19 +122,21 @@ export const usePreviewStore = create<PreviewStore>()(
     currentPhotoId:     null,
     currentIndex:       0,
     photoIds:           [],
+    sourceRect:         null,
     direction:          0,
     isExifOpen:         false,
     isFilmstripVisible: true,
     isUiHidden:         false,
 
     // ── 打开 ──
-    open: (photoId, photoIds) => {
+    open: (photoId, photoIds, rect) => {
       const index = photoIds.indexOf(photoId)
       set({
         isOpen:         true,
         currentPhotoId: photoId,
         currentIndex:   index === -1 ? 0 : index,
         photoIds,
+        sourceRect:     rect ?? null,
         direction:      0,
         isUiHidden:     false,
       })

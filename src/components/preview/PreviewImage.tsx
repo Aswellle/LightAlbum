@@ -146,15 +146,19 @@ function ScaleHud({ scale }: { scale: number }) {
 // ─────────────────────────────────────────────────────────
 
 function useContainerSize(ref: React.RefObject<HTMLDivElement | null>) {
-  const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
+  const [size, setSize] = useState<{ w: number; h: number; left: number; top: number }>({
+    w: 0, h: 0, left: 0, top: 0,
+  })
 
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     const read = () => {
-      const w = el.clientWidth
-      const h = el.clientHeight
-      if (w > 0 && h > 0) setSize({ w, h })
+      // 用 getBoundingClientRect 同时取得尺寸与视口偏移（飞入几何需要容器在视口中的位置）
+      const rect = el.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        setSize({ w: rect.width, h: rect.height, left: rect.left, top: rect.top })
+      }
     }
     read()
     const ro = new ResizeObserver(read)
@@ -207,12 +211,14 @@ interface ImageContentProps {
   offset:     { x: number; y: number }
   containerW: number
   containerH: number
+  /** 飞入起点（相对容器中心的位移 + 缩放）；null = 不做飞入（胶片条等入口） */
+  flyFrom?:   { x: number; y: number; scale: number } | null
   /** 原图真实像素尺寸回调（父级据此启用平移边界钳制） */
   onNaturalSizeChange?: (size: { width: number; height: number }) => void
 }
 
 const ImageContent = memo(function ImageContent({
-  photoId, direction, scale, offset, containerW, containerH, onNaturalSizeChange,
+  photoId, direction, scale, offset, containerW, containerH, flyFrom, onNaturalSizeChange,
 }: ImageContentProps) {
 
   // ── v7 核心：查询原图路径（与 ExifPanel 共用 queryKey，TanStack Query 自动去重）
@@ -296,14 +302,38 @@ const ImageContent = memo(function ImageContent({
   const placeholderW = fitDim ? fitDim.width  : (containerW > 0 ? Math.min(containerW * 0.6, 600) : 360)
   const placeholderH = fitDim ? fitDim.height : placeholderW * 2 / 3
 
+  // ── 飞入 / 飞出（ADR-007）──
+  // 关闭后覆盖层仍会挂载到退出动画结束，因此这里用 isOpen 翻转驱动「回飞」，
+  // 不依赖变体名的继承语义（显式 initial/animate 更可预测）。
+  const isOpen = usePreviewStore((s) => s.isOpen)
+  const [flyClosing, setFlyClosing] = useState(false)
+  useEffect(() => {
+    if (!isOpen) setFlyClosing(true)
+  }, [isOpen])
+
   return (
     <motion.div
       key={photoId}
       custom={direction}
       variants={slideVariants}
-      initial="enter"
-      animate="center"
-      exit="exit"
+      // initial 只在挂载时读取：容器测量落地的第二次渲染（绘制前）才拿到 flyFrom，
+      // 因此同时用关键帧数组驱动 animate —— 关键帧总是从第一个值开始，不依赖挂载时机。
+      initial={flyFrom ? { x: flyFrom.x, y: flyFrom.y, scale: flyFrom.scale } : false}
+      animate={
+        flyFrom
+          ? flyClosing
+            ? { x: [0, flyFrom.x], y: [0, flyFrom.y], scale: [1, flyFrom.scale] }
+            : { x: [flyFrom.x, 0], y: [flyFrom.y, 0], scale: [flyFrom.scale, 1] }
+          : 'center'
+      }
+      exit={flyFrom ? { x: flyFrom.x, y: flyFrom.y, scale: flyFrom.scale } : 'exit'}
+      transition={
+        flyFrom
+          ? flyClosing
+            ? { duration: 0.22, ease: [0.4, 0, 1, 1] }
+            : { duration: 0.34, ease: [0.16, 1, 0.3, 1] }
+          : undefined
+      }
       style={{
         position:       'absolute',
         inset:          0,
@@ -397,6 +427,10 @@ export const PreviewImage = memo(function PreviewImage() {
     }
   }, [neighborIds, queryClient])
 
+  // 飞入几何的数据源（几何本身在容器测量之后计算，见下方 flyFrom）
+  const photos     = usePhotoStore((s) => s.photos)
+  const sourceRect = usePreviewStore((s) => s.sourceRect)
+
   const [showHud, setShowHud]   = useState(false)
   const [hovering, setHovering] = useState(false)
   const hudTimerRef             = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -414,6 +448,28 @@ export const PreviewImage = memo(function PreviewImage() {
   const { scale, offset, isFit }       = gestureState
 
   const containerSize = useContainerSize(containerRef)
+
+  // ── 飞入几何（ADR-007）────────────────────────────────────────
+  // 仅在「从网格格子点开」时成立：direction === 0 表示本次预览是全新打开（±1 为左右切换）。
+  // 源矩形是打开瞬间的快照，因此虚拟化卸载源格子也不会让飞行失效。
+  const flyFrom = useMemo(() => {
+    if (!sourceRect || !currentPhotoId || direction !== 0) return null
+    const { w: cw, h: ch, left, top } = containerSize
+    if (!cw || !ch) return null
+    const meta = getPhotoDisplaySize(currentPhotoId, photos)
+    const fit  = meta ? calcFitDimensions(cw, ch, meta.w, meta.h) : null
+    if (!fit) return null
+
+    // 等比缩放让「适应窗口的图框」落到源格子尺寸内（只从小飞入，不放大飞入）
+    const scale = Math.min(sourceRect.width / fit.width, sourceRect.height / fit.height)
+    if (!Number.isFinite(scale) || scale <= 0 || scale >= 1) return null
+
+    return {
+      x:     sourceRect.x + sourceRect.width  / 2 - (left + cw / 2),
+      y:     sourceRect.y + sourceRect.height / 2 - (top  + ch / 2),
+      scale,
+    }
+  }, [sourceRect, currentPhotoId, direction, containerSize, photos])
 
   useEffect(() => {
     if (scale === 1) { setShowHud(false); return }
@@ -451,6 +507,7 @@ export const PreviewImage = memo(function PreviewImage() {
           offset={offset}
           containerW={containerSize.w}
           containerH={containerSize.h}
+          flyFrom={flyFrom}
           onNaturalSizeChange={setNaturalSize}
         />
       </AnimatePresence>

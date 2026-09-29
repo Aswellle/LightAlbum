@@ -253,7 +253,7 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
     clickTimeRef.current = now
 
     if (isDoubleClick) {
-      openPreview(photo.id, photoIds)
+      openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect())
       return
     }
 
@@ -263,7 +263,7 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
       toggle(photo.id)
     } else {
       select(photo.id)
-      openPreview(photo.id, photoIds)
+      openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect())
     }
   }, [
     photo.id, photoIds, allIds, isSelectionMode,
@@ -371,7 +371,7 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
       : [
           {
             id: 'open', label: '在大图中查看', icon: 'eye' as const,
-            onClick: () => openPreview(photo.id, photoIds),
+            onClick: () => openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect()),
           },
           // 私密相册内禁止添加到其他相册
           ...(!isPrivateAlbum ? [{
