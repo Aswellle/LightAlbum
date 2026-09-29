@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import {
+  rewriteReleaseNotes,
+  checkReleaseNotes,
+} from "./release-notes.mjs";
 
 const ROOT = process.cwd();
 
@@ -10,6 +14,9 @@ const FILES = {
   cargoToml: path.join(ROOT, "src-tauri", "Cargo.toml"),
   cargoLock: path.join(ROOT, "src-tauri", "Cargo.lock"),
 };
+
+/** 发行说明（GitHub Release 正文的唯一来源） */
+const NOTES_FILE = path.join(ROOT, "release_notes.md");
 
 const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
@@ -134,6 +141,8 @@ function checkVersions() {
     );
   }
 
+  checkReleaseNotesVersion(packageVersion);
+
   console.log(`\nVersion check passed: ${packageVersion}`);
 }
 
@@ -145,9 +154,41 @@ function setVersion(version) {
   updateCargoTomlVersion(version);
   updateCargoLockVersion(version);
 
+  updateReleaseNotes(version);
+
   checkVersions();
 
   console.log(`\nVersion set to ${version}`);
+}
+
+/**
+ * 同步发行说明中的版本号（标题 + 下载文件名）。
+ * 文件缺失时跳过：release_notes.md 由人工维护正文，但其中的版本号不该手改。
+ */
+function updateReleaseNotes(version) {
+  if (!fs.existsSync(NOTES_FILE)) return;
+
+  const source = read(NOTES_FILE);
+  const updated = rewriteReleaseNotes(source, version);
+
+  if (updated !== source) {
+    write(NOTES_FILE, updated);
+    console.log(`release_notes.md: ${version}`);
+  }
+}
+
+/** 发行说明的版本号必须与四文件一致，否则发版会把上一版的文件名发出去 */
+function checkReleaseNotesVersion(version) {
+  if (!fs.existsSync(NOTES_FILE)) return;
+
+  const result = checkReleaseNotes(read(NOTES_FILE), version);
+
+  if (!result.ok) {
+    fail(
+      `release_notes.md references ${result.found.join(", ")}, expected ${version}.\n` +
+        `Run: node scripts/version.mjs set ${version}`,
+    );
+  }
 }
 
 function bumpVersion(kind) {
