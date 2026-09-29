@@ -59,7 +59,7 @@ Constraints discovered while designing this:
 
 - **Good**: the transition gains spatial continuity (cell → photo) using only transform/opacity; the
   geometry is snapshot-based, so virtualization cannot break it; the frame-level contract keeps the
-  P0-2/P0-3 guarantees (no blank or scrim-only frames) enforceable in CI.
+  the no-blank-frame guarantees (no blank or scrim-only frames) enforceable in CI.
 - **Bad**: `sourceRect` returns to the store — the field is back *because it is used*, not because the
   old API was kept (the old unused setters/selectors stay deleted).
 - **Bad**: the first frame is not pixel-identical to the source cell (uniform scale preserves the

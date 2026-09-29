@@ -18,7 +18,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **两个「死」设置项** — `previewOnDoubleClick` 与 `autoHidePreviewUI` 此前只存在于设置页与类型定义，网格与预览从未读取（点它没有任何效果）。现在前者决定单击 / 双击进入预览（固定网格与两种瀑布流都遵循），后者决定预览工具栏与胶片条是否在闲置 2 秒后自动隐藏；两者启动时从 AppSettings 初始化，设置页改动后即时生效。`src/stores/uiStore.ts`、`src/hooks/useTheme.ts`、`src/components/grid/GridItem.tsx`、`src/components/grid/WaterfallGrid.tsx`、`src/features/library/grid/WaterfallGridV2.tsx`、`src/components/preview/PreviewToolbar.tsx`、`src/components/settings/sections/GeneralSection.tsx`
 - **双击打开预览会「闪一下就被关掉」** — 双击的第二下落在遮罩背板上会触发「点背板关闭」；现在忽略打开后 300ms 内的背板点击。`src/components/preview/PhotoPreview.tsx`、`src/stores/previewStore.ts`
 
-### P0-4 预览共享元素飞入 / 飞出（ADR-007）
+### 预览共享元素飞入 / 飞出（ADR-007）
 
 #### Added
 
@@ -34,7 +34,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.4.4] — 2026-09-29
 
-### P0-3 收尾（预览相邻预取 / 测试基建 / 死代码清理）
+### 预览相邻预取 / 测试基建 / 死代码清理
 
 #### Added
 
@@ -53,7 +53,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.4.3] — 2026-09-29
 
-### P0-3 大图预览观感 + 缩略图缓存上限
+### 大图预览观感 + 缩略图缓存上限
 
 #### Added
 
@@ -81,7 +81,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.4.1] — 2026-09-28
 
-### P0-2 内容区闪烁消除（切换视图 / 筛选 / 启动过渡）
+### 内容区闪烁消除（切换视图 / 筛选 / 启动过渡）
 
 #### Added
 
@@ -121,7 +121,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.4.0] — 2026-09-27
 
-### P0-1 全应用可见度改造（对比度 / 字号 / 字重 / 图标）
+### 全应用可见度改造（对比度 / 字号 / 字重 / 图标）
 
 #### Added
 
