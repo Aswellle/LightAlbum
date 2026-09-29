@@ -3,6 +3,25 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### P0-3 收尾（预览相邻预取 / 测试基建 / 死代码清理）
+
+#### Added
+
+- **预览相邻预取** — 打开大图预览后立即预取前后各一张的 `m` 缩略图与 `['photo', id]` 元数据：方向键连按时下一张已是完整画面，而不是「先放大一张缩略图再等原图」。`src/components/preview/PreviewImage.tsx`
+- **`tests/e2e/support/tauriStub.ts`** — 共用的假 Tauri IPC 与逐帧探针。契约兜底：所有 `*_list` / `*_all` / `*_batch` 命令一律返回数组（组件里的 `= []` 默认值只对 `undefined` 生效，stub 返回 `null` 会崩进错误边界——曾让断言时好时坏并阻断过一次发行）；探针同时用 rAF 与 50ms 心跳采样，并统一记录「是否已崩进错误边界」。
+
+#### Changed
+
+- **三个 E2E spec 迁移到共用 stub** — `flicker` / `preview-animation` / `startup` 不再各写一份假 IPC，并新增「不得出现『界面渲染出错』」断言。`tests/e2e/*.spec.ts`
+- **启动测试窗口放大** — `startup.spec.ts` 的列表查询延迟提到 1500ms，消除启动窗口的时序竞争。
+
+#### Removed
+
+- **previewStore 死代码** — `sourceRect` / `updateSourceRect` / `selectSourceRect`、`isLoadingOriginal` / `setLoadingOriginal`、`toggleFilmstrip`：仅存在于定义处、无任何读取方；`open()` 随之去掉 `rect` 参数，`GridItem` / `WaterfallGrid` / `WaterfallGridV2` / `useKeyboard` 里的取矩形与传参一并删除，`SourceRect` 类型（`types/layout.ts`）随之移除。
+- **未使用的预览 CSS** — `.la-preview-backdrop`、`.la-preview-container`（无任何引用）。`src/styles/animations.css`
+
 ## [0.4.3] — 2026-09-29
 
 ### P0-3 大图预览观感 + 缩略图缓存上限
