@@ -30,12 +30,13 @@ import {
   useLayoutEffect,
   useRef,
   useCallback,
+  useMemo,
   memo,
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { convertFileSrc } from '@tauri-apps/api/core'
-import { useThumbnail, useThumbnailWithFallback } from '@/hooks/useThumbnail'
+import { useThumbnail, useThumbnailWithFallback, usePreloadThumbnails } from '@/hooks/useThumbnail'
 import { usePreviewGesture } from '@/hooks/usePreviewGesture'
 import {
   usePreviewStore,
@@ -43,6 +44,7 @@ import {
   selectHasNext,
   selectHasPrev,
   selectIsExifOpen,
+  selectPhotoIds,
 } from '@/stores/previewStore'
 import { usePhotoStore } from '@/stores/photoStore'
 import { api } from '@/services/tauriIpc'
@@ -365,6 +367,35 @@ export const PreviewImage = memo(function PreviewImage() {
   // P0-3：信息面板是覆盖层，打开时箭头需向左让出面板宽度，避免叠在面板上
   const isExifOpen     = usePreviewStore(selectIsExifOpen)
   const arrowOffset    = isExifOpen ? 'calc(var(--la-exif-panel-w) + 20px)' : '20px'
+
+  // ── 相邻照片预取 ─────────────────────────────────────────────
+  // 方向键连按时，下一张的 'm' 缩略图底图与 ['photo', id]（原图路径）都已在手，
+  // 切过去即是完整画面，而不是「先放大一张缩略图再等原图」。
+  const photoIds    = usePreviewStore(selectPhotoIds)
+  const queryClient = useQueryClient()
+
+  const neighborKey = useMemo(() => {
+    const idx = currentPhotoId ? photoIds.indexOf(currentPhotoId) : -1
+    if (idx === -1) return ''
+    return [photoIds[idx - 1], photoIds[idx + 1]].filter(Boolean).join(',')
+  }, [photoIds, currentPhotoId])
+
+  const neighborIds = useMemo(
+    () => (neighborKey ? neighborKey.split(',') : []),
+    [neighborKey],
+  )
+
+  usePreloadThumbnails(neighborIds, 'm')
+
+  useEffect(() => {
+    for (const id of neighborIds) {
+      void queryClient.prefetchQuery({
+        queryKey:  ['photo', id],
+        queryFn:   () => api.photos.get(id),
+        staleTime: Infinity,   // 文件路径不变，与 ImageContent 的查询策略一致
+      })
+    }
+  }, [neighborIds, queryClient])
 
   const [showHud, setShowHud]   = useState(false)
   const [hovering, setHovering] = useState(false)
