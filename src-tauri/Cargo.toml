@@ -2,7 +2,7 @@
 
 [package]
 name        = "light-album"
-version     = "0.4.4"
+version     = "0.5.0"
 description = "LightAlbum - Local Photo Manager"
 authors     = []
 edition     = "2021"
