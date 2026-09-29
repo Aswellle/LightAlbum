@@ -1,6 +1,6 @@
 /**
  * @file tests/e2e/preview-animation.spec.ts
- * @description P0-3 大图预览观感回归测试
+ * @description 大图预览观感回归测试
  *
  * 覆盖的可观察不变量：
  *   1. 打开预览后**每一帧**预览内都有图像元素 —— 不出现「只有骨架占位」的帧
@@ -29,7 +29,7 @@ async function openPreviewOfFirstCell(page: Page) {
   await expect(page.locator('[data-testid="preview-root"]')).toBeVisible({ timeout: 10_000 })
 }
 
-test.describe('P0-3 大图预览无闪烁', () => {
+test.describe('大图预览无闪烁', () => {
   test.beforeEach(async ({ page }) => {
     await installTauriStub(page)
     await page.goto('/')

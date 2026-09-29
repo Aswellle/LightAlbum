@@ -1,6 +1,6 @@
 /**
  * @file tests/e2e/flicker.spec.ts
- * @description P0-2 内容区闪烁回归测试
+ * @description 内容区闪烁回归测试
  *
  * 背景（本次修复的缺陷）：
  *   1. 切换侧边栏选项卡 / 筛选条件时，内容区会先画出一帧「空白网格」或
@@ -36,7 +36,7 @@ async function clickNavInPage(page: Page, label: string) {
 const readClickAt = (page: Page) =>
   page.evaluate(() => (window as unknown as { __clickAt?: number }).__clickAt ?? 0)
 
-test.describe('P0-2 内容区无闪烁', () => {
+test.describe('内容区无闪烁', () => {
   test.beforeEach(async ({ page }) => {
     await installTauriStub(page)
     await page.goto('/')

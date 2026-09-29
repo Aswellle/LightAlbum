@@ -1,6 +1,6 @@
 /**
  * @file tests/e2e/support/tauriStub.ts
- * @description 共用的假 Tauri IPC + 逐帧探针（P0-3 测试基建）
+ * @description 共用的假 Tauri IPC + 逐帧探针（测试基建）
  *
  * 为什么集中在一处：
  *   1. **契约**：列表类命令必须返回数组。组件里的 `const { data: x = [] } = useQuery(...)`
