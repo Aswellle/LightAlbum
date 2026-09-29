@@ -29,6 +29,22 @@ async function openPreviewOfFirstCell(page: Page) {
   await expect(page.locator('[data-testid="preview-root"]')).toBeVisible({ timeout: 10_000 })
 }
 
+/**
+ * 预览图像的**布局**几何（`offsetWidth/Height`，不含 transform）。
+ *
+ * 这里不能用 Playwright 的 `boundingBox()` / `getBoundingClientRect()`：它们把祖先上的
+ * transform 一并算进去，而预览图在飞入动画期间是缩放中的。实测同一元素：飞入期间
+ * `getBoundingClientRect().width` 从 700.6 → 1176.4 → 1199.99 才收敛到 1200，
+ * 而 `offsetWidth` 全程恒为 1200。本地机器 ~150ms 落定，CI runner 更慢，
+ * 于是「打开后等 250ms」在 CI 上会取到 1198.7 这样的尾帧值 → 断言假失败。
+ */
+async function previewImageLayout(page: Page) {
+  return page.locator('[data-testid="preview-root"] img').first().evaluate((el) => {
+    const img = el as HTMLElement
+    return { width: img.offsetWidth, height: img.offsetHeight }
+  })
+}
+
 test.describe('大图预览无闪烁', () => {
   test.beforeEach(async ({ page }) => {
     await installTauriStub(page)
@@ -76,17 +92,18 @@ test.describe('大图预览无闪烁', () => {
     await openPreviewOfFirstCell(page)
     await page.waitForTimeout(250)
 
-    const before = await page.locator('[data-testid="preview-root"] img').first().boundingBox()
+    const before = await previewImageLayout(page)
 
     await page.keyboard.press('i')   // 切换照片信息面板
     await expect(page.locator('[data-testid="preview-root"] aside')).toBeVisible({ timeout: 5_000 })
     await page.waitForTimeout(400)   // 等面板滑入动画结束
 
-    const after = await page.locator('[data-testid="preview-root"] img').first().boundingBox()
+    const after = await previewImageLayout(page)
 
-    // 面板若占用 flex 行宽（旧实现），照片会被挤窄 ~320px；覆盖层则几何不变
-    expect(after?.width  ?? -1).toBeCloseTo(before?.width  ?? -2, 0)
-    expect(after?.height ?? -1).toBeCloseTo(before?.height ?? -2, 0)
+    // 面板若占用 flex 行宽（旧实现），照片会被挤窄 ~320px；覆盖层则布局几何不变。
+    // 容差 2px：布局小数宽度的取整差异，与「被挤窄 320px」相差两个数量级。
+    expect(Math.abs(after.width  - before.width)).toBeLessThanOrEqual(2)
+    expect(Math.abs(after.height - before.height)).toBeLessThanOrEqual(2)
 
     await page.screenshot({ path: 'test-results/preview-exif-overlay.png' })
   })
