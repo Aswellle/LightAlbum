@@ -3,6 +3,16 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.5.1] — 2026-09-30
+
+> 注：**0.5.0 未产出任何构建产物** —— 其发布流水线在 Full CI 关口失败（回归测试假失败），未创建 draft；本版本内容与 0.5.0 相同，仅修正该测试。
+
+### 预览几何回归测试修正
+
+#### Fixed
+
+- **E2E「信息面板不改变照片几何」在 CI 上假失败** — 断言读的是 `boundingBox()`（含祖先 transform），而预览图在飞入动画期间正处于缩放中：实测同一元素 `getBoundingClientRect().width` 会从 700.6 → 1176.4 → 1199.99 才收敛到 1200，而 `offsetWidth` 全程恒为 1200。打开后等 250ms 在本地机器上已经落定，在更慢的 CI runner 上仍是动画尾帧，于是取到 1198.7 而失败（本地通过、CI 必现）。改为读布局几何（`offsetWidth/offsetHeight`）并给 2px 取整容差；并用「把面板改回占用 flex 行宽」的注入样式验证过：该断言仍能抓住真实回归（实测 delta 240 ≫ 2）。`tests/e2e/preview-animation.spec.ts`
+
 ## [0.5.0] — 2026-09-30
 
 ### 设置项生效性 + 发版流程自动化

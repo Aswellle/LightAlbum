@@ -1,4 +1,4 @@
-# LightAlbum v0.5.0
+# LightAlbum v0.5.1
 
 > 从格子点开大图，照片从它所在的位置长大
 
@@ -6,15 +6,19 @@
 
 | 平台 | 文件 |
 |------|------|
-| Windows (x64) | `LightAlbum_0.5.0_x64-setup.exe`（推荐）或 `LightAlbum_0.5.0_x64_en-US.msi` |
-| macOS (Apple Silicon) | `LightAlbum_0.5.0_aarch64.dmg` |
-| macOS (Intel) | `LightAlbum_0.5.0_x64.dmg` |
-| Linux (x64) | `LightAlbum_0.5.0_amd64.AppImage` 或 `LightAlbum_0.5.0_amd64.deb` |
-| Linux (Fedora/RHEL, x64) | `LightAlbum-0.5.0-1.x86_64.rpm` |
+| Windows (x64) | `LightAlbum_0.5.1_x64-setup.exe`（推荐）或 `LightAlbum_0.5.1_x64_en-US.msi` |
+| macOS (Apple Silicon) | `LightAlbum_0.5.1_aarch64.dmg` |
+| macOS (Intel) | `LightAlbum_0.5.1_x64.dmg` |
+| Linux (x64) | `LightAlbum_0.5.1_amd64.AppImage` 或 `LightAlbum_0.5.1_amd64.deb` |
+| Linux (Fedora/RHEL, x64) | `LightAlbum-0.5.1-1.x86_64.rpm` |
 
 [前往 Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest)
 
 ---
+
+## 说明
+
+- **本版本内容与 0.5.0 完全相同** —— 0.5.0 的发布流水线在回归测试阶段失败，没有产出任何安装包；修正那条测试后以 0.5.1 发布。已经下载过 0.5.0 的用户无需重复下载（它从未发布）。
 
 ## 实现
 
