@@ -3,6 +3,21 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### P0-4 预览共享元素飞入 / 飞出（ADR-007）
+
+#### Added
+
+- **预览飞入 / 飞出** — 从网格点开大图时，预览图从被点击的格子位置等比长大到适应窗口；关闭时反向飞回（仅限「从格子点开」的那张，左右切换过之后退化为淡出）。位移与缩放全部走 transform，符合「动画只用 transform/opacity」约定；源矩形是打开瞬间的快照，虚拟化卸载源格子也不会让飞行失效。`src/components/preview/PreviewImage.tsx`、`src/stores/previewStore.ts`
+- **`docs/decisions/ADR-007-preview-shared-element-transition.md`** — 飞入/飞出契约：入口快照、方向判定（`direction === 0` 才算「来自格子」）、虚拟化兜底、减弱动效、帧级不变量，以及「与挂载时机无关」的关键帧实现约束。
+- **`src/features/library/README.md`** — 标明 V2 视图层（13 文件 / 1923 行）状态：计划中、未接线、外部零引用，删除前需确认。
+- **E2E 探针字段 `previewImgW`** — 逐帧记录预览图渲染宽度，用于断言飞入确实发生（起点明显小于终态，而不是直接出现在最终位置）。
+
+#### Changed
+
+- **`previewStore.open()` 恢复 `rect` 参数** — 与 v0.4.4 删掉的死管道不是一回事：这次它被真正消费（飞入起点），入参来自格子 `getBoundingClientRect()` 的快照。
+
 ## [0.4.4] — 2026-09-29
 
 ### P0-3 收尾（预览相邻预取 / 测试基建 / 死代码清理）

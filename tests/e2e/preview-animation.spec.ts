@@ -113,6 +113,26 @@ test.describe('P0-3 大图预览无闪烁', () => {
       .toBe(true)
   })
 
+  test('飞入动画：预览从点击的格子尺寸开始长大（存在中间帧）', async ({ page }) => {
+    await drainProbe(page)
+
+    // 点第一格（左上角）→ 起止位置差异最明显
+    await page.locator('.la-grid-item').first().click()
+    await expect(page.locator('[data-testid="preview-root"]')).toBeVisible({ timeout: 10_000 })
+    await page.waitForTimeout(600)   // 覆盖完整飞入时长（0.34s）
+
+    const frames  = await drainProbe(page)
+    const withImg = frames.filter((f) => f.previewOpen && f.previewImgs > 0)
+    expect(withImg.length).toBeGreaterThan(0)
+
+    const widths  = withImg.map((f) => f.previewImgW)
+    const settled = widths[widths.length - 1]
+    const trace   = widths.map((w) => Math.round(w)).join(',')
+
+    // 起点必须明显小于终态：说明它是「从格子长大」而不是直接出现在最终位置
+    expect(Math.min(...widths), `widths=${trace}`).toBeLessThan(settled * 0.85)
+  })
+
   test('相邻预取：打开某张后立即拉取前后各一张的元数据', async ({ page }) => {
     // 默认数据集为 p-0…p-11（按时间倒序渲染）→ 第 3 格即 p-2，前后各有一张
     await page.locator('.la-grid-item').nth(2).click()

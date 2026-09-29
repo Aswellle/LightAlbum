@@ -68,6 +68,8 @@ export interface ProbeFrame {
   previewOpen: boolean
   /** 预览内的 <img> 数量 */
   previewImgs: number
+  /** 预览内第一张 <img> 的渲染宽度（px，含 transform）——用于断言飞入过程 */
+  previewImgW: number
   /** 侧边栏空态引导文案 */
   albumHint:   boolean
   tagHint:     boolean
@@ -261,6 +263,7 @@ export async function installTauriStub(page: Page, options: StubOptions = {}): P
         const text        = document.body.textContent ?? ''
         const grid        = document.querySelector('[data-testid="photo-grid"]')
         const preview     = document.querySelector('[data-testid="preview-root"]')
+        const previewImg  = preview?.querySelector('img')
         const footerText  = document.querySelector('footer')?.textContent ?? ''
         const statusMatch = /(\d+)/.exec(footerText)
         frames.push({
@@ -270,6 +273,7 @@ export async function installTauriStub(page: Page, options: StubOptions = {}): P
           statusTotal: statusMatch ? Number(statusMatch[1]) : -1,
           previewOpen: Boolean(preview),
           previewImgs: preview ? preview.querySelectorAll('img').length : 0,
+          previewImgW: previewImg ? previewImg.getBoundingClientRect().width : 0,
           albumHint:   text.includes('暂无相册'),
           tagHint:     text.includes('暂无标签'),
           crashed:     text.includes('界面渲染出错'),
