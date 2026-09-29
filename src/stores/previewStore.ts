@@ -63,6 +63,13 @@ interface PreviewStore {
   sourceRect: SourceRect | null
 
   /**
+   * 本次预览的打开时刻（performance.now()）。
+   * 用于忽略「刚打开就落在背板上的点击」：双击打开时第二下会落在遮罩上，
+   * 否则会立刻把预览关掉（闪一下）。
+   */
+  openedAt: number
+
+  /**
    * 左右切换方向，用于 Framer Motion slide 动画
    * +1 = 向后（下一张），-1 = 向前（上一张），0 = 首次打开
    */
@@ -123,6 +130,7 @@ export const usePreviewStore = create<PreviewStore>()(
     currentIndex:       0,
     photoIds:           [],
     sourceRect:         null,
+    openedAt:           0,
     direction:          0,
     isExifOpen:         false,
     isFilmstripVisible: true,
@@ -137,6 +145,7 @@ export const usePreviewStore = create<PreviewStore>()(
         currentIndex:   index === -1 ? 0 : index,
         photoIds,
         sourceRect:     rect ?? null,
+        openedAt:       performance.now(),
         direction:      0,
         isUiHidden:     false,
       })

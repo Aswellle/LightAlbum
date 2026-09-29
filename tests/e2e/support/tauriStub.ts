@@ -88,6 +88,13 @@ export interface StubOptions {
   tags?:      Array<{ id: string; name: string; color: string; photoCount: number }>
   /** 列表类命令的响应延迟（毫秒）——用于人为放大启动/加载窗口 */
   delayMs?:   number
+  /** 覆盖 settings_get 的部分字段（如两个预览行为开关） */
+  settings?:  {
+    theme?:                string
+    gridDensity?:          number
+    previewOnDoubleClick?: boolean
+    autoHidePreviewUI?:    boolean
+  }
 }
 
 const THUMB_DATA_URL =
@@ -150,10 +157,11 @@ export async function installTauriStub(page: Page, options: StubOptions = {}): P
     { id: 'tag-1', name: '旅行', color: '#0A84FF', photoCount: tagged.length },
   ]
   const delayMs   = options.delayMs   ?? 0
+  const settings  = options.settings  ?? {}
   const thumb     = THUMB_DATA_URL
 
   await page.addInitScript(
-    ({ photos, favorites, tagged, tags, delayMs, thumb }) => {
+    ({ photos, favorites, tagged, tags, delayMs, settings, thumb }) => {
       const w = window as unknown as {
         __TAURI_INTERNALS__?: unknown
         __invokes?: InvokeRecord[]
@@ -199,8 +207,9 @@ export async function installTauriStub(page: Page, options: StubOptions = {}): P
                 sortAsc: false,
                 watchedFolders: [],
                 sidebarWidth: 220,
-                autoHidePreviewUI: false,
+                autoHidePreviewUI: true,
                 previewOnDoubleClick: false,
+                ...settings,
               }
             case 'photos_list': {
               if (delayMs) await sleep(delayMs)
@@ -287,7 +296,7 @@ export async function installTauriStub(page: Page, options: StubOptions = {}): P
       })
       window.setInterval(sample, 50)
     },
-    { photos, favorites, tagged, tags, delayMs, thumb },
+    { photos, favorites, tagged, tags, delayMs, settings, thumb },
   )
 }
 

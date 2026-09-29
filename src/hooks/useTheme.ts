@@ -50,6 +50,8 @@ export function useTheme(): void {
   const theme        = useUiStore(selectTheme)
   const setTheme     = useUiStore((s) => s.setTheme)
   const setResolved  = useUiStore((s) => s.setResolvedTheme)
+  const setPreviewOnDoubleClick = useUiStore((s) => s.setPreviewOnDoubleClick)
+  const setAutoHidePreviewUi    = useUiStore((s) => s.setAutoHidePreviewUi)
   const initLayout   = useLayoutStore((s) => s.init)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -66,6 +68,9 @@ export function useTheme(): void {
           sortBy:  settings.sortBy,
           sortAsc: settings.sortAsc,
         })
+        // 预览行为偏好（此前只在设置页存在，网格与预览从未读取）
+        setPreviewOnDoubleClick(settings.previewOnDoubleClick)
+        setAutoHidePreviewUi(settings.autoHidePreviewUI)
       })
       .catch(() => {
         // 读取失败：使用默认值，不中断启动流程

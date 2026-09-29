@@ -23,7 +23,7 @@ import { usePhotoStore } from '@/stores/photoStore'
 import { ConfirmDialog, type ConfirmDialogOptions } from '@/components/common/ConfirmDialog'
 import { Icon } from '@/components/common/Icon'
 import { api } from '@/services/tauriIpc'
-import { toast } from '@/stores/uiStore'
+import { toast, useUiStore } from '@/stores/uiStore'
 import type { IconName } from '@/components/common/Icon'
 
 // ─────────────────────────────────────────────────────────
@@ -182,14 +182,17 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
   // v2：本地 confirm，无需 ConfirmDialogProvider 上下文
   const { confirm, dialogNode } = useLocalConfirm()
 
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideTimerRef = useRef<number | undefined>(undefined)
 
-  // ── 自动隐藏逻辑 ─────────────────────────────────────
+  // ── 自动隐藏逻辑（受「自动隐藏预览界面」开关控制）────
+  const autoHidePreviewUi = useUiStore((s) => s.autoHidePreviewUi)
+
   const resetHideTimer = useCallback(() => {
     setUiHidden(false)
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+    clearTimeout(hideTimerRef.current)   // 传 null/undefined 本就是 no-op，无需守卫
+    if (!autoHidePreviewUi) return       // 关闭自动隐藏：界面常显
     hideTimerRef.current = setTimeout(() => setUiHidden(true), 2000)
-  }, [setUiHidden])
+  }, [setUiHidden, autoHidePreviewUi])
 
   useEffect(() => {
     resetHideTimer()
@@ -198,7 +201,7 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
     return () => {
       window.removeEventListener('mousemove', resetHideTimer)
       window.removeEventListener('keydown',   resetHideTimer)
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+      clearTimeout(hideTimerRef.current)
     }
   }, [resetHideTimer])
 

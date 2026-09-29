@@ -43,6 +43,7 @@ const backdropVariants = {
 
 export function PhotoPreview() {
   const currentPhotoId = usePreviewStore((s) => s.currentPhotoId)
+  const openedAt       = usePreviewStore((s) => s.openedAt)
   const close          = usePreviewStore((s) => s.close)
 
   useEffect(() => {
@@ -94,7 +95,12 @@ export function PhotoPreview() {
         '--la-border-strong':  'rgba(255,255,255,0.34)',
         '--la-divider':        'rgba(255,255,255,0.18)',
       } as React.CSSProperties}
-      onClick={(e) => { if (e.target === e.currentTarget) close() }}
+      onClick={(e) => {
+        if (e.target !== e.currentTarget) return
+        // 打开预览的那次双击，第二下会落在背板上；不忽略就会立刻关闭（闪一下）
+        if (performance.now() - openedAt < 300) return
+        close()
+      }}
     >
       {/* 工具栏：绝对定位，不占 flex 空间 */}
       <PreviewToolbar photoId={currentPhotoId} />

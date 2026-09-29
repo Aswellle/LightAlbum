@@ -17,6 +17,7 @@ import { useWaterfallLayout } from '../hooks/useWaterfallLayout'
 import { useScrollVelocity } from '@/hooks/useScrollVelocity'
 import { useThumbnail } from '@/hooks/useThumbnail'
 import { useLayoutStore, selectGridConfig } from '@/stores/layoutStore'
+import { useUiStore } from '@/stores/uiStore'
 import { usePreviewStore } from '@/stores/previewStore'
 import { useSelectionStore, selectIsSelected } from '@/stores/selectionStore'
 import type { PhotoCollection } from '@/stores/collectionStore'
@@ -42,6 +43,9 @@ const WaterfallCell = memo(function WaterfallCell({ item, allIds, photoId }: Wat
   const rangeSelect = useSelectionStore((s) => s.rangeSelect)
   const openPreview = usePreviewStore((s) => s.open)
   const photoIds = allIds
+  // 「双击进入预览」开关：开启时单击只选中，双击才打开
+  const openOnDoubleClick = useUiStore((s) => s.previewOnDoubleClick)
+
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (e.shiftKey) {
       rangeSelect(photoId, allIds)
@@ -49,14 +53,23 @@ const WaterfallCell = memo(function WaterfallCell({ item, allIds, photoId }: Wat
       toggle(photoId)
     } else {
       select(photoId)
-      openPreview(photoId, photoIds, e.currentTarget.getBoundingClientRect())
+      if (!openOnDoubleClick) {
+        openPreview(photoId, photoIds, e.currentTarget.getBoundingClientRect())
+      }
     }
+  }
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (!openOnDoubleClick) return   // 单击已经打开，避免重复触发
+    select(photoId)
+    openPreview(photoId, photoIds, e.currentTarget.getBoundingClientRect())
   }
 
   return (
     <motion.div
       layoutId={`photo-${photoId}`}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.15 }}
       style={{

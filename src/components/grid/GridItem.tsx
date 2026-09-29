@@ -141,6 +141,7 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
   // updatePhoto removed - handled via optimistic mutations in handleFavorite
 
   const openPreview = usePreviewStore((s) => s.open)
+  const openOnDoubleClick = useUiStore((s) => s.previewOnDoubleClick)
   const openCtxMenu = useUiStore((s) => s.openContextMenu)
   const photoIds    = usePhotoStore(selectPhotos).map((p) => p.id)
 
@@ -252,8 +253,11 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
     const isDoubleClick = now - clickTimeRef.current < 300
     clickTimeRef.current = now
 
+    // 「双击进入预览」开关（设置页此前是个死开关：无论开关，单击都会打开）
     if (isDoubleClick) {
-      openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect())
+      if (openOnDoubleClick) {
+        openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect())
+      }
       return
     }
 
@@ -263,11 +267,13 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
       toggle(photo.id)
     } else {
       select(photo.id)
-      openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect())
+      if (!openOnDoubleClick) {
+        openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect())
+      }
     }
   }, [
     photo.id, photoIds, allIds, isSelectionMode,
-    select, toggle, rangeSelect, openPreview, cancelLongPress,
+    select, toggle, rangeSelect, openPreview, cancelLongPress, openOnDoubleClick,
   ])
 
   // ── 右键菜单（F-09 + v3 私密相册缓存修复）──

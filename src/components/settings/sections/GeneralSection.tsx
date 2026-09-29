@@ -65,6 +65,19 @@ export const GeneralSection = memo(function GeneralSection({
 }: GeneralSectionProps) {
   const setTheme   = useUiStore((s) => s.setTheme)
   const setSort    = useLayoutStore((s) => s.setSort)
+  const setPreviewOnDoubleClick = useUiStore((s) => s.setPreviewOnDoubleClick)
+  const setAutoHidePreviewUi    = useUiStore((s) => s.setAutoHidePreviewUi)
+
+  // 预览行为：即时写 uiStore（网格/预览立刻按新偏好工作），同时保存
+  const handlePreviewOnDoubleClickChange = useCallback((v: boolean) => {
+    setPreviewOnDoubleClick(v)
+    onChange({ previewOnDoubleClick: v })
+  }, [setPreviewOnDoubleClick, onChange])
+
+  const handleAutoHidePreviewUiChange = useCallback((v: boolean) => {
+    setAutoHidePreviewUi(v)
+    onChange({ autoHidePreviewUI: v })
+  }, [setAutoHidePreviewUi, onChange])
 
   // 主题变更：即时写 uiStore（立即生效），同时 debounce 保存
   const handleThemeChange = useCallback((theme: AppTheme) => {
@@ -128,7 +141,7 @@ export const GeneralSection = memo(function GeneralSection({
         >
           <ToggleSwitch
             checked={settings.previewOnDoubleClick}
-            onChange={(v) => onChange({ previewOnDoubleClick: v })}
+            onChange={handlePreviewOnDoubleClickChange}
             label="双击进入大图预览"
           />
         </SettingRow>
@@ -139,7 +152,7 @@ export const GeneralSection = memo(function GeneralSection({
         >
           <ToggleSwitch
             checked={settings.autoHidePreviewUI}
-            onChange={(v) => onChange({ autoHidePreviewUI: v })}
+            onChange={handleAutoHidePreviewUiChange}
             label="自动隐藏预览界面"
           />
         </SettingRow>

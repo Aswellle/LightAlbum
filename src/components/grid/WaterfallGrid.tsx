@@ -13,6 +13,7 @@ import { useWaterfallGrid } from '@/hooks/useWaterfallGrid'
 import { useScrollVelocity } from '@/hooks/useScrollVelocity'
 import { useThumbnail } from '@/hooks/useThumbnail'
 import { useLayoutStore, selectGridConfig } from '@/stores/layoutStore'
+import { useUiStore } from '@/stores/uiStore'
 import { usePhotoStore, selectPhotos } from '@/stores/photoStore'
 import { usePreviewStore } from '@/stores/previewStore'
 import { useSelectionStore, selectIsSelected } from '@/stores/selectionStore'
@@ -44,6 +45,9 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
   const openPreview = usePreviewStore((s) => s.open)
   const photoIds    = usePhotoStore(selectPhotos).map((p) => p.id)
 
+  // 「双击进入预览」开关：开启时单击只选中，双击才打开（此前该开关无人消费）
+  const openOnDoubleClick = useUiStore((s) => s.previewOnDoubleClick)
+
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (e.shiftKey) {
       rangeSelect(photo.id, allIds)
@@ -51,14 +55,23 @@ const WaterfallItem = memo(function WaterfallItem({ item, allIds }: WaterfallIte
       toggle(photo.id)
     } else {
       select(photo.id)
-      openPreview(photo.id, photoIds, e.currentTarget.getBoundingClientRect())
+      if (!openOnDoubleClick) {
+        openPreview(photo.id, photoIds, e.currentTarget.getBoundingClientRect())
+      }
     }
+  }
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (!openOnDoubleClick) return   // 单击已经打开，避免重复触发
+    select(photo.id)
+    openPreview(photo.id, photoIds, e.currentTarget.getBoundingClientRect())
   }
 
   return (
     <motion.div
       layoutId={`photo-${photo.id}`}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.15 }}
       // 与固定网格一致的合成层提示 + 统一的格子选择器（E2E 逐帧采样用）

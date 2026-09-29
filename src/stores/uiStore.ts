@@ -125,7 +125,15 @@ interface UiStore {
   // ── 搜索框 ──
 
   /** 搜索框是否处于展开/聚焦状态 */
+  /** 搜索框是否展开 */
   isSearchOpen: boolean
+
+  /**
+   * 预览行为偏好（来自 AppSettings，默认值与 Rust 侧一致）。
+   * 这两项此前只存在于设置页 UI，网格/预览从未读取 —— 开关是"死"的。
+   */
+  previewOnDoubleClick: boolean
+  autoHidePreviewUi:    boolean
 
   /** 当前搜索关键词（实时输入值） */
   searchQuery: string
@@ -176,6 +184,11 @@ interface UiStore {
 
   setTheme: (theme: AppTheme) => void
   setResolvedTheme: (theme: 'light' | 'dark') => void
+
+  // ── 写操作：预览行为偏好 ──
+
+  setPreviewOnDoubleClick: (v: boolean) => void
+  setAutoHidePreviewUi:    (v: boolean) => void
 
   // ── 写操作：搜索 ──
 
@@ -232,6 +245,10 @@ export const useUiStore = create<UiStore>()(
 
     isSearchOpen: false,
     searchQuery:  '',
+
+    // 默认值与 Rust 侧 AppSettings 一致（auto_hide=true / double_click=false）
+    previewOnDoubleClick: false,
+    autoHidePreviewUi:    true,
 
     // ── 侧边栏 ──
     setSidebarWidth: (width) => {
@@ -308,6 +325,9 @@ export const useUiStore = create<UiStore>()(
     // ── 搜索 ──
     setSearchOpen: (isSearchOpen) => set({ isSearchOpen }),
     setSearchQuery: (searchQuery) => set({ searchQuery }),
+
+    setPreviewOnDoubleClick: (previewOnDoubleClick) => set({ previewOnDoubleClick }),
+    setAutoHidePreviewUi:    (autoHidePreviewUi)    => set({ autoHidePreviewUi }),
   })),
 )
 
@@ -328,6 +348,8 @@ export const selectTheme            = (s: UiStore) => s.theme
 export const selectResolvedTheme    = (s: UiStore) => s.resolvedTheme
 export const selectIsSearchOpen     = (s: UiStore) => s.isSearchOpen
 export const selectSearchQuery      = (s: UiStore) => s.searchQuery
+export const selectPreviewOnDoubleClick = (s: UiStore) => s.previewOnDoubleClick
+export const selectAutoHidePreviewUi    = (s: UiStore) => s.autoHidePreviewUi
 
 // ─────────────────────────────────────────────────────────
 //  便捷 Toast 工厂（供业务代码直接调用）
