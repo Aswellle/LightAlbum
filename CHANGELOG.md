@@ -3,6 +3,16 @@
 All notable changes to LightAlbum are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### 发行矩阵移除 macOS Intel
+
+#### Changed
+
+- **不再为 macOS Intel（`x86_64-apple-darwin`）出安装包** — 保留 Windows x64 / macOS Apple Silicon / Linux x64。Intel macOS 已不在新系统更新的支持范围内，且它是矩阵里最慢的一个：本轮 `Build macOS Intel` 耗时 23m53s，`Build macOS ARM64` 为 11m23s。`.github/workflows/release.yml`、`docs/RELEASE.md`
+- **资产校验改为逐平台校验存在性** — 原先用「资产总数 ≥ 4」判断「四个平台都报到了」，但单个平台可能有多个产物，该阈值既可能放过「其实只有一个平台成功」，也会在平台增删时失效。现在要求 Windows / macOS Apple Silicon / Linux 各自的产物名都出现。`.github/workflows/release.yml`
+- **`sidecar/scripts/bundle.js` 保留 `mac_x64` 能力** — 只是发行矩阵不再调用它，本地手动构建 Intel 版仍可用。
+
 ## [0.5.1] — 2026-09-30
 
 > 注：**0.5.0 未产出任何构建产物** —— 其发布流水线在 Full CI 关口失败（回归测试假失败），未创建 draft；本版本内容与 0.5.0 相同，仅修正该测试。

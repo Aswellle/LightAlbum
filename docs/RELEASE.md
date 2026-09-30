@@ -50,23 +50,16 @@ pnpm release:tag v0.4.1         # 创建**附注** tag 并推送 → 触发 Rele
 
 ```
 Preflight → Full CI (workflow_call) → Create Draft Release (release_id)
-  → Build Windows / macOS ARM64 / macOS Intel / Linux（同一 release_id）
-  → Verify Assets（四平台 · 仍为 Draft）
+  → Build Windows x64 / macOS Apple Silicon / Linux x64（同一 release_id）
+  → Verify Assets（三个平台各自的产物都在 · 仍为 Draft）
   → release Environment（人工批准）
   → Publish → 不可变
 ```
 
 ### 4. Finalize（必须在发布前完成——发布后不可改写）
 
-1. Releases 页面打开 Draft，确认四平台资产齐全（命名见文末表格）。
-2. 用 `release_notes.md` 替换正文（workflow 用 `--generate-notes` 生成的是提交标题，面向开发者）：
-
-   ```bash
-   gh auth refresh -h github.com        # 本机 gh token 失效时先刷新
-   gh release edit v0.4.1 --title "LightAlbum v0.4.1" --notes-file release_notes.md
-   ```
-
-   Draft 允许编辑；一旦 Publish 即不可变。
+1. Releases 页面打开 Draft，确认三个平台的资产齐全（命名见文末表格）。
+2. 正文**不需要手工替换**：`prepare-release` 用 `--notes-file release_notes.md` 创建 Draft（文件缺失时才退回 `--generate-notes`）。若在创建 Draft 后改过 `release_notes.md`，重跑 workflow 会重新同步正文；Draft 状态允许编辑，一旦 Publish 即不可变。
 3. 批准 `release` environment 的 deployment（Actions → 该 run → Review deployments），workflow 完成 Publish。
 
 ## GitHub environment settings（必需，一次性）
@@ -121,7 +114,7 @@ Distributing outside the Mac App Store requires notarization:
 | 平台 | 产物 |
 |------|----------|
 | Windows | `LightAlbum_x.y.z_x64-setup.exe`（NSIS）、`LightAlbum_x.y.z_x64_en-US.msi` |
-| macOS | `LightAlbum_x.y.z_aarch64.dmg`、`LightAlbum_x.y.z_x64.dmg`（另附 `.app.tar.gz` 更新包） |
+| macOS | `LightAlbum_x.y.z_aarch64.dmg`（Apple Silicon；另附 `.app.tar.gz` 更新包）—— 不再提供 Intel 版本 |
 | Linux | `LightAlbum_x.y.z_amd64.AppImage`、`LightAlbum_x.y.z_amd64.deb`、`LightAlbum-x.y.z-1.x86_64.rpm` |
 
 产物名以 `gh release view <tag> --json assets` 的实际列表为准；`v0.4.0` 的实际资产为 9 个（上表 7 个 + 两个 `.app.tar.gz` 更新包）。

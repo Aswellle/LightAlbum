@@ -220,11 +220,6 @@ jobs:
             target: aarch64-apple-darwin
             sidecar: mac_arm64
 
-          - name: macOS Intel
-            os: macos-26-intel
-            target: x86_64-apple-darwin
-            sidecar: mac_x64
-
           - name: Linux x64
             os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
@@ -338,14 +333,26 @@ jobs:
             exit 1
           fi
 
-          if (( ASSET_COUNT < 4 )); then
-            echo "Expected artifacts from all four platform jobs."
-            exit 1
-          fi
+          ASSET_NAMES="$(jq -r '.assets[].name' <<< "$RELEASE_JSON")"
 
           echo
           echo "Assets:"
-          jq -r '.assets[].name' <<< "$RELEASE_JSON"
+          echo "$ASSET_NAMES"
+
+          # 逐平台校验存在性，而不是数总数：单个平台的产物个数会随打包器变化，
+          # 「总数 ≥ N」既可能被一个平台的多个产物蒙过，也会在平台增删时失效。
+          require_asset() {
+            if ! grep -qF -- "$1" <<< "$ASSET_NAMES"; then
+              echo "Missing artifact for $2 (no asset name contains '$1')."
+              exit 1
+            fi
+          }
+
+          require_asset "_x64-setup.exe"  "Windows x64 (NSIS)"
+          require_asset "_aarch64.dmg"    "macOS Apple Silicon"
+          require_asset "_amd64.AppImage" "Linux x64 (AppImage)"
+
+          echo "All three platforms reported their artifacts."
 
 
   publish:
