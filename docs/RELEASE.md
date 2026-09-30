@@ -56,6 +56,12 @@ Preflight → Full CI (workflow_call) → Create Draft Release (release_id)
   → Publish → 不可变
 ```
 
+> **发行平台固定为三平台**：Windows x64 / macOS Apple Silicon / Linux x64。
+> 不再提供 macOS Intel（`x86_64-apple-darwin`）—— Intel macOS 已不在新系统更新的支持范围内，
+> 且该 job 是矩阵里最慢的一条（实测 23m53s vs Apple Silicon 11m23s）。
+> `pnpm release:preflight` 会校验这条约束（`scripts/release-platforms.mjs`）：
+> 缺少任一保留平台、或重新引入 Intel，都会让预检直接失败。
+
 ### 4. Finalize（必须在发布前完成——发布后不可改写）
 
 1. Releases 页面打开 Draft，确认三个平台的资产齐全（命名见文末表格）。

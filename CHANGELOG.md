@@ -12,6 +12,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **不再为 macOS Intel（`x86_64-apple-darwin`）出安装包** — 保留 Windows x64 / macOS Apple Silicon / Linux x64。Intel macOS 已不在新系统更新的支持范围内，且它是矩阵里最慢的一个：本轮 `Build macOS Intel` 耗时 23m53s，`Build macOS ARM64` 为 11m23s。`.github/workflows/release.yml`、`docs/RELEASE.md`
 - **资产校验改为逐平台校验存在性** — 原先用「资产总数 ≥ 4」判断「四个平台都报到了」，但单个平台可能有多个产物，该阈值既可能放过「其实只有一个平台成功」，也会在平台增删时失效。现在要求 Windows / macOS Apple Silicon / Linux 各自的产物名都出现。`.github/workflows/release.yml`
 - **`sidecar/scripts/bundle.js` 保留 `mac_x64` 能力** — 只是发行矩阵不再调用它，本地手动构建 Intel 版仍可用。
+- **三平台成为受校验的固定约定** — `scripts/release-platforms.mjs` + `pnpm release:preflight` 校验发行矩阵的平台集合：缺少任一保留平台、或重新引入 macOS Intel，预检直接失败；`scripts/release-platforms.test.mjs` 覆盖「齐全 / 缺平台 / 恢复 Intel」三种情形，并包含一条针对真实 `release.yml` 的契约断言。
 
 ## [0.5.1] — 2026-09-30
 

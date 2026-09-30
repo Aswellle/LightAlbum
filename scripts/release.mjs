@@ -1,5 +1,10 @@
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import process from "node:process";
+import {
+  checkReleasePlatforms,
+  PLATFORM_SUMMARY,
+} from "./release-platforms.mjs";
 
 const TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
@@ -74,6 +79,28 @@ function ensureTagDoesNotExist(tag) {
   }
 }
 
+/**
+ * 发行矩阵固定为三平台（见 scripts/release-platforms.mjs）：
+ * Windows x64 / macOS Apple Silicon / Linux x64。
+ * 缺少任一保留平台、或重新引入 macOS Intel，都让预检直接失败。
+ */
+function ensureReleasePlatforms() {
+  const workflow = fs.readFileSync(".github/workflows/release.yml", "utf8");
+  const { ok, missing, forbidden } = checkReleasePlatforms(workflow);
+
+  if (!ok) {
+    const reasons = [];
+    if (missing.length > 0) reasons.push(`missing ${missing.join(", ")}`);
+    if (forbidden.length > 0) reasons.push(`must not ship ${forbidden.join(", ")}`);
+    fail(
+      `release.yml platform set is wrong: ${reasons.join("; ")}.\n` +
+        `Expected ${PLATFORM_SUMMARY}.`,
+    );
+  }
+
+  console.log(`Platforms: ${PLATFORM_SUMMARY}`);
+}
+
 function preflight(tag) {
   if (!TAG_RE.test(tag)) {
     fail(
@@ -96,6 +123,7 @@ function preflight(tag) {
     );
   }
 
+  ensureReleasePlatforms();
   ensureCleanTree();
   ensureOnMain();
 
