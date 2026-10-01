@@ -10,6 +10,7 @@
 //   thumbnail  → Semaphore(3)  每次最多同时解码 3 张图
 //   decode     → Semaphore(1)  原图解码是内存密集型操作，串行更安全
 //   metadata   → Semaphore(8)  仅读头部，可高并发
+//   export     → Semaphore(2)  解码 + 编码 + 落盘，低于 thumbnail 以避免抢内存
 
 class Semaphore {
   /**
@@ -71,5 +72,6 @@ class Semaphore {
 const thumbSem    = new Semaphore(3);  // 缩略图生成
 const decodeSem   = new Semaphore(1);  // 原图解码（内存密集）
 const metaSem     = new Semaphore(8);  // 元数据读取（轻量）
+const exportSem   = new Semaphore(2);  // 导出转码（解码 + 编码 + 落盘）
 
-module.exports = { Semaphore, thumbSem, decodeSem, metaSem };
+module.exports = { Semaphore, thumbSem, decodeSem, metaSem, exportSem };

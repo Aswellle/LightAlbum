@@ -74,6 +74,21 @@ struct MetadataRequest {
     input: String,
 }
 
+/// export 命令请求（协议见 sidecar/handlers/export.js）
+///
+/// 注意：`max_dim` 在 JSON 协议中为 camelCase `maxDim`。
+#[derive(Debug, Serialize)]
+struct ExportRequest {
+    cmd: String,
+    src: String,
+    dest: String,
+    format: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    quality: Option<u32>,
+    #[serde(rename = "maxDim", skip_serializing_if = "Option::is_none")]
+    max_dim: Option<u32>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct SidecarResponse {
     pub ok: bool,
@@ -87,6 +102,16 @@ pub struct MetadataResponse {
     pub height: Option<u32>,
     pub orientation: Option<i32>,
     pub format: Option<String>,
+    pub error: Option<String>,
+}
+
+/// export 命令响应：{ ok, path, width, height } / { ok:false, error }
+#[derive(Debug, Deserialize)]
+pub struct ExportResponse {
+    pub ok: bool,
+    pub path: Option<String>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
     pub error: Option<String>,
 }
 
@@ -265,6 +290,47 @@ impl SidecarHandle {
 
         serde_json::from_str(resp_line.trim())
             .map_err(|e| AppError::Sidecar(format!("Invalid metadata JSON: {e}")))
+    }
+
+    /// 请求导出（转码）单张图片为 JPEG / PNG
+    ///
+    /// HEIC / RAW 的解码全部由 sidecar 内部的 Sharp/libvips 完成，
+    /// 与缩略图、预览共用同一条解码路径。
+    ///
+    /// # 参数
+    /// - `source`   源图片路径（HEIC / RAW / 任意 Sharp 可读格式）
+    /// - `dest`     目标文件绝对路径（父目录须已存在）
+    /// - `format`   `"jpeg"` | `"png"`
+    /// - `quality`  JPEG 质量 1-100（None → 侧车默认 90）
+    /// - `max_dim`  最长边上限（None → 保持原尺寸；不放大）
+    pub fn request_export(
+        &mut self,
+        source: &Path,
+        dest: &Path,
+        format: &str,
+        quality: Option<u32>,
+        max_dim: Option<u32>,
+    ) -> Result<ExportResponse> {
+        self.ensure_running()?;
+
+        let req = ExportRequest {
+            cmd: "export".into(),
+            src: source.to_string_lossy().into_owned(),
+            dest: dest.to_string_lossy().into_owned(),
+            format: format.to_string(),
+            quality,
+            max_dim,
+        };
+
+        let json = serde_json::to_string(&req)?;
+        let resp_line = self.send_recv(&json)?;
+
+        if resp_line.trim().is_empty() {
+            return Err(AppError::Sidecar("Empty export response".into()));
+        }
+
+        serde_json::from_str(resp_line.trim())
+            .map_err(|e| AppError::Sidecar(format!("Invalid export JSON: {e}")))
     }
 
     pub fn kill(&mut self) {

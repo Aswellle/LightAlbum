@@ -18,9 +18,14 @@
 //   5. decode            — base64 模式解码
 //   6. decode (file)     — 文件模式解码
 //   7. batch_thumbnail   — 批量生成（3 张相同图片）
-//   8. unknown cmd       — 应返回 ok:false
-//   9. 不存在的文件       — 应返回 ok:false
-//  10. shutdown          — 优雅退出
+//   8. export (jpeg)     — maxDim 等比缩放导出
+//   9. export (png)      — 原尺寸无损导出
+//  10. export (jpeg 原尺寸)
+//  11. export 异常入参     — 应返回 ok:false
+//  12. export (HEIC)     — 可选，有 test/fixtures/sample.heic 才跑
+//  13. unknown cmd       — 应返回 ok:false
+//  14. 不存在的文件       — 应返回 ok:false
+//  15. shutdown          — 优雅退出
 
 const { spawn } = require('child_process');
 const readline  = require('readline');
@@ -137,8 +142,9 @@ async function runTests() {
   console.log('\n🧪  Sharp Sidecar Smoke Test\n');
 
   // 依赖检查
+  let sharp;
   try {
-    require('sharp');
+    sharp = require('sharp');
   } catch (e) {
     console.error('❌  sharp not installed. Run: npm install');
     process.exit(1);
@@ -244,7 +250,126 @@ async function runTests() {
     }
   }
 
-  // ── 8. batch_thumbnail ───────────────────────────────
+  // ── 8. export (jpeg, maxDim) ─────────────────────────
+  {
+    const outDir = path.join(TMP_DIR, 'export');
+    fs.mkdirSync(outDir, { recursive: true });
+    const outFile = path.join(outDir, 'smoke-max.jpg');
+    const r = await client.send({
+      cmd: 'export', src: sample, dest: outFile, format: 'jpeg', quality: 82, maxDim: 320,
+    });
+    log('export jpeg maxDim', r);
+    if (r.ok && r.path === outFile && fs.existsSync(outFile)) {
+      const meta = await sharp(outFile).metadata();
+      const raw  = await sharp(outFile).raw().toBuffer({ resolveWithObject: true });
+      // 800×600 等比缩放到最长边 320 → 320×240（不放大、不变形）
+      const dimsOk = meta.width === 320 && meta.height === 240;
+      const rawOk  = raw.info.width === meta.width && raw.info.height === meta.height
+                     && raw.data.length === meta.width * meta.height * raw.info.channels;
+      if (meta.format === 'jpeg' && dimsOk && rawOk && r.width === 320 && r.height === 240) {
+        pass(`export jpeg maxDim (${meta.width}×${meta.height}, ${fs.statSync(outFile).size}B)`);
+      } else {
+        fail('export jpeg maxDim', `meta=${JSON.stringify(meta)} raw=${raw.data.length} resp=${JSON.stringify(r)}`);
+      }
+    } else {
+      fail('export jpeg maxDim', JSON.stringify(r));
+    }
+  }
+
+  // ── 9. export (png, 保持原尺寸) ──────────────────────
+  {
+    const outFile = path.join(TMP_DIR, 'export', 'smoke-full.png');
+    const r = await client.send({
+      cmd: 'export', src: sample, dest: outFile, format: 'png',
+    });
+    log('export png', r);
+    if (r.ok && fs.existsSync(outFile)) {
+      const meta = await sharp(outFile).metadata();
+      if (meta.format === 'png' && meta.width === 800 && meta.height === 600
+          && r.width === 800 && r.height === 600) {
+        pass(`export png (${meta.width}×${meta.height}, ${fs.statSync(outFile).size}B)`);
+      } else {
+        fail('export png', `meta=${JSON.stringify(meta)} resp=${JSON.stringify(r)}`);
+      }
+    } else {
+      fail('export png', JSON.stringify(r));
+    }
+  }
+
+  // ── 10. export (jpeg, 默认质量 / 保持原尺寸) ─────────
+  {
+    const outFile = path.join(TMP_DIR, 'export', 'smoke-full.jpg');
+    const r = await client.send({
+      cmd: 'export', src: sample, dest: outFile, format: 'jpeg',
+    });
+    log('export jpeg full', r);
+    if (r.ok && fs.existsSync(outFile)) {
+      const meta = await sharp(outFile).metadata();
+      if (meta.format === 'jpeg' && meta.width === 800 && meta.height === 600) {
+        pass('export jpeg keeps original size when maxDim omitted');
+      } else {
+        fail('export jpeg full', `meta=${JSON.stringify(meta)} resp=${JSON.stringify(r)}`);
+      }
+    } else {
+      fail('export jpeg full', JSON.stringify(r));
+    }
+  }
+
+  // ── 11. export 异常入参 ──────────────────────────────
+  {
+    const badFormat = await client.send({
+      cmd: 'export', src: sample, dest: path.join(TMP_DIR, 'export', 'bad.gif'), format: 'gif',
+    });
+    const badSrc = await client.send({
+      cmd: 'export', src: path.join(TMP_DIR, 'nope.heic'),
+      dest: path.join(TMP_DIR, 'export', 'nope.jpg'), format: 'jpeg',
+    });
+    const badDest = await client.send({ cmd: 'export', src: sample, dest: '', format: 'jpeg' });
+    const badQuality = await client.send({
+      cmd: 'export', src: sample, dest: path.join(TMP_DIR, 'export', 'q.jpg'),
+      format: 'jpeg', quality: 0,
+    });
+    log('export invalid', badFormat, badSrc, badDest, badQuality);
+    const allRejected = !badFormat.ok && !badSrc.ok && !badDest.ok && !badQuality.ok;
+    const noSideEffects = !fs.existsSync(path.join(TMP_DIR, 'export', 'bad.gif'))
+                          && !fs.existsSync(path.join(TMP_DIR, 'export', 'q.jpg'));
+    if (allRejected && noSideEffects
+        && badFormat.error.includes('format')
+        && badSrc.error.includes('not found')
+        && badDest.error.includes('dest')
+        && badQuality.error.includes('quality')) {
+      pass('export rejects invalid args');
+    } else {
+      fail('export invalid args', JSON.stringify([badFormat, badSrc, badDest, badQuality]));
+    }
+  }
+
+  // ── 12. export (HEIC 实文件，可选) ───────────────────
+  {
+    const heic = path.join(FIXTURE_DIR, 'sample.heic');
+    if (!fs.existsSync(heic)) {
+      console.log('  ⏭️   export HEIC skipped (no test/fixtures/sample.heic)');
+    } else {
+      const outFile = path.join(TMP_DIR, 'export', 'from-heic.jpg');
+      const r = await client.send({
+        cmd: 'export', src: heic, dest: outFile, format: 'jpeg', quality: 85, maxDim: 512,
+      });
+      log('export heic', r);
+      if (r.ok && fs.existsSync(outFile)) {
+        const meta = await sharp(outFile).metadata();
+        const dimsOk = Math.max(meta.width, meta.height) <= 512;
+        if (meta.format === 'jpeg' && dimsOk && r.width === meta.width && r.height === meta.height) {
+          pass(`export HEIC→JPEG (${meta.width}×${meta.height})`);
+        } else {
+          fail('export heic', `meta=${JSON.stringify(meta)} resp=${JSON.stringify(r)}`);
+        }
+      } else {
+        fail('export heic', JSON.stringify(r));
+      }
+    }
+  }
+
+  // ── 13. batch_thumbnail ──────────────────────────────
   {
     const tasks = [0, 1, 2].map((i) => ({
       input:   sample,
@@ -261,7 +386,7 @@ async function runTests() {
     }
   }
 
-  // ── 9. unknown command ───────────────────────────────
+  // ── 14. unknown command ──────────────────────────────
   {
     const r = await client.send({ cmd: 'nonexistent' });
     log('unknown cmd', r);
@@ -272,7 +397,7 @@ async function runTests() {
     }
   }
 
-  // ── 10. missing file ─────────────────────────────────
+  // ── 15. missing file ─────────────────────────────────
   {
     const r = await client.send({
       cmd:     'thumbnail',
@@ -288,7 +413,7 @@ async function runTests() {
     }
   }
 
-  // ── 11. reqId round-trip ─────────────────────────────
+  // ── 16. reqId round-trip ─────────────────────────────
   {
     const r = await client.send({ cmd: 'ping', reqId: 'abc-123' });
     if (r.ok && r.reqId === 'abc-123') {
@@ -298,7 +423,7 @@ async function runTests() {
     }
   }
 
-  // ── 12. shutdown ─────────────────────────────────────
+  // ── 17. shutdown ─────────────────────────────────────
   {
     const r = await client.send({ cmd: 'shutdown' });
     log('shutdown', r);

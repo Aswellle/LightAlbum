@@ -19,6 +19,7 @@
 //    thumbnail         生成 HEIC/RAW 缩略图（单张）
 //    batch_thumbnail   批量生成缩略图
 //    decode            解码 HEIC/RAW 原图（大图预览）
+//    export            导出为 JPEG/PNG（HEIC/RAW 转码）
 //    metadata          读取图片元数据
 //    ping              健康检测
 //    memory            内存使用查询
@@ -46,6 +47,7 @@ const thumbnail        = require('./handlers/thumbnail');
 const batchThumbnail   = require('./handlers/batch_thumbnail');
 const decode           = require('./handlers/decode');
 const metadata         = require('./handlers/metadata');
+const exportHandler    = require('./handlers/export');
 
 // ─────────────────────────────────────────────────────────
 //  命令路由表
@@ -56,6 +58,7 @@ const HANDLERS = {
   batch_thumbnail: batchThumbnail.handle,
   decode:          decode.handle,
   metadata:        metadata.handle,
+  export:          exportHandler.handle,
 
   // ── 内建命令 ──────────────────────────────────────────
 
@@ -97,6 +100,7 @@ const TIMEOUT_MS = {
   thumbnail:       30_000,   // 30s（RAW 解码可能较慢）
   batch_thumbnail: 600_000,  // 10min（批量最多 200 张）
   decode:          60_000,   // 60s（高分辨率原图）
+  export:          60_000,   // 60s（HEIC/RAW 解码 + 编码 + 落盘）
   metadata:        10_000,   // 10s
   ping:             1_000,
   memory:           1_000,
@@ -193,7 +197,7 @@ async function handleLine(trimmed) {
   }
 
   // ── 内存压力检查（仅对重量级命令）────────────────────
-  if ((cmd === 'thumbnail' || cmd === 'decode' || cmd === 'batch_thumbnail')
+  if ((cmd === 'thumbnail' || cmd === 'decode' || cmd === 'batch_thumbnail' || cmd === 'export')
       && !isMemoryOk()) {
     const rssMB = Math.round(process.memoryUsage().rss / 1048576);
     log.warn(`Memory pressure: ${rssMB}MB, rejecting ${cmd}`);

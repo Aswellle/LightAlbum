@@ -65,4 +65,32 @@ function checkBatchReq(req) {
   return null;
 }
 
-module.exports = { checkInput, checkThumbnailReq, checkBatchReq };
+/**
+ * 校验 export 命令参数
+ *
+ * 请求：
+ *   { cmd:'export', src, dest, format:'jpeg'|'png', quality?, maxDim? }
+ */
+function checkExportReq(req) {
+  const { src, dest, format, quality, maxDim } = req;
+
+  const srcErr = checkInput(src);
+  if (srcErr) return srcErr;
+
+  if (typeof dest !== 'string' || dest.trim() === '') {
+    return { ok: false, error: 'Missing or invalid "dest" field' };
+  }
+  if (format !== 'jpeg' && format !== 'png') {
+    return { ok: false, error: `Invalid format: ${format} (must be jpeg|png)` };
+  }
+  if (quality !== undefined && (typeof quality !== 'number' || quality < 1 || quality > 100)) {
+    return { ok: false, error: `Invalid quality: ${quality} (must be 1-100)` };
+  }
+  if (maxDim !== undefined &&
+      (typeof maxDim !== 'number' || !Number.isFinite(maxDim) || maxDim < 1 || maxDim > 65535)) {
+    return { ok: false, error: `Invalid maxDim: ${maxDim} (must be 1-65535)` };
+  }
+  return null;
+}
+
+module.exports = { checkInput, checkThumbnailReq, checkBatchReq, checkExportReq };
