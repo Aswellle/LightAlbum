@@ -3,12 +3,19 @@
  * @description 发行说明版本同步的单测（由 `pnpm test` 收集：vitest 默认 include 覆盖 scripts/）
  */
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
 import { describe, it, expect } from 'vitest'
 import {
   rewriteReleaseNotes,
   collectReleaseNoteVersions,
   checkReleaseNotes,
+  checkReleaseNotesFormat,
 } from './release-notes.mjs'
+
+// 用 process.cwd()（vitest 的 cwd 即仓库根）：import.meta.url 在 vitest 下不是 file: 协议
+const RELEASE_NOTES = join(process.cwd(), 'release_notes.md')
 
 const NOTES = `# LightAlbum v0.4.3
 
@@ -60,5 +67,52 @@ describe('release_notes 版本同步', () => {
   it('校验：版本不一致时给出实际出现的版本号', () => {
     expect(checkReleaseNotes(NOTES, '0.4.3')).toEqual({ ok: true, found: ['0.4.3'] })
     expect(checkReleaseNotes(NOTES, '0.4.4')).toEqual({ ok: false, found: ['0.4.3'] })
+  })
+})
+
+describe('release_notes 版式约定', () => {
+  const WELL_FORMED = `# LightAlbum v0.5.1
+
+> 摘要
+
+## 实现
+
+- 某功能
+
+## 下载
+
+| 平台 | 文件 |
+|------|------|
+| Windows (x64) | \`LightAlbum_0.5.1_x64-setup.exe\` |
+`
+
+  it('下载表格位于末尾时通过', () => {
+    expect(checkReleaseNotesFormat(WELL_FORMED)).toEqual({ ok: true, problems: [] })
+  })
+
+  it('下载表格不在末尾时报错', () => {
+    const source = WELL_FORMED.replace('## 实现', '## 下载') + '\n## 修复\n\n- 某修复\n'
+    const result = checkReleaseNotesFormat(source)
+
+    expect(result.ok).toBe(false)
+    expect(result.problems[0]).toContain('应把「下载」放在正文末尾')
+  })
+
+  it('含指向 Releases 页面的链接时报错', () => {
+    const source =
+      WELL_FORMED +
+      '\n[前往 Releases 页面](https://github.com/Aswellle/LightAlbum/releases/latest)\n'
+
+    const result = checkReleaseNotesFormat(source)
+
+    expect(result.ok).toBe(false)
+    expect(result.problems).toContain('不要写指向 Releases 页面的链接')
+  })
+
+  it('真实的 release_notes.md 符合版式约定', () => {
+    expect(checkReleaseNotesFormat(readFileSync(RELEASE_NOTES, 'utf8'))).toEqual({
+      ok: true,
+      problems: [],
+    })
   })
 })

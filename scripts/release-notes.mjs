@@ -49,3 +49,29 @@ export function checkReleaseNotes(source, version) {
   if (found.length === 0) return { ok: true, found }
   return { ok: found.every((v) => v === version), found }
 }
+
+/**
+ * 发行正文的版式约定（长期有效）：
+ *   1. 下载表格置于正文**末尾** —— 最后一个二级标题必须是「下载」
+ *   2. 不写指向 Releases 页面的链接 —— 正文本身就在发行页面上
+ *
+ * `release_notes.md` 会被 `--notes-file` 原样发布，所以这些约定必须在发版前拦住。
+ */
+export function checkReleaseNotesFormat(source) {
+  const problems = []
+
+  const headings = [...source.matchAll(/^## +(.+?)\s*$/gm)].map((m) => m[1].trim())
+  const lastHeading = headings[headings.length - 1]
+
+  if (headings.length === 0) {
+    problems.push('没有任何二级标题')
+  } else if (lastHeading !== '下载') {
+    problems.push(`最后一节是「${lastHeading}」，应把「下载」放在正文末尾`)
+  }
+
+  if (/https?:\/\/\S*github\.com\/\S*\/releases/i.test(source)) {
+    problems.push('不要写指向 Releases 页面的链接')
+  }
+
+  return { ok: problems.length === 0, problems }
+}

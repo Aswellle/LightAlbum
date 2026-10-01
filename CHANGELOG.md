@@ -14,6 +14,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`sidecar/scripts/bundle.js` 保留 `mac_x64` 能力** — 只是发行矩阵不再调用它，本地手动构建 Intel 版仍可用。
 - **三平台成为受校验的固定约定** — `scripts/release-platforms.mjs` + `pnpm release:preflight` 校验发行矩阵的平台集合：缺少任一保留平台、或重新引入 macOS Intel，预检直接失败；`scripts/release-platforms.test.mjs` 覆盖「齐全 / 缺平台 / 恢复 Intel」三种情形，并包含一条针对真实 `release.yml` 的契约断言。
 
+### 发行说明版式约定
+
+#### Changed
+
+- **下载表格固定放在发行正文末尾，并去掉指向 Releases 页面的链接** —— 正文本身就显示在发行页面上，再放「前往 Releases 页面」的链接没有意义；表格放末尾则先读更新内容、再看下载。`pnpm release:preflight` 校验这两条（`scripts/release-notes.mjs` 的 `checkReleaseNotesFormat`，测试含对真实 `release_notes.md` 的契约断言）。`release_notes.md`、`docs/RELEASE.md`
+
 ## [0.5.1] — 2026-09-30
 
 > 注：**0.5.0 未产出任何构建产物** —— 其发布流水线在 Full CI 关口失败（回归测试假失败），未创建 draft；本版本内容与 0.5.0 相同，仅修正该测试。

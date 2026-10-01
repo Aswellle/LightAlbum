@@ -5,6 +5,9 @@ import {
   checkReleasePlatforms,
   PLATFORM_SUMMARY,
 } from "./release-platforms.mjs";
+import { checkReleaseNotesFormat } from "./release-notes.mjs";
+
+const NOTES_FILE = "release_notes.md";
 
 const TAG_RE = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
@@ -101,6 +104,24 @@ function ensureReleasePlatforms() {
   console.log(`Platforms: ${PLATFORM_SUMMARY}`);
 }
 
+/**
+ * 发行正文档式（长期约定）：下载表格置于末尾、不写指向 Releases 页面的链接。
+ * 见 scripts/release-notes.mjs；文件缺失时跳过 —— 工作流会退回 `--generate-notes`。
+ */
+function ensureReleaseNotesFormat() {
+  if (!fs.existsSync(NOTES_FILE)) return;
+
+  const { ok, problems } = checkReleaseNotesFormat(
+    fs.readFileSync(NOTES_FILE, "utf8"),
+  );
+
+  if (!ok) {
+    fail(`release_notes.md format is off: ${problems.join("; ")}.`);
+  }
+
+  console.log("Release notes: download table last, no releases link");
+}
+
 function preflight(tag) {
   if (!TAG_RE.test(tag)) {
     fail(
@@ -124,6 +145,7 @@ function preflight(tag) {
   }
 
   ensureReleasePlatforms();
+  ensureReleaseNotesFormat();
   ensureCleanTree();
   ensureOnMain();
 

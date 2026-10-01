@@ -29,7 +29,11 @@ pnpm version:check          # 校验四者一致
 ### 1. Prepare
 
 - `CHANGELOG.md`：把 `[Unreleased]` 提升为新版本小节（`## [0.4.1] — YYYY-MM-DD`），条目按 Added / Changed / Fixed 归类。
-- 写 `release_notes.md`：**用户视角**的发行说明，按「实现 / 添加 / 修复」分条，不含文件名、组件名、令牌等实现细节——它会被用作 GitHub Release 正文。
+- 写 `release_notes.md`：**用户视角**的发行说明，按「实现 / 添加 / 修复」分条，不含文件名、组件名、令牌等实现细节——它会被用作 GitHub Release 正文（`--notes-file` **原样**发布）。版式约定：
+  - **下载表格放在正文末尾**（最后一个二级标题必须是 `## 下载`）：先读更新内容，再看下载。
+  - **不要写指向 Releases 页面的链接**：正文本身就显示在发行页面上。
+  - 只描述本版本的代码变动；**不要提及未发布或发布失败的版本**。
+  - 前两条由 `pnpm release:preflight` 校验（`scripts/release-notes.mjs` 的 `checkReleaseNotesFormat`）。
 - 提交：`chore(release): bump version to X.Y.Z and update CHANGELOG`。
 
 > **版本号不用手改**：`pnpm version:set X.Y.Z`（或 `pnpm version:bump …`）会把
