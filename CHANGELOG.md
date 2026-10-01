@@ -26,6 +26,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **批处理栏的「导出」按钮占位** — 该按钮一直是 `disabled` + `TODO`（PRD M-11 v1.1 的占位），占着位置却点不动，只会让用户以为功能坏了。对**原地索引**的本地图库来说，「导出原件」等于复制用户文件夹里已经有的文件，系统资源管理器更顺手；应用真正缺的是「在资源管理器中显示」。「导出」若要做，应按**格式转换**定义（HEIC/RAW → JPEG/PNG，可选尺寸与质量），而不是复制原件。`src/components/grid/BatchActionBar.tsx`
 
+### 导出为 JPEG/PNG + 在资源管理器中显示
+
+#### Added
+
+- **导出为 JPEG/PNG（HEIC/RAW 转码）** — 批处理栏选中照片后导出到指定文件夹。HEIC/RAW 这类系统打不开的格式由侧车转码；JPEG/PNG 且未指定尺寸/质量时直接复制（最快且无损）。可选格式（自动 / JPEG / PNG）、JPEG 质量与最长边；目标同名文件自动改名 `name (2).jpg`，**绝不覆盖**；单张失败不中断整批，结束时汇总成功/失败张数；每完成一张发 `export:progress`。`src-tauri/src/commands/export.rs`、`src-tauri/src/thumbnail/sidecar.rs`、`sidecar/handlers/export.js`、`src/components/grid/ExportDialog.tsx`、`src/components/grid/BatchActionBar.tsx`
+- **「在资源管理器中显示」** — 照片右键菜单（单张时）与预览工具栏各一个入口，用系统文件管理器定位并选中该文件：Windows `explorer /select`、macOS `open -R`、Linux 打开所在目录。`src-tauri/src/commands/reveal.rs`、`src/components/grid/GridItem.tsx`、`src/components/preview/PreviewToolbar.tsx`
+- **`docs/decisions/ADR-009-export-semantics.md`** — 导出语义决策：图库是原地索引，因此「导出」定义为**格式转换**而非复制原件；直拷与转码的分派规则、绝不覆盖、失败不中断。
+- **侧车 smoke 覆盖 `export`** — 产物存在、可被 sharp 重读、`maxDim` 约束生效、异常入参返回 `ok:false` 且不留副作用文件；另有一条可选 HEIC fixture 用例（仓库暂无 HEIC 素材时打印 skip）。
+- **E2E 覆盖两条 UI→IPC 链路** — 右键菜单发出的 `photos_reveal`（恰好一次、带 photoId），以及批处理栏 → 选项对话框发出的 `photos_export`（`destDir` / `format` / `quality` / `maxDim` / `photoIds` 与所选一致）。为此给共用打桩补上通用 `args` 记录、文件夹对话框与两条命令的响应。`tests/e2e/export-reveal.spec.ts`、`tests/e2e/support/tauriStub.ts`
+
 ## [0.5.1] — 2026-09-30
 
 > 注：**0.5.0 未产出任何构建产物** —— 其发布流水线在 Full CI 关口失败（回归测试假失败），未创建 draft；本版本内容与 0.5.0 相同，仅修正该测试。
