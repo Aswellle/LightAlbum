@@ -20,6 +20,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **下载表格固定放在发行正文末尾，并去掉指向 Releases 页面的链接** —— 正文本身就显示在发行页面上，再放「前往 Releases 页面」的链接没有意义；表格放末尾则先读更新内容、再看下载。`pnpm release:preflight` 校验这两条（`scripts/release-notes.mjs` 的 `checkReleaseNotesFormat`，测试含对真实 `release_notes.md` 的契约断言）。`release_notes.md`、`docs/RELEASE.md`
 
+### 移除未实现的导出占位
+
+#### Removed
+
+- **批处理栏的「导出」按钮占位** — 该按钮一直是 `disabled` + `TODO`（PRD M-11 v1.1 的占位），占着位置却点不动，只会让用户以为功能坏了。对**原地索引**的本地图库来说，「导出原件」等于复制用户文件夹里已经有的文件，系统资源管理器更顺手；应用真正缺的是「在资源管理器中显示」。「导出」若要做，应按**格式转换**定义（HEIC/RAW → JPEG/PNG，可选尺寸与质量），而不是复制原件。`src/components/grid/BatchActionBar.tsx`
+
 ## [0.5.1] — 2026-09-30
 
 > 注：**0.5.0 未产出任何构建产物** —— 其发布流水线在 Full CI 关口失败（回归测试假失败），未创建 draft；本版本内容与 0.5.0 相同，仅修正该测试。

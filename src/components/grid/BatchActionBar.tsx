@@ -1,6 +1,6 @@
 /**
  * @file src/components/grid/BatchActionBar.tsx
- * @description 批量操作工具栏（v2 — 修复新建相册并加入 + 全选 | Phase-D — 批量收藏 undo 修复 + 导出占位）
+ * @description 批量操作工具栏（v2 — 修复新建相册并加入 + 全选 | Phase-D — 批量收藏 undo 修复）
  *
  * v2 修复：
  *
@@ -21,10 +21,6 @@
  *         并发调用单次命令，写 N 条 undo_log，但 Ctrl+Z 每次只能弹出最后一条。
  *   修复：改用 api.photos.setFavoriteBatch(ids, value)，后端原子写一条 "favorite_batch"
  *         undo_log，支持一次 Ctrl+Z 回滚整批收藏操作。
- *
- * 新增 — 导出按钮占位（PRD M-11 v1.1 功能）
- *   按钮处于 disabled 状态，title 标注"即将支持（v1.1）"，
- *   为下一版本提供 UI 占位，避免用户找不到导出入口。
  *
  * Bug 2 — 全选/反选不生效
  *   原因：BatchActionBar 的 allIds prop 来自 Toolbar，
@@ -397,14 +393,6 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
           onClick={handleDelete}
           label={selectedCount > 0 ? `删除 ${selectedCount} 张` : '删除'}
           icon="trash" danger disabled={selectedCount === 0}
-        />
-
-        {/* Phase-D：导出按钮占位（PRD M-11 v1.1）— 暂时 disabled，预留 UI 位置 */}
-        <BatchActionButton
-          onClick={() => { /* v1.1 TODO: export */ }}
-          label="导出"
-          icon="import"
-          disabled
         />
 
         <div style={{ flex: 1 }} />
