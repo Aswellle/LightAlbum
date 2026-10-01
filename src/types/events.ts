@@ -26,6 +26,9 @@ export interface LibraryChangedPayload {
 export interface PhotoUpdatedPayload  { photoId: string; fields: Array<keyof Photo> }
 export interface AlbumUpdatedPayload  { albumId: string; action: 'created' | 'deleted' | 'renamed' | 'photos_added' | 'photos_removed' | 'cover_changed' }
 
+/** 导出进度：每完成一张照片 emit 一次（current = 文件名） */
+export interface ExportProgressPayload { done: number; total: number; current: string }
+
 export interface TauriEventMap {
   'scan:started':    ScanStartedPayload
   'scan:progress':   ScanProgressPayload
@@ -36,6 +39,7 @@ export interface TauriEventMap {
   'library:changed': LibraryChangedPayload
   'photo:updated':   PhotoUpdatedPayload
   'album:updated':   AlbumUpdatedPayload
+  'export:progress': ExportProgressPayload
 }
 
 /** CQ-L1: Typed constants for all Tauri event names — avoids stringly-typed event subscriptions. */

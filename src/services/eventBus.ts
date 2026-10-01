@@ -21,7 +21,7 @@ import { useLibrarySyncStore } from '@/data/events/librarySync'
 //  类型安全的 listen 封装
 // ─────────────────────────────────────────────────────────
 
-function listenTyped<K extends keyof TauriEventMap>(
+export function listenTyped<K extends keyof TauriEventMap>(
   event: K,
   handler: (payload: TauriEventMap[K]) => void,
 ): Promise<UnlistenFn> {

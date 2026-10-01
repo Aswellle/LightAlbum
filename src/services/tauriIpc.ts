@@ -121,6 +121,16 @@ export const api = {
     /** Phase-D：批量切换收藏，原子 undo_log，支持 Ctrl+Z 一次性回滚整批 */
     setFavoriteBatch: (ids: string[], value: boolean) =>
       ipc('photos_favorite_batch', { ids, value }),
+    /** 在系统文件管理器中定位该照片的原始文件 */
+    reveal:      (photoId: string) => ipc('photos_reveal', { photoId }),
+    /** 导出（另存/转换）所选照片 */
+    export:      (args: {
+      photoIds: string[]
+      destDir:  string
+      format:   'auto' | 'jpeg' | 'png'
+      quality?: number
+      maxDim?:  number
+    }) => ipc('photos_export', args),
   },
 
   search: {

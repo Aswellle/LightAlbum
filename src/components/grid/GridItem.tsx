@@ -379,6 +379,14 @@ export const GridItem = memo(function GridItem({ photo, size, allIds }: GridItem
             id: 'open', label: '在大图中查看', icon: 'eye' as const,
             onClick: () => openPreview(photo.id, photoIds, divRef.current?.getBoundingClientRect()),
           },
+          // 仅单张照片时提供：在系统文件管理器中定位原始文件
+          {
+            id: 'reveal', label: '在资源管理器中显示', icon: 'folder-open' as const,
+            onClick: () => {
+              // ipc 层失败时已按错误码弹出提示（如 PHOTO_NOT_FOUND），此处仅吞掉 rejection
+              api.photos.reveal(photo.id).catch(() => { /* 错误提示由 ipc 层负责 */ })
+            },
+          },
           // 私密相册内禁止添加到其他相册
           ...(!isPrivateAlbum ? [{
             id: 'add-to-album', label: '添加到相册', icon: 'book' as const,

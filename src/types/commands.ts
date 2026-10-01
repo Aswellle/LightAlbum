@@ -26,6 +26,15 @@ export interface AlbumUpdateParams {
   sortOrder?: number
 }
 
+/** 导出结果汇总（Rust `photos_export` 返回值，单字段名无大小写歧义）*/
+export interface ExportSummary {
+  exported:  number
+  copied:    number
+  converted: number
+  failed:    number
+  failures:  Array<{ name: string; reason: string }>
+}
+
 export interface IpcCommands {
   // ── 扫描 ──
   import_scan:        (args: { path: string }) => ScanProgress
@@ -49,6 +58,16 @@ export interface IpcCommands {
   photos_favorite:    (args: { id: string; value: boolean }) => void
   /** Phase-D：批量切换收藏，原子写一条 undo_log，支持 Ctrl+Z 回滚整批操作 */
   photos_favorite_batch: (args: { ids: string[]; value: boolean }) => void
+  /** 在系统文件管理器中定位该照片的原始文件（Windows：资源管理器）*/
+  photos_reveal:      (args: { photoId: string }) => void
+  /** 导出（另存/转换）所选照片，结果汇总见 ExportSummary */
+  photos_export:      (args: {
+    photoIds: string[]
+    destDir:  string
+    format:   'auto' | 'jpeg' | 'png'
+    quality?: number
+    maxDim?:  number
+  }) => ExportSummary
 
   // ── 搜索 ──
   search_photos:      (args: { query: SearchQuery }) => PhotoPage

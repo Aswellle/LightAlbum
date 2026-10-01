@@ -53,6 +53,8 @@ export interface InvokeRecord {
   filter?: Record<string, unknown>
   /** photos_get / photo_tags_get 等按 id 调用的命令参数 */
   id?:     string
+  /** 完整命令参数（形状未校验，断言方按需读取；如 photos_export 的 destDir/format） */
+  args?:   Record<string, unknown>
 }
 
 export interface ProbeFrame {
@@ -196,9 +198,27 @@ export async function installTauriStub(page: Page, options: StubOptions = {}): P
             cmd,
             filter: args?.filter as Record<string, unknown> | undefined,
             id:     args?.id as string | undefined,
+            args,
           })
 
+          // 文件夹选择对话框（tauri-plugin-dialog）：测试里固定返回一个假目录
+          if (cmd.startsWith('plugin:dialog|')) return 'C:\\e2e-export-out'
+
           switch (cmd) {
+            case 'photos_reveal':
+              return null
+
+            case 'photos_export': {
+              const ids = (args?.photoIds as string[] | undefined) ?? []
+              return {
+                exported:  ids.length,
+                copied:    ids.length,
+                converted: 0,
+                failed:    0,
+                failures:  [],
+              }
+            }
+
             case 'settings_get':
               return {
                 theme: 'dark',

@@ -63,6 +63,7 @@ pub fn run() {
             commands::photo::photos_restore,
             commands::photo::photos_purge,
             commands::photo::photos_purge_data, // v2 新增：仅从程序清除，不删磁盘文件
+            commands::export::photos_export,    // 导出为 JPEG/PNG（HEIC/RAW 转码）
             // ── 搜索 ──────────────────────────────────────
             commands::photo::search_photos,
             commands::photo::search_suggestions,
@@ -98,6 +99,8 @@ pub fn run() {
             commands::settings::storage_get_info,
             commands::settings::storage_clear_thumbnails,
             commands::settings::storage_open_data_dir,
+            // ── 在资源管理器中显示 ────────────────────────
+            commands::reveal::photos_reveal,
             // ── 撤销 ──────────────────────────────────────
             commands::undo::undo_last,
         ])

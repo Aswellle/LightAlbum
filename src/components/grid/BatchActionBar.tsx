@@ -40,6 +40,7 @@ import { Icon } from '@/components/common/Icon'
 import type { IconName } from '@/components/common/Icon'
 import { useConfirmDialog } from '@/components/common/ConfirmDialog'
 import { CreateAlbumDialog } from '@/components/album/CreateAlbumDialog'
+import { ExportDialog } from '@/components/grid/ExportDialog'
 import { useAlbumContext } from '@/components/album/AlbumView'
 import { toAssetUrl } from '@/services/assetUrl'  // Fix: raw path → asset URL
 import {
@@ -278,6 +279,7 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
   const [showAlbumPicker, setShowAlbumPicker]   = useState(false)
   // v2 修复：用状态管理「新建相册并加入」对话框
   const [showCreateAlbum, setShowCreateAlbum]   = useState(false)
+  const [showExport, setShowExport]             = useState(false)
 
   const selectedArr = useMemo(() => [...selectedIds], [selectedIds])
   const allFavorited = selectedArr.length > 0 &&
@@ -395,6 +397,13 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
           icon="trash" danger disabled={selectedCount === 0}
         />
 
+        <BatchActionButton
+          onClick={() => setShowExport(true)}
+          label={selectedCount > 0 ? `导出 ${selectedCount} 张` : '导出'}
+          icon="download-cloud"
+          disabled={selectedCount === 0}
+        />
+
         <div style={{ flex: 1 }} />
         <span style={{ fontSize: 'var(--la-text-sm)', fontWeight: 'var(--la-weight-medium)', color: 'var(--la-text-on-accent)', flexShrink: 0, userSelect: 'none' }}>
           {selectedCount > 0 ? `已选 ${selectedCount} 张 / 共 ${totalCount} 张` : `共 ${totalCount} 张`}
@@ -437,6 +446,17 @@ export const BatchActionBar = memo(function BatchActionBar({ allIds, totalCount 
             key="create-album-for-batch"
             onClose={() => setShowCreateAlbum(false)}
             onCreated={handleAlbumCreated}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 导出为 JPEG/PNG（HEIC/RAW 转码） */}
+      <AnimatePresence>
+        {showExport && (
+          <ExportDialog
+            key="export-batch"
+            photoIds={selectedArr}
+            onClose={() => setShowExport(false)}
           />
         )}
       </AnimatePresence>

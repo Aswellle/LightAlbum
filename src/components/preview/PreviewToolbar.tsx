@@ -62,7 +62,10 @@ const ToolbarBtn = memo(function ToolbarBtn({
         alignItems:      'center',
         justifyContent:  'center',
         gap:             '3px',
-        width:           '44px',
+        // 单字标签仍为 44px（minWidth），多字标签（如「在资源管理器中显示」）按内容撑开不换行
+        width:           'auto',
+        minWidth:        '44px',
+        padding:         '0 8px',
         height:          '44px',
         borderRadius:    'var(--la-radius-md)',
         backgroundColor: 'transparent',
@@ -91,6 +94,7 @@ const ToolbarBtn = memo(function ToolbarBtn({
         fontWeight:    'var(--la-weight-medium)' as unknown as number,
         letterSpacing: '0.02em',
         lineHeight:    'var(--la-leading-tight)',
+        whiteSpace:    'nowrap',
         // 工具栏遮罩自上而下淡出：标签位于最透明处，叠加照片内容时需要
         // 与 GridItem 一致的投影保证可读性（同仓库既有做法）。
         textShadow:    '0 1px 3px rgba(0,0,0,0.85)',
@@ -267,6 +271,15 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
     }
   }, [photoId])
 
+  // ── 在资源管理器中显示（定位原始文件）─────────────
+  const handleReveal = useCallback(async () => {
+    try {
+      await api.photos.reveal(photoId)
+    } catch {
+      // 失败原因由 ipc 层按错误码弹出（如 PHOTO_NOT_FOUND），此处不重复提示
+    }
+  }, [photoId])
+
   return (
     <>
       <AnimatePresence>
@@ -365,6 +378,11 @@ export const PreviewToolbar = memo(function PreviewToolbar({ photoId }: PreviewT
                 iconName="share"
                 label="复制"
                 onClick={handleShare}
+              />
+              <ToolbarBtn
+                iconName="folder-open"
+                label="在资源管理器中显示"
+                onClick={handleReveal}
               />
               <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--la-divider)', margin: '0 4px' }} />
               <ToolbarBtn
