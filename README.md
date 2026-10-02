@@ -190,7 +190,11 @@ pnpm tauri dev
 
 ---
 
-如果这个项目对你有帮助，欢迎 ⭐ Star 支持！
+## ⭐ 支持这个项目
+
+如果LightAblum对你有帮助，欢迎给我一个 ⭐️ Star！
+
+你的每一次支持，都是我持续改进的动力。
 
 ---
 
@@ -375,7 +379,11 @@ pnpm tauri dev
 
 ---
 
-If this project helps you, a ⭐ Star is appreciated!
+## ⭐ Support this project
+
+If LightAblum has helped you, please give me a ⭐️ Star!
+
+Every piece of your support is the driving force behind my continuous improvement.
 
 ---
 
