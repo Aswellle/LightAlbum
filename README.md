@@ -139,8 +139,9 @@
 |------|------|
 | Windows (x64) | `.msi` 安装包 或 `.exe` |
 | macOS (Apple Silicon) | `.dmg`（aarch64） |
-| macOS (Intel) | `.dmg`（x86_64） |
 | Linux (x64) | `.deb` 或 `.AppImage` |
+
+> **macOS (Intel) 已停止发布** —— **0.5.1 是最后一个提供 Intel 版本（`.dmg`，x86_64）的版本**；此后只发布 Windows x64 / macOS Apple Silicon / Linux x64 三个平台。
 
 ---
 
@@ -331,8 +332,9 @@ Visit the [Releases page](https://github.com/Aswellle/LightAlbum/releases/latest
 |----------|------|
 | Windows (x64) | `.msi` installer or `.exe` |
 | macOS (Apple Silicon) | `.dmg` (aarch64) |
-| macOS (Intel) | `.dmg` (x86_64) |
 | Linux (x64) | `.deb` or `.AppImage` |
+
+> **macOS (Intel) is no longer published** — **0.5.1 is the last release with an Intel build** (`.dmg`, x86_64); from then on only Windows x64, macOS Apple Silicon and Linux x64 are shipped.
 
 ---
 
