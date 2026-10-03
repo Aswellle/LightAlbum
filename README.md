@@ -12,6 +12,10 @@
 
 ## 中文
 
+![导入图片后的运行效果图](docs/images/screenshot-library.png)
+
+*导入图片后的运行效果图*
+
 ### 什么体验
 
 打开 LightAlbum，你的照片库以精美的瀑布流或固定网格呈现。滚动浏览数万张照片 — 每一帧都流畅如初。点击任意照片进入全屏预览：EXIF 信息、胶片条导航、键盘快捷键，一切尽在指尖。
@@ -199,6 +203,10 @@ pnpm tauri dev
 ---
 
 ## English
+
+![The app running after importing photos](docs/images/screenshot-library.png)
+
+*The app running after importing photos*
 
 ### The Experience
 
